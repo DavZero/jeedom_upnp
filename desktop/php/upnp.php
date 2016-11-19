@@ -106,8 +106,8 @@ $eqLogics = eqLogic::byType('upnp');
     					<label class="col-sm-3 control-label" >{{Affichage}}</label>
               <div class="col-sm-8">
                 <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="configuration" data-l2key="customDisplay" checked/>{{Affichage spécifique au service}}</label>
-                <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="configuration" data-l2key="displayUnmanagedCommand" checked/>{{Afficher les commandes complémentaires (en respectant le paramétrage de chaque commandes)}}</label>
-                <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr expertModeVisible" data-l1key="configuration" data-l2key="standardDisplayOfCustomizedCommand" unchecked/>{{Afficher toutes les commandes en mode "standard", en plus de l'affichage spécifique (en respectant le paramétrage de chaque commandes)}}</label>
+                <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="configuration" data-l2key="displayUnmanagedCommand" checked/>{{Afficher les commandes complémentaires}}</label>
+                <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr expertModeVisible" data-l1key="configuration" data-l2key="standardDisplayOfCustomizedCommand" unchecked/>{{Afficher toutes les commandes en mode "standard", en plus de l'affichage spécifique}}</label>
               </div>
     				</div>
     				<legend><i class="fa fa-info-circle"></i>{{Informations}}</legend>
