@@ -1,0 +1,119 @@
+<div class="cmd cmd-widget noRefresh" data-type="info" data-subtype="string" data-cmd_id="#id#">
+  <div class="upnpDetail" style="height:350px;width:400px;overflow:auto;" >
+    <div class="title"></div>
+    <div class="upnpThumbnail"></div>
+    <div class="itemDetail">
+      <span class="duration"></span>
+      <span class="size"></span>
+      <span class="resolution"></span>
+    </div>
+    <div class="otherDetail"></div>
+  </div>
+  <script>
+  //Gestion dynamique de la mise a jour
+  $('body').on('cmd::update', function (_event,_options) {
+    $.each(_options,function(i,option) {
+      if (option.cmd_id == "#id#")
+      {
+        console.log("updateDidlInfo");
+        didlXMLToHtml(option.value,#id#);
+      }
+    });
+  });
+
+  //Initialisation avec la bonne valeur
+  jeedom.cmd.execute({
+    id: #id#,
+    cache: 0,
+    notify: false,
+    success: function(result) {
+      didlXMLToHtml(result,#id#);
+    }
+  });
+
+  function didlXMLToHtml (xmlString, cmdID)
+  {
+    var $xml;
+
+    try {
+      //console.log("xmlString : " + xmlString );
+      $xml = $($.parseXML( xmlString ));
+    } catch (e) {
+      try {
+        xmlString = $('<div/>').html(xmlString).text();
+        //console.log("xmlString : " + xmlString );
+        $xml = $($.parseXML( xmlString ));
+      } catch (e) {
+        $('.cmd[data-cmd_id='+cmdID+']').hide();
+        return;
+      }
+    }
+
+    var title;
+    var url;
+    var thumbnail="";
+    var duration;
+    var size;
+    var resolution;
+    var mexResolution
+
+    var detailedObject = $xml.find("container");
+    if (!detailedObject.length) detailedObject = $xml.find("item");
+
+    title = detailedObject.find("title").text();
+
+    detailedObject.find("res").each( function() {
+      if (!url) url = $(this).text();
+      if ($(this).attr("protocolInfo").indexOf("image") !== -1)
+      {
+        if (!thumbnail) thumbnail = $(this).text();
+        /*$.each(this.attributes, function(i,attr){
+
+      });*/
+    }
+  });
+
+  detailedObject.find("albumArtURI").each ( function() {
+    thumbnail = $(this).text();
+  });
+
+  if (url) $('.cmd[data-cmd_id='+cmdID+'] .upnpDetail .title').html("<a href="+url+">"+title+"</a>");
+  else $('.cmd[data-cmd_id='+cmdID+'] .upnpDetail .title').html(title);
+
+  $('.cmd[data-cmd_id='+cmdID+'] .upnpDetail .upnpThumbnail').html("<img style=\"max-width:100%\" src="+thumbnail+">");
+
+  if (thumbnail) $('.cmd[data-cmd_id='+cmdID+'] .upnpDetail .upnpThumbnail').html("<img style=\"max-width:100%\" src="+thumbnail+">");
+  else $('.cmd[data-cmd_id='+cmdID+'] .upnpDetail .upnpThumbnail').html("");
+
+  var details="";
+
+  detailedObject.children().each ( function () {
+    var nodeName = this.nodeName;
+    if (nodeName == "dc:title" || nodeName == "upnp:class" || nodeName == "upnp:albumArtURI" || nodeName == "upnp:storageUsed") return true;
+    details += "<div>";
+    if (this.attributes.length > 0)
+    {
+      var attributesHtml="";
+      $.each(this.attributes, function(i,attrib){
+        if (nodeName == "res" && attrib.name == "protocolInfo")
+        attributesHtml += "<span style=\"display:none;\">"+attrib.name+" : "+attrib.value+"</span>";
+        else
+        {
+          var attrText = attrib.value;
+          if (attrib.name == "size") attrText = "" + (attrib.value / 1024 / 1024).toFixed(1) + " Mo";
+          else if (attrib.name == "bitrate") attrText = "" + (attrib.value / 1000 / 8).toFixed(1) + " Ko/s";
+          attributesHtml += "<span>"+attrib.name+" : "+attrText+"</span>";
+        }
+      });
+      if (nodeName == "res")
+      details += "<label>"+nodeName+" : </label><span> ("+attributesHtml+") <a href=\""+$(this).text()+"\">link</a></span>";
+      else details += "<label>"+nodeName+" : </label><span> ("+attributesHtml+") "+$(this).text()+"</span>";
+    }
+    else details += "<label>"+nodeName+" : </label><span>"+$(this).text()+"</span>";
+    details += "</div>";
+  });
+
+  $('.cmd[data-cmd_id='+cmdID+'] .upnpDetail .otherDetail').html(details);
+}
+</script>
+</div>

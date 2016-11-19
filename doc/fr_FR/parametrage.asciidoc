@@ -1,0 +1,3 @@
+==== Paramétrage
+
+Pas de paramétrage des equipements en ehors du standard (activer, objet associé, ...)
