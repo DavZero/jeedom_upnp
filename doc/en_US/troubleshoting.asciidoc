@@ -1,0 +1,10 @@
+[panel,danger]
+.Info
+--
+Commentaire detaillé
+--
+
+.Info
+--
+Commentaire detaillé
+--

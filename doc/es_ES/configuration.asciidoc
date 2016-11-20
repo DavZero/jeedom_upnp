@@ -1,0 +1,3 @@
+==== Configuration du plugin
+
+Si le port par défaut (5002) est déjà utilisé sur le host de Jeedom, modifier celui ci grace a la configuration
