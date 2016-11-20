@@ -1,8 +1,8 @@
 ==== Paramétrage
 
 Pour les services disposant d'un widget spécifiques :
-* ContentDirectory
-* AVTransport
+* ContentDirectory::
+* AVTransport::
 il est possible de choisir entre l'affichage "standard" des commandes et l'affichage spécifique aux service.
 En complément de l'affichage spécifique, il est possible d'afficher les commandes du service "non géré" par l'affichage spécifique et de forcer l'affichage des commandes en "standard" en plus de l'affichage spécifique
 
