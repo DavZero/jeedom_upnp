@@ -43,10 +43,10 @@ if (!isConnect()) {
 				<input class="configKey form-control" data-l1key="servicePort" placeholder="5002" />
 			</div>
 		</div>
-    <div class="form-group">
+    <div class="form-group expertModeVisible">
       <label class="col-sm-4 control-label">{{Commande timeout}}</label>
 			<div class="col-sm-2">
-				<input class="configKey form-control" type="number" data-l1key="cmdTimeout" step="1" min="2" max="20" value="10"/>
+				<input class="configKey form-control" type="number" data-l1key="cmdTimeout" step="1" min="5" max="20" value="10"/>
 			</div>
 		</div>
   </fieldset>

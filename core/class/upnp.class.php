@@ -248,7 +248,7 @@ class upnp extends eqLogic {
     $servicePort = config::byKey('servicePort', 'upnp');
     if ($servicePort == '') $servicePort = 5002;
     $cmdTimeout = config::byKey('cmdTimeout', 'upnp');
-    if ($cmdTimeout < 2 || $cmdTimeout > 20) $cmdTimeout = 10;
+    if ($cmdTimeout < 5 || $cmdTimeout > 20) $cmdTimeout = 10;
     $url  = network::getNetworkAccess().'/core/api/jeeApi.php?api='.config::byKey('api');
     upnp::launch_svc($url, $servicePort, $cmdTimeout);
   }
