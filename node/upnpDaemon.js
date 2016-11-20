@@ -10,11 +10,11 @@ Logger.setLogLevel(LogType.DEBUG);
 /******* Utility *****************/
 var urlJeedom = '';
 var logLevel = 'error';
-var serverPort=5001;
+var serverPort = 5001;
+var actionTimeout = 5;
 
 // print process.argv
 process.argv.forEach(function(val, index, array) {
-  console.log("Log | " + val + " | " + index);
   switch ( index ) {
     case 2 : urlJeedom = val; break;
     case 3 : serverPort = val; break;
@@ -25,13 +25,14 @@ process.argv.forEach(function(val, index, array) {
       else if (logLevel == 'warning') Logger.setLogLevel(LogType.WARNING);
       else Logger.setLogLevel(LogType.ERROR);
       break;
+    case 5 : actionTimeout = val; break;
   }
 });
 
 Logger.log("Démon version 1.0.0", LogType.INFO);
 Logger.log("urlJeedom "+urlJeedom, LogType.DEBUG) ;
 Logger.log("serverPort "+serverPort, LogType.DEBUG) ;
-Logger.log("logLevel "+logLevel, LogType.DEBUG) ;
+Logger.log("logLevel "+logLevel, LogType.INFO) ;
 
 var busy = false;
 var jeedomSendQueue = [];
@@ -55,6 +56,7 @@ var processJeedomSendQueue = function()
         nextMessage.tryCount++;
         jeedomSendQueue.unshift(nextMessage);
       }
+      else Logger.log("Unable to send to jeedom: " + JSON.stringify(nextMessage) + ", errror : " + JSON.stringify(err), LogType.ERROR);
     }
     //else Logger.log("Response from Jeedom: " + response.statusCode, LogType.DEBUG);
     processJeedomSendQueue();
@@ -75,19 +77,7 @@ var sendToJeedom = function(data, callback)
   processJeedomSendQueue();
 }
 
-//process.env['DEBUG'] = 'node-ssdp*';
 
-
-/*var testCallback = function (data,callback)
-{
-setTimeout(function(input){
-//LogDate(logType.INFO, "Data In testCallback : " + JSON.stringify(input));
-callback(null,input);
-},10000,data);
-//setTimeout(callback(null,data);
-
-//callback(null,data);
-}*/
 var cp;
 
 //Create server for manage Jeedom->upnp
@@ -105,13 +95,13 @@ var server = net.createServer((c) => {
   c.on('data', (data) => {
     Logger.log("Data receive from Jeedom: " + data, LogType.DEBUG);
     var timeoutFunction = setTimeout(function(){
-      sendToJeedom({eventType: 'error', description : 'Unable to process ' + data + ' within 5 second'});
+      sendToJeedom({eventType: 'error', description : 'Unable to process ' + data + ' within ' + actionTimeout + ' seconds'});
       try {
-        c.end('Unable to process ' + data + ' within 5 second');
+        c.end('Unable to process ' + data + ' within ' + actionTimeout + ' seconds');
       } catch (e) {
         //Doesn't matter if it's close the nothing else to do
       }
-    }, 5000);
+    }, actionTimeout*1000);
     processJeedomMessage(data, (response) => {
       clearTimeout(timeoutFunction);
       try {
@@ -268,36 +258,6 @@ var processJeedomMessage = function (payload, callback){
         }
       });
     }
-
-    /*var action = cp.getAction(data.UDN, data.serviceID, data.actionName);
-    if (action == null) {
-      Logger.log("Impossible de trouver l'action " + data.UDN + "::" + data.serviceID + "::" + data.actionName + " sur le reseau", LogType.ERROR);
-      var message =
-      {
-        eventType: 'error',
-        description : "Impossible de trouver l'action " + data.UDN + "::" + data.serviceID + "::" + data.actionName + " sur le reseau"
-      };
-      sendToJeedom(message);
-      if (callback) callback();
-      return;
-    }
-    else {
-      action.execute(data.options, (response) => {
-        Logger.log("Envoi de la réponse " + response, LogType.DEBUG);
-        if (callback) callback(response);
-        var message =
-        {
-          eventType: 'updateInfo',
-          deviceUDN : data.UDN,
-          serviceId : data.serviceID,
-          name : 'LastResponse',
-          type : 'string',
-          value : response
-        }
-        sendToJeedom(message);
-      });
-    }*/
-
   }
   else if (data.command == 'getServiceInfo')
   {
@@ -356,11 +316,6 @@ setTimeout(function(){
 
 process.on('uncaughtException', function ( err ) {
 	console.error('An uncaughtException was found, the program will end : ' + err);
-  //console.error('An uncaughtException was found, the program will end : ' + err.stack);
   Logger.log('An uncaughtException was found, the program will end : ' + err,LogType.ERROR);
-  //sendToJeedom({eventType: 'error', description : err.message},() => {
-    //cp.shutdown();
-  //  Logger.log("Daemon is shutdown", LogType.INFO);
-    throw err;
-  //});
+  throw err;
 });

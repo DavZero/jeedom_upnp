@@ -32,15 +32,6 @@ class UpnpDevice extends EventEmitter
     //{"mimetype":["image/png"],"url":["/icons/sm.png"],"width":["48"],"height":["48"],"depth":["24"]},{"mimetype":["image/png"],"url":["/icons/lrg.png"],"width":["120"],"height":["120"],"depth":["24"]},{"mimetype":["image/jpeg"],"url":["/icons/sm.jpg"],"width":["48"],"height":["48"],"depth":["24"]},{"mimetype":["image/jpeg"],"url":["/icons/lrg.jpg"],"width":["120"],"height":["120"],"depth":["24"]}
     if (device.iconList)
     {
-      /*for (var prop in device.iconList[0].icon)
-      {
-        var item = device.iconList[0].icon[prop];
-        if (item.mimetype[0] == 'image/png' && parseInt(item.width[0]) > 100)
-        {
-          this._iconUrl = this.BaseAddress+item.url[0];
-        }
-      }*/
-
       device.iconList[0].icon.forEach((item) => {
         if (item.mimetype[0] == 'image/png' && parseInt(item.width[0]) > 100)
         {
@@ -63,7 +54,6 @@ class UpnpDevice extends EventEmitter
       });
     }
 
-    //Logger.log("data : " + JSON.stringify(data.root.device[0].serviceList[0]), LogType.DEBUG);
     //On lance la fonction en timeout de facon a laisser le controlpoint s'abonner au message avant qu'il ne soit emis
     setTimeout(() => {
       device.serviceList[0].service.forEach((item) => {

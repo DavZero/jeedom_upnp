@@ -82,7 +82,7 @@ class UpnpAction
             {
               arg.RelatedStateVariable.Value = outputsVariable[prop][0];
             }
-            else Logger.log("Unable to process output argument " + prop + " of action " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify (options),LogType.ERROR);
+            else Logger.log("Unable to process output argument " + prop + " of action " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify (options),LogType.WARNING);
           }
         });
       }
@@ -111,7 +111,7 @@ class UpnpAction
         return this._arguments[prop];
       }
     }
-    Logger.log("Unable to find the action's argument with name " + name ,LogType.ERROR);
+    Logger.log("Unable to find the action's argument with name " + name ,LogType.DEBUG);
     return null;
   }
 

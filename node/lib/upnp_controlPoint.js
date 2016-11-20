@@ -225,7 +225,7 @@ class ControlPoint extends EventEmitter
       var service = this._devices[prop].getServiceOrSubServiceBySubscriptionID(subscriptionID);
       if (service) return service;
     }
-    Logger.log("Unable to find the service with SID " + subscriptionID ,LogType.ERROR);
+    Logger.log("Unable to find the service with SID " + subscriptionID ,LogType.WARNING);
   }
 
   getDevice(udn)

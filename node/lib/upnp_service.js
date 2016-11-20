@@ -36,7 +36,7 @@ class UpnpBaseService
     //On récupère le xml listant les actions et les variable
     request(this._device.BaseAddress + this._SCPDURL, (error, response, body) => {
       if (error || response.statusCode != 200) {
-        Logger.log("Erreur de lecture du fichier SCPDURL, url : " + this._device.BaseAddress + this._SCPDURL + " err : " + error, LogType.ERROR);
+        Logger.log("Unable to read SCPDURL, url : " + this._device.BaseAddress + this._SCPDURL + ", err : " + error, LogType.ERROR);
         if (callback) callback(error);
       }
       else if (body != '') {
@@ -120,7 +120,7 @@ class UpnpBaseService
           this.processLastChangeEvent(properties[prop][key][0]);
         }
       }
-      else Logger.log("Unable to fully process event " + JSON.stringify(properties) + " for propertie " + key ,LogType.DEBUG);
+      else Logger.log("Unable to fully process event " + JSON.stringify(properties) + " for propertie " + key ,LogType.WARNING);
     }
   }
 
@@ -144,11 +144,10 @@ class UpnpBaseService
         {
           variable.Value = instance[prop][0]['$'].val;
         }
-        else Logger.log("Unable to process LastChange propertie Event " + prop,LogType.DEBUG);
+        else Logger.log("Unable to process LastChange propertie Event " + prop,LogType.WARNING);
       }
     }
     else {
-      //On ne devrait jamais passer ici
       xml2js.parseString(body, (err, data) => {
         //Manage Error
         if (err)
@@ -233,8 +232,8 @@ class UpnpBaseService
         if (error || response.statusCode != 200) {
           Logger.log("Erreur d'inscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " err : " + error, LogType.ERROR);
           setTimeout((service) => {
-            service.subscribe();
-          }, 5 * 1000, this);
+            service.subscribe(server);
+          }, 15 * 1000, this);
           return;
         }
         else {
@@ -350,7 +349,7 @@ class UpnpAVTransportService extends UpnpBaseService
   //Fonction call for specific fonction after all initialisation
   _specializedInitialisation()
   {
-    Logger.log("Specialisation service AVTransport", LogType.DEBUG);
+    Logger.log("Specialisation for service AVTransport", LogType.DEBUG);
     var relativeTime = this.getVariableByName("RelativeTimePosition");
     var transportState = this.getVariableByName("TransportState");
     if (transportState)
