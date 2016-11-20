@@ -77,8 +77,9 @@ class upnp extends eqLogic {
   				$cmd->setLogicalId($data->name);
   				$cmd->setEqLogic_id($eqp->getId());
   				$cmd->setType('action');
-  				if (count($data->arguments) > 0 ) $cmd->setSubType('message');
-          else $cmd->setSubType('other');
+  				/*if (count($data->arguments) > 0 ) $cmd->setSubType('message');
+          else $cmd->setSubType('other');*/
+          $cmd->setSubType('other');
   				if ($data->fromDevice) $cmd->setIsVisible(1);
           else $cmd->setIsVisible(0);
           $cmd->setConfiguration('source',$data->fromDevice?'Device':'Template');
@@ -317,7 +318,7 @@ class upnp extends eqLogic {
     $servicePort = config::byKey('servicePort', 'upnp');
     if ($servicePort == '') $servicePort = 5002;
     $response = '';
-    log::add('upnp', 'info', $msg);
+    log::add('upnp', 'debug', $msg);
     $fp = fsockopen($urlService, $servicePort, $errno, $errstr);
     if (!$fp) {
       log::add('upnp','error',$errno.' - '.$errstr);
@@ -331,7 +332,7 @@ class upnp extends eqLogic {
       }
       fclose($fp);
     }
-    if ($waitResponse) log::add('upnp','info','reponse : '.$response);
+    if ($waitResponse) log::add('upnp','debug','reponse : '.$response);
     return $response;
   }
 
@@ -540,14 +541,16 @@ class upnpCmd extends cmd {
         $msg['serviceID'] = $this->getEqLogic()->getConfiguration('serviceId');
         $msg['actionName'] = $this->getLogicalId();
         $msg['options'] = array();
-        if (isset($_options['message'])) $param = $_options['message']; //Pour une gestion via les scenario
+        /*if (isset($_options['message'])) $param = $_options['message']; //Pour une gestion via les scenario
         else $param = $_options;
-        log::add('upnp', 'info', 'params '.json_encode($param));
+        log::add('upnp', 'info', 'params '.json_encode($param));*/
+        $param = $_options;
         foreach($this->getConfiguration('arguments') as $option)
         {
           $msg['options'][$option['name']] = $param[$option['name']];
         }
-        log::add('upnp', 'info', 'waitReponse : '.($param['waitResponse']?'true':'false'));
+        if (!isset($param['waitResponse'])) $param['waitResponse'] = false;
+        log::add('upnp', 'debug', 'waitReponse : '.($param['waitResponse']?'true':'false'));
         return upnp::sendToDaemon(json_encode($msg),$param['waitResponse']?true:false);
 				break;
 		}

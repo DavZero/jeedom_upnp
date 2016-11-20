@@ -1,7 +1,7 @@
 {
   "id" : "upnp",
-  "name" : "Upnp",
-  "description" : "Protocole Upnp",
+  "name" : "UPnP",
+  "description" : "Protocole UPnP",
   "licence" : "AGPL",
   "author" : "DavZero",
   "require" : "2.4",

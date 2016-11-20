@@ -22,7 +22,7 @@ $eqLogics = eqLogic::byType('upnp');
 </div>
 
 <div class="col-lg-10 col-md-9 col-sm-8 eqLogicThumbnailDisplay" style="border-left: solid 1px #EEE; padding-left: 25px;">
-	<legend><i class="fa fa-table"></i>{{Mes equipements}}</legend>
+	<legend><i class="fa fa-table"></i> {{Mes equipements}} </legend>
 
 	<div class="eqLogicThumbnailContainer">
 		<!--<div class="cursor eqLogicAction" data-action="add" style="background-color : #ffffff; height : 200px;margin-bottom : 10px;padding : 5px;border-radius: 2px;width : 160px;margin-left : 10px;" >
