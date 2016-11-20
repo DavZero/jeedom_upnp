@@ -68,7 +68,7 @@ class UpnpDevice extends EventEmitter
 
   alreadyExistMessage()
   {
-    Logger.log("Device already exist " + this._UDN + " adresse : " + this._location.href);
+    Logger.log("Device already exist " + this._UDN + " adresse : " + this._location.href,LogType.DEBUG);
   }
 
   get IconUrl()

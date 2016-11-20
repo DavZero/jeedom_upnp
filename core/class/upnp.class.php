@@ -247,16 +247,18 @@ class upnp extends eqLogic {
 
     $servicePort = config::byKey('servicePort', 'upnp');
     if ($servicePort == '') $servicePort = 5002;
+    $cmdTimeout = config::byKey('cmdTimeout', 'upnp');
+    if ($cmdTimeout < 2 || $cmdTimeout > 20) $cmdTimeout = 10;
     $url  = network::getNetworkAccess().'/core/api/jeeApi.php?api='.config::byKey('api');
-    upnp::launch_svc($url, $servicePort);
+    upnp::launch_svc($url, $servicePort, $cmdTimeout);
   }
 
-  public static function launch_svc($url, $servicePort)
+  public static function launch_svc($url, $servicePort, $cmdTimeout)
   {
     $logLevel = log::convertLogLevel(log::getLogLevel('upnp'));
     //$logLevel = log::getLogLevel('upnp');
     $upnp_path = realpath(dirname(__FILE__) . '/../../node');
-    $cmd = 'nice -n 19 nodejs ' . $upnp_path . '/upnpDaemon.js ' . $url .' '. $servicePort . ' ' . $logLevel;
+    $cmd = 'nice -n 19 nodejs ' . $upnp_path . '/upnpDaemon.js ' . $url .' '. $servicePort . ' ' . $logLevel . ' ' . $cmdTimeout;
 
     log::add('upnp', 'debug', 'Lancement démon upnp : ' . $cmd);
 

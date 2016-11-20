@@ -101,7 +101,7 @@ class ControlPoint extends EventEmitter
 
   search(st)
   {
-    Logger.log("Start searching request for " + (st==''?'All':st),LogType.INFO);
+    Logger.log("Start searching request for " + (typeof st === 'undefined'?'All':st),LogType.INFO);
     this._SSDPserver.sendMSearch(st,(msg,rinfo) => {
       this._onMSearchMessage(msg,rinfo);
     });
@@ -164,7 +164,7 @@ class ControlPoint extends EventEmitter
       return;
     }
     this._requestedDeviceQueue[location.href] = 'Queued';
-    Logger.log("Add Device " + location.href + " to ceation queued",LogType.INFO);
+    Logger.log("Add Device " + location.href + " to ceation queued",LogType.DEBUG);
 
     // Retrieve device/service/... description
     request(location.href, (error, response, body) => {
