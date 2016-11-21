@@ -1,0 +1,12 @@
+{
+  "id" : "upnp",
+  "name" : "UPnP",
+  "description" : "Protocole UPnP",
+  "licence" : "AGPL",
+  "author" : "DavZero",
+  "require" : "2.4",
+  "category" : "automation protocol",
+  "allowRemote" : 0,
+  "hasDependency" : 1,
+  "hasOwnDeamon" : 1
+}

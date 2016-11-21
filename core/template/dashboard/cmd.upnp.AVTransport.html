@@ -1,0 +1,142 @@
+<div class="AVTransportCmds">
+  <div class="metadata">
+    <div class="NextAVTransportURIMetaData" style="display:none;">
+      #NextAVTransportURIMetaData#
+    </div>
+    <div class="AVTransportURIMetaData"  style="display:none;">
+      #AVTransportURIMetaData#
+    </div>
+    <div class="CurrentTrackMetaData">
+      #CurrentTrackMetaData#
+    </div>
+  </div>
+  <div class="timer">
+    <div class="trackSlider" data-cmd_id="#cmd_relativeTimePosition_id#" style="width:250px;"></div>
+    <span class="cmd cmd-widget noRefresh" data-type="info" data-subtype="string" data-cmd_id="#cmd_relativeTimePosition_id#"><strong>#cmd_relativeTimePosition_value#</strong></span>
+    <span>/</span>
+    <span class="cmd cmd-widget noRefresh" data-type="info" data-subtype="string" data-cmd_id="#cmd_currentTrackDuration_id#"><strong>#cmd_currentTrackDuration_value#</strong></span>
+  </div>
+  <div style="position:relative;top:4px">
+		<a class="btn btn-xs cmd stop noRefresh" data-cmd_id="#cmd_stop_id#"><i class="fa fa-stop"></i></a>
+		<a class="btn btn-xl cmd play noRefresh" data-cmd_id="#cmd_play_id#"><i class="fa fa-play"></i></a>
+		<a class="btn btn-xl cmd pause noRefresh" data-cmd_id="#cmd_pause_id#"><i class="fa fa-pause"></i></a>
+    <a class="btn btn-xs cmd previousSeek noRefresh" data-cmd_id="#cmd_seek_id#"><i class="fa fa-backward"></i></a>
+    <a class="btn btn-xs cmd previous noRefresh" data-cmd_id="#cmd_prev_id#"><i class="fa fa-step-backward"></i></a>
+		<a class="btn btn-xs cmd next noRefresh" data-cmd_id="#cmd_next_id#"><i class="fa fa-step-forward"></i></a>
+		<a class="btn btn-xs cmd nextSeek noRefresh" data-cmd_id="#cmd_seek_id#"><i class="fa fa-forward"></i></a>
+	</div>
+  <div class="cmd cmd-widget" data-type="info" data-subtype="string" data-cmd_id="#cmd_transportState_id#"><strong>#cmd_transportState_value#</strong></div>
+
+
+  <script>
+    function setAllowedAction#cmd_transportState_id#(state)
+    {
+      if(state == 'STOPPED'){
+          $('.cmd[data-cmd_id=#cmd_play_id#]').show();
+          $('.cmd[data-cmd_id=#cmd_stop_id#]').hide();
+          $('.cmd[data-cmd_id=#cmd_pause_id#]').hide();
+          //$( '.trackProgessBar[data-cmd_id=#cmd_relativeTimePosition_id#]' ).slider("disable");
+        }
+        else if (state == 'PLAYING'){
+          $('.cmd[data-cmd_id=#cmd_stop_id#]').show();
+          $('.cmd[data-cmd_id=#cmd_pause_id#]').show();
+          $('.cmd[data-cmd_id=#cmd_play_id#]').hide();
+          //$( '.trackProgessBar[data-cmd_id=#cmd_relativeTimePosition_id#]' ).slider("enable");
+        }
+        else if (state == 'TRANSITIONING'){
+          $('.cmd[data-cmd_id=#cmd_stop_id#]').show();
+          $('.cmd[data-cmd_id=#cmd_pause_id#]').show();
+          $('.cmd[data-cmd_id=#cmd_play_id#]').show();
+        }
+        else if (state == 'PAUSED_PLAYBACK'){
+          $('.cmd[data-cmd_id=#cmd_stop_id#]').show();
+          $('.cmd[data-cmd_id=#cmd_pause_id#]').hide();
+          $('.cmd[data-cmd_id=#cmd_play_id#]').show();
+        }
+        else{ //Should manage recodring status??
+          $('.cmd[data-cmd_id=#cmd_stop_id#]').show();
+          $('.cmd[data-cmd_id=#cmd_pause_id#]').show();
+          $('.cmd[data-cmd_id=#cmd_play_id#]').show();
+          //$( '.trackProgessBar[data-cmd_id=#cmd_relativeTimePosition_id#]' ).slider("disable");
+        }
+    }
+
+    setAllowedAction#cmd_transportState_id#("#cmd_transportState_value#");
+
+    $('body').on('cmd::update', function (_event,_options) {
+        $.each(_options,function(i,option) {
+          if (option.cmd_id == "#cmd_transportState_id#")
+          {
+            setAllowedAction#cmd_transportState_id#(option.value);
+            //Lancement de GetMediaInfo et GetPositionInfo
+          }
+          else if (option.cmd_id == "#cmd_relativeTimePosition_id#")
+          {
+            $('.cmd[data-cmd_id=#cmd_relativeTimePosition_id#]').html("<strong>" + option.value + "</strong>");
+            var currentVal = (new Date("1/1/1970 " + option.value + " UTC")).getTime()/1000;
+            $( '.trackSlider[data-cmd_id=#cmd_relativeTimePosition_id#]' ).slider("value" , currentVal);
+          }
+          else if (option.cmd_id == "#cmd_currentTrackDuration_id#")
+          {
+            $('.cmd[data-cmd_id=#cmd_currentTrackDuration_id#]').html("<strong>" + option.value + "</strong>");
+            var maxVal = (new Date("1/1/1970 " + option.value + " UTC")).getTime()/1000
+            $( '.trackSlider[data-cmd_id=#cmd_relativeTimePosition_id#]' ).slider("option","max",maxVal);
+          }
+        });
+    });
+
+
+    var maxValue = (new Date("1/1/1970 #cmd_currentTrackDuration_value# UTC")).getTime()/1000
+    var currentValue = (new Date("1/1/1970 #cmd_relativeTimePosition_value# UTC")).getTime()/1000
+
+
+    $( '.trackSlider[data-cmd_id=#cmd_relativeTimePosition_id#]' ).slider({
+      min:0,
+      value:currentValue,
+      max:maxValue,
+      range:"min",
+      step:1,
+      change : function( event, ui ) {
+        /*console.log(ui.value);
+        console.log((new Date(ui.value * 1000)).toUTCString().match(/(\d\d:\d\d:\d\d)/)[0]);*/
+      },
+    });
+
+    $( '.trackProgessBar[data-cmd_id=#cmd_relativeTimePosition_id#]' ).slider("enable");
+
+    $('.cmd[data-cmd_id=#cmd_play_id#]').click(function() {
+      jeedom.cmd.execute({id: '#cmd_play_id#', value: {InstanceID: 0, Speed: 1}});
+    });
+
+    $('.cmd[data-cmd_id=#cmd_stop_id#]').click(function() {
+      jeedom.cmd.execute({id: '#cmd_stop_id#', value: {InstanceID: 0}});
+    });
+
+    $('.cmd[data-cmd_id=#cmd_pause_id#]').click(function() {
+      jeedom.cmd.execute({id: '#cmd_pause_id#', value: {InstanceID: 0}});
+    });
+
+    $('.cmd[data-cmd_id=#cmd_previous_id#]').click(function() {
+      jeedom.cmd.execute({id: '#cmd_previous_id#', value: {InstanceID: 0}});
+    });
+
+    $('.cmd[data-cmd_id=#cmd_next_id#]').click(function() {
+      jeedom.cmd.execute({id: '#cmd_next_id#', value: {InstanceID: 0}});
+    });
+
+    $('.previousSeek[data-cmd_id=#cmd_seek_id#]').click(function() {
+      var actualTime = $( '.trackSlider[data-cmd_id=#cmd_relativeTimePosition_id#]' ).slider("value");
+      var target = (new Date((actualTime-30) * 1000)).toUTCString().match(/(\d\d:\d\d:\d\d)/)[0];
+      console.log(target);
+      jeedom.cmd.execute({id: '#cmd_seek_id#', value: {InstanceID: 0, Unit: "REL_TIME", Target: target}});
+    });
+
+    $('.nextSeek[data-cmd_id=#cmd_seek_id#]').click(function() {
+      var actualTime = $( '.trackSlider[data-cmd_id=#cmd_relativeTimePosition_id#]' ).slider("value");
+      var target = (new Date((actualTime+30) * 1000)).toUTCString().match(/(\d\d:\d\d:\d\d)/)[0];
+      console.log(target);
+      jeedom.cmd.execute({id: '#cmd_seek_id#', value: {InstanceID: 0, Unit: "REL_TIME", Target: target}});
+    });
+
+  </script>
+</div>

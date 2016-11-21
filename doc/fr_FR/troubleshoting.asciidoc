@@ -1,0 +1,13 @@
+[panel,danger]
+.Dans le log il y a parfois des messages : "Unable to find the service with SID XXX"
+--
+Ces messages n'ont pas d'incidence en fonctionnement normal et sont la uniquement pour du dépannage. Ce genre de message apparait notament lorsqu'on redémarre le service et sont liés a de précédant abonnement au messages des services UPnP
+--
+.Lorsque j'execute certaines commandes, j'ai un message d'erreur indiquant que la commande n'a pas pu s'executer dans le délai imparti
+--
+La configuration du plugin permet de definir le timeout de l'execution d'une commande (voir la rubrique configuration). Dans mon cas, lors du chargement d'un media sur ma television, la première fois, le délai de réponse de la television peut aller au dela de 5 secondes.
+Si ce problème vous arrive, il suffit de relancer l'action. Si ce problème arrive régulièrement, augmenter le delai du timeout.
+
+TIP: La valeur par defaut est 10 secondes 
+
+--
