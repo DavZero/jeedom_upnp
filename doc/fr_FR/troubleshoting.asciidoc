@@ -1,1 +1,5 @@
 [panel,danger]
+.Dans le log il y a parfois des messages : "Unable to find the service with SID XXX"
+--
+Ces messages n'ont pas d'incidence en fonctionnement normal et sont la uniquement pour du dépannage. Ce genre de message apparait notament lorsqu'on redémarre le service et sont liés a de précédant abonnement au messages des services UPnP
+--
