@@ -29,7 +29,7 @@ process.argv.forEach(function(val, index, array) {
   }
 });
 
-Logger.log("Démon version 1.0.0", LogType.INFO);
+Logger.log("Démon version 1.0.1", LogType.INFO);
 Logger.log("urlJeedom = "+urlJeedom, LogType.DEBUG) ;
 Logger.log("serverPort = "+serverPort, LogType.DEBUG) ;
 Logger.log("logLevel = "+logLevel, LogType.INFO) ;

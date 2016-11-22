@@ -67,9 +67,9 @@ class UpnpDevice extends EventEmitter
         });
       }, 1500);
     }
-    /*else {
-      Logger.log("No service list found for device" + this._UDN + " adresse : " + this._location.href +". Is it normal????",LogType.WARNING);
-    }*/
+    else {
+      Logger.log("No service list found for device" + this._UDN + " adresse : " + this._location.href +" : " + JSON.stringify(device),LogType.DEBUG);
+    }
   }
 
   alreadyExistMessage()
