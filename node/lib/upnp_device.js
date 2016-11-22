@@ -54,16 +54,22 @@ class UpnpDevice extends EventEmitter
       });
     }
 
-    //On lance la fonction en timeout de facon a laisser le controlpoint s'abonner au message avant qu'il ne soit emis
-    setTimeout(() => {
-      device.serviceList[0].service.forEach((item) => {
-        //Logger.log("debug service création : " + JSON.stringify(item.serviceType[0]), LogType.DEBUG);
-        if (item.serviceType[0].indexOf(":AVTransport") !== -1)
-          this._services.push(new UpnpService.AVTransportService(this,item,eventServer));
-        //else if (item.serviceType[0])
-        else this._services.push(new UpnpService.BaseService(this,item,eventServer));
-      });
-    }, 1500);
+    if (device.serviceList)
+    {
+      //On lance la fonction en timeout de facon a laisser le controlpoint s'abonner au message avant qu'il ne soit emis
+      setTimeout(() => {
+        device.serviceList[0].service.forEach((item) => {
+          //Logger.log("debug service création : " + JSON.stringify(item.serviceType[0]), LogType.DEBUG);
+          if (item.serviceType[0].indexOf(":AVTransport") !== -1)
+            this._services.push(new UpnpService.AVTransportService(this,item,eventServer));
+          //else if (item.serviceType[0])
+          else this._services.push(new UpnpService.BaseService(this,item,eventServer));
+        });
+      }, 1500);
+    }
+    else {
+      Logger.log("No service list found for device" + this._UDN + " adresse : " + this._location.href +" : " + JSON.stringify(device),LogType.DEBUG);
+    }
   }
 
   alreadyExistMessage()
