@@ -17,7 +17,6 @@ class UpnpBaseService
     this._device = device;
 
     this._initialize(serviceData,eventServer);
-    //device.emit('serviceUpdated',this);
   }
 
   _initialize(serviceData,eventServer,callback)
@@ -87,8 +86,6 @@ class UpnpBaseService
     });
 
     scpd.actionList[0].action.forEach((item) => {
-      //On vérifie si une variable avec le même nom existe et si oui on prefix l'action par action_
-      if (this._variables.some(elem => elem.Name == item.name[0])) item.name[0] = 'Action_' + item.name[0];
       //Si l'action n'existe pas, on la créer
       if (!this._actions.some(elem => elem.Name == item.name[0]))
       {
@@ -102,6 +99,14 @@ class UpnpBaseService
         }*/
     });
   }
+
+  /*getVariableByName(name){
+    this._variables.forEach((item) => {
+      console.log('test de ' + item.Name + ' avec ' + name);
+      if (item.Name == name) return item;
+    });
+    throw new Error("Unable to get variable with name " + name);
+  }*/
 
   processEvent(data)
   {

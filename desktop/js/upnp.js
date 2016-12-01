@@ -92,8 +92,22 @@ function addCmdToTable(_cmd) {
   tr += '</td>';
 
   tr += '<td>';
-  tr += '<div class="col-sm-6">';
+  tr += '<div class="col-sm-3">';
   tr += '<span class="cmdAttr" data-l1key="configuration" data-l2key="source"></span>';
+  tr += '</div>';
+  tr += '</td>';
+
+  //Type
+  tr += '<td>';
+  tr += '<div class="col-sm-3">';
+  tr += '<span>'.init(_cmd.type).'</span>';
+  tr += '</div>';
+  tr += '</td>';
+
+  //NomUpnp
+  tr += '<td>';
+  tr += '<div class="col-sm-3">';
+  tr += '<spanclass="cmdAttr form-control input-sm" data-l1key="logicalId"></span>';
   tr += '</div>';
   tr += '</td>';
 
