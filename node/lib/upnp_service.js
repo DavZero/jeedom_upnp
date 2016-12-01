@@ -360,7 +360,7 @@ class UpnpAVTransportService extends UpnpBaseService
     var transportState = this.getVariableByName("TransportState");
     if (transportState)
     {
-      transportState.on('valueUpdated', (variable,newVal) => {
+      transportState.on('updated', (variable,newVal) => {
         Logger.log("On transportStateUpdate : " + newVal, LogType.DEBUG);
         var actPosInfo = this.getActionByName("GetPositionInfo");
         var actMediaInfo = this.getActionByName("GetMediaInfo");

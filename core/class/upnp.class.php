@@ -72,6 +72,7 @@ class upnp extends eqLogic {
         $cmd = $eqp->getCmd('action',$data->name);
         if (!is_object($cmd))
         {
+          log::add('upnp', 'info', 'création de l\'action ' . $data->name . ' pour l\'équipement ' . $data->deviceUDN.'_'.$data->serviceId);
   				$cmd = new upnpCmd();
           //On vérifie si le cmd existe déja en tant qu'info :
           $cmdName = $eqp->getUniqueCmdName($data->name);
@@ -109,7 +110,8 @@ class upnp extends eqLogic {
         $cmd = $eqp->getCmd('info',$data->name);
         if (!is_object($cmd))
         {
-    			$cmd = new upnpCmd();
+          log::add('upnp', 'info', 'création de l\'info ' . $data->name . ' pour l\'équipement ' . $data->deviceUDN.'_'.$data->serviceId);
+          $cmd = new upnpCmd();
           $cmdName = $eqp->getUniqueCmdName($data->name);
   				$cmd->setName(__($cmdName, __FILE__));
     			$cmd->setLogicalId($data->name);
@@ -137,6 +139,7 @@ class upnp extends eqLogic {
         $cmd = $eqp->getCmd('info',$data->name);
         if (!is_object($cmd))
         {
+          log::add('upnp', 'info', 'création de l\'info ' . $data->name . ' pour l\'équipement ' . $data->deviceUDN.'_'.$data->serviceId);
           $cmd = new upnpCmd();
           $cmdName = $eqp->getUniqueCmdName($data->name);
   				$cmd->setName(__($cmdName, __FILE__));
@@ -362,12 +365,17 @@ class upnp extends eqLogic {
     $outputName = $_name;
     $suffixe = "";
     $cmdIndex = 0;
-    if (strlen($_name) >= 43) $outputName = substr($outputName,0,43);
-    if (isUniqueName($outputName)) return $outputName;
+    if (strlen($_name) >= 43)
+    {
+      $outputName = substr($outputName,0,42).'01';
+      $cmdIndex = 1;
+    }
+    if ($this->isUniqueName($outputName)) return $outputName;
+
     do {
       $cmdIndex++;
-      $suffixe = sprintf("%'.02d\n", $cmdIndex);
-    } while (!isUniqueName($outputName.$suffixe));
+      $suffixe = sprintf("%'.02d", $cmdIndex);
+    } while (!$this->isUniqueName($outputName.$suffixe));
 
     return $outputName.$suffixe;
   }
@@ -425,22 +433,37 @@ class upnp extends eqLogic {
       $cmdReplace["#cmd_previous_id#"] = $this->getCmd('action','Previous')->getId();
       $cmdReplace["#cmd_next_id#"] = $this->getCmd('action','Previous')->getId();
 
-      $cmdReplace["#cmd_relativeTimePosition_id#"] = $this->getCmd('info','RelativeTimePosition')->getId();
-      $cmdReplace["#cmd_relativeTimePosition_value#"] = $this->getCmd('info','RelativeTimePosition')->execCmd();
+      $relTimePosCmd = $this->getCmd('info','RelativeTimePosition');
+      if (!is_object($relTimePosCmd)) $relTimePosCmd = $this->getCmd('info','A_ARG_TYPE_GetPositionInfo_RelTime');
 
-      $cmdReplace["#cmd_currentTrackDuration_id#"] = $this->getCmd('info','CurrentTrackDuration')->getId();
-      $cmdReplace["#cmd_currentTrackDuration_value#"] = $this->getCmd('info','CurrentTrackDuration')->execCmd();
+      $cmdReplace["#cmd_relativeTimePosition_id#"] = $relTimePosCmd->getId();
+      $cmdReplace["#cmd_relativeTimePosition_value#"] = $relTimePosCmd->execCmd();
 
-      $cmdReplace["#cmd_transportState_id#"] = $this->getCmd('info','TransportState')->getId();
-      $cmdReplace["#cmd_transportState_value#"] = $this->getCmd('info','TransportState')->execCmd();
+      $curTrackDurCmd = $this->getCmd('info','CurrentTrackDuration');
+      if (!is_object($curTrackDurCmd)) $curTrackDurCmd = $this->getCmd('info','A_ARG_TYPE_GetPositionInfo_TrackDuration');
+
+      $cmdReplace["#cmd_currentTrackDuration_id#"] = $curTrackDurCmd->getId();
+      $cmdReplace["#cmd_currentTrackDuration_value#"] = $curTrackDurCmd->execCmd();
+
+      $transportStateCmd = $this->getCmd('info','TransportState');
+      if (!is_object($transportStateCmd)) $transportStateCmd = $this->getCmd('info','A_ARG_TYPE_GetTransportInfo_CurrentTransportState');
+
+      $cmdReplace["#cmd_transportState_id#"] = $transportStateCmd->getId();
+      $cmdReplace["#cmd_transportState_value#"] = $transportStateCmd->execCmd();
+
+      $trackMetaDataCmd = $this->getCmd('info','CurrentTrackMetaData');
+      if (!is_object($trackMetaDataCmd)) $trackMetaDataCmd = $this->getCmd('info','A_ARG_TYPE_GetPositionInfo_TrackMetaData');
 
       $cmdMetaDataReplace = array();
-      $cmdMetaDataReplace["#id#"] = $this->getCmd('info','CurrentTrackMetaData')->getId();
+      $cmdMetaDataReplace["#id#"] = $trackMetaDataCmd->getId();
       $tempCmd = template_replace($cmdMetaDataReplace,getTemplate('core', $version, 'cmd.upnp.didl-lite', 'upnp'));
       $cmdReplace["#CurrentTrackMetaData#"] = $tempCmd;
 
+      $AVTransURIMetaDataCmd = $this->getCmd('info','AVTransportURIMetaData');
+      if (!is_object($AVTransURIMetaDataCmd)) $AVTransURIMetaDataCmd = $this->getCmd('info','A_ARG_TYPE_GetMediaInfo_CurrentURIMetaData');
+
       $cmdMetaDataReplace = array();
-      $cmdMetaDataReplace["#id#"] = $this->getCmd('info','AVTransportURIMetaData')->getId();
+      $cmdMetaDataReplace["#id#"] = $AVTransURIMetaDataCmd->getId();
       $tempCmd = template_replace($cmdMetaDataReplace,getTemplate('core', $version, 'cmd.upnp.didl-lite', 'upnp'));
       $cmdReplace["#AVTransportURIMetaData#"] = $tempCmd;
 
@@ -464,9 +487,9 @@ class upnp extends eqLogic {
       }
 
       if ($processedService &&
-        ((in_array($cmd->getLogicalId(),$processedCommand)) && !$this->getConfiguration('standardDisplayOfCustomizedCommand'))
+        (((in_array($cmd->getLogicalId(),$processedCommand)) && !$this->getConfiguration('standardDisplayOfCustomizedCommand'))
         ||
-        (!(in_array($cmd->getLogicalId(),$processedCommand)) && !$this->getConfiguration('displayUnmanagedCommand'))
+        (!(in_array($cmd->getLogicalId(),$processedCommand)) && !$this->getConfiguration('displayUnmanagedCommand')))
         ) continue; // && (!$this->getConfiguration('displayUnmanagedCommand'))) continue; // || in_array($cmd->getLogicalId(),$processedCommand))) continue;
 
       if ($br_before == 0 && $cmd->getDisplay('forceReturnLineBefore', 0) == 1) {
