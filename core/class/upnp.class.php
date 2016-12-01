@@ -353,7 +353,7 @@ class upnp extends eqLogic {
 
   private function isUniqueName($_name)
   {
-    if (is_object(cmd::byEqLogicIdCmdName(this->getId(),$_name))) return false;
+    if (is_object(cmd::byEqLogicIdCmdName($this->getId(),$_name))) return false;
     return true;
   }
 
