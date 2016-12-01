@@ -17,7 +17,7 @@ class UpnpBaseService
     this._device = device;
 
     this._initialize(serviceData,eventServer);
-    device.emit('serviceUpdated',this);
+    //device.emit('serviceUpdated',this);
   }
 
   _initialize(serviceData,eventServer,callback)
@@ -74,10 +74,12 @@ class UpnpBaseService
   {
     scpd.serviceStateTable[0].stateVariable.forEach((item) => {
       if (!this._variables.some(elem => elem.Name == item.name[0]))
+      {
         var variable = new UpnpVariable(this,item,fromDevice);
-        variable.on('created', (varObj) => { this.Device.emit('variableCreated',varObj) });
-        variable.on('valueUpdated',(varObj,newVal) => { this.Device.emit('variableUpdated',varObj,newVal) });
+        variable.on('updated',(varObj,newVal) => { this.Device.emit('variableUpdated',varObj,newVal) });
         this._variables.push(variable);
+        this.Device.emit('variableCreated',variable);
+      }
       /*else if (fromDevice)
       {
         this._variables.filter((elem) => { return elem.Name == item.name[0]})[0].updateDefinition();
@@ -85,22 +87,21 @@ class UpnpBaseService
     });
 
     scpd.actionList[0].action.forEach((item) => {
+      //On vérifie si une variable avec le même nom existe et si oui on prefix l'action par action_
+      if (this._variables.some(elem => elem.Name == item.name[0])) item.name[0] = 'Action_' + item.name[0];
+      //Si l'action n'existe pas, on la créer
       if (!this._actions.some(elem => elem.Name == item.name[0]))
-        this._actions.push(new UpnpAction(this,item,fromDevice));
+      {
+        var action = new UpnpAction(this,item,fromDevice);
+        this._actions.push(action);
+        this.Device.emit('actionCreated',action);
+      }
         /*else if (fromDevice)
         {
           this._actions.filter((elem) => { return elem.Name == item.name[0]})[0].updateDefinition();
         }*/
     });
   }
-
-  /*getVariableByName(name){
-    this._variables.forEach((item) => {
-      console.log('test de ' + item.Name + ' avec ' + name);
-      if (item.Name == name) return item;
-    });
-    throw new Error("Unable to get variable with name " + name);
-  }*/
 
   processEvent(data)
   {
@@ -230,7 +231,7 @@ class UpnpBaseService
         'TIMEOUT': 'Second-'+this._subscriptionTimeout}
       },(error, response, body) => {
         if (error || response.statusCode != 200) {
-          Logger.log("Erreur d'inscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " err : " + error, LogType.ERROR);
+          Logger.log("Erreur d'inscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " pour le service " + this._ID + ", err : " + error, LogType.ERROR);
           setTimeout((service) => {
             service.subscribe(server);
           }, 15 * 1000, this);

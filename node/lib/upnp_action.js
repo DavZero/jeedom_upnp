@@ -14,7 +14,6 @@ class UpnpAction
     this._service = service;
     this._fromDevice = fromDevice;
     this._initialize(actionData);
-    service.Device.emit('actionCreated',this);
   }
 
   _initialize(actionData,callback)

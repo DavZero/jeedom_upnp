@@ -60,10 +60,12 @@ class UpnpDevice extends EventEmitter
       setTimeout(() => {
         device.serviceList[0].service.forEach((item) => {
           //Logger.log("debug service création : " + JSON.stringify(item.serviceType[0]), LogType.DEBUG);
+          var service;
           if (item.serviceType[0].indexOf(":AVTransport") !== -1)
-            this._services.push(new UpnpService.AVTransportService(this,item,eventServer));
-          //else if (item.serviceType[0])
-          else this._services.push(new UpnpService.BaseService(this,item,eventServer));
+            service = new UpnpService.AVTransportService(this,item,eventServer);
+          else service = new UpnpService.BaseService(this,item,eventServer);
+          this._services.push(service);
+          this.emit('serviceUpdated',service);
         });
       }, 1500);
     }

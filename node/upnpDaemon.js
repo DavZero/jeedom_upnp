@@ -175,6 +175,7 @@ server.listen({host: 'localhost',port: serverPort}, (e) => {
       deviceUDN : variable.Service.Device.UDN,
       serviceId : variable.Service.ID,
       name : variable.Name,
+      fromDevice : variable.IsFromDevice,
       type : variable.Type,
       value : newVal
     };

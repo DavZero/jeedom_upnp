@@ -13,7 +13,6 @@ class UpnpVariable extends EventEmitter
     this._service = service;
     this._fromDevice = fromDevice;
     this._initialize(variableData);
-    service.Device.emit('created',this);
   }
 
   _initialize(variableData,callback)
@@ -49,7 +48,7 @@ class UpnpVariable extends EventEmitter
 
   set Value(newVal){
     this._value = newVal;
-    this.emit('valueUpdated',this, newVal);
+    this.emit('updated',this, newVal);
   }
 
   get Type()
