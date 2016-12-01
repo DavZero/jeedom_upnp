@@ -73,7 +73,9 @@ class upnp extends eqLogic {
         if (!is_object($cmd))
         {
   				$cmd = new upnpCmd();
-  				$cmd->setName(__($data->name, __FILE__));
+          //On vérifie si le cmd existe déja en tant qu'info :
+          $cmdName = $eqp->getUniqueCmdName($data->name);
+  				$cmd->setName(__($cmdName, __FILE__));
   				$cmd->setLogicalId($data->name);
   				$cmd->setEqLogic_id($eqp->getId());
   				$cmd->setType('action');
@@ -108,7 +110,8 @@ class upnp extends eqLogic {
         if (!is_object($cmd))
         {
     			$cmd = new upnpCmd();
-    			$cmd->setName(__($data->name, __FILE__));
+          $cmdName = $eqp->getUniqueCmdName($data->name);
+  				$cmd->setName(__($cmdName, __FILE__));
     			$cmd->setLogicalId($data->name);
     			$cmd->setEqLogic_id($eqp->getId());
           $cmd->setType('info');
@@ -135,7 +138,8 @@ class upnp extends eqLogic {
         if (!is_object($cmd))
         {
           $cmd = new upnpCmd();
-          $cmd->setName(__($data->name, __FILE__));
+          $cmdName = $eqp->getUniqueCmdName($data->name);
+  				$cmd->setName(__($cmdName, __FILE__));
           $cmd->setLogicalId($data->name);
           $cmd->setEqLogic_id($eqp->getId());
           $cmd->setType('info');
@@ -336,6 +340,36 @@ class upnp extends eqLogic {
     }
     if ($waitResponse) log::add('upnp','debug','reponse : '.$response);
     return $response;
+  }
+
+  /*private function getCmdByUPnPName($_name, $_type = null)
+  {
+    foreach($this->getCmd($_type) as $cmd)
+    {
+      if ($cmd->getConfiguration('UPnPName') == $_name) return $cmd;
+    }
+    return null;
+  }*/
+
+  private function isUniqueName($_name)
+  {
+    if (is_object(cmd::byEqLogicIdCmdName(this->getId(),$_name))) return false;
+    return true;
+  }
+
+  private function getUniqueCmdName($_name)
+  {
+    $outputName = $_name;
+    $suffixe = "";
+    $cmdIndex = 0;
+    if (strlen($_name) >= 43) $outputName = substr($outputName,0,43);
+    if (isUniqueName($outputName)) return $outputName;
+    do {
+      $cmdIndex++;
+      $suffixe = sprintf("%'.02d\n", $cmdIndex);
+    } while (!isUniqueName($outputName.$suffixe));
+
+    return $outputName.$suffixe;
   }
 
   public function toHtml($_version = 'dashboard')
