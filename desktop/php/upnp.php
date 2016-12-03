@@ -128,9 +128,15 @@ $eqLogics = eqLogic::byType('upnp');
                   </div>
                 </div>
                 <div class="form-group expertModeVisible">
-                  <label class="col-sm-3 control-label">{{Description}}</label>
+                  <label class="col-sm-3 control-label">{{Device Description}}</label>
                   <div class="col-sm-8">
                     <span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="description" title="{{Description}}" style="font-size : 1em;cursor : default;"></span>
+                  </div>
+                </div>
+                <div class="form-group expertModeVisible">
+                  <label class="col-sm-3 control-label">{{Service Description}}</label>
+                  <div class="col-sm-8">
+                    <span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="serviceDescription" title="{{serviceDescription}}" style="font-size : 1em;cursor : default;"></span>
                   </div>
                 </div>
               </fieldset>

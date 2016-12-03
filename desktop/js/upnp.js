@@ -33,6 +33,11 @@ $('#bt_removeAll').on('click', function () {
       if (data.state != 'ok') {
         $('#div_alert').showAlert({message: data.result, level: 'danger'});
       }
+      else if (modifyWithoutSave) {
+        $('#div_inclusionAlert').showAlert({message: '{{Un périphérique vient d\'être inclu. Veuillez réactualiser la page}}', level: 'warning'});
+      } else {
+          window.location.reload();
+      }
     },
     error: function (request, status, error) {
       handleAjaxError(request, status, error);

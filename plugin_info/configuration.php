@@ -24,19 +24,6 @@ if (!isConnect()) {
 ?>
 <form class="form-horizontal">
   <fieldset>
-    <div class="form-group">
-      <label class="col-sm-4 control-label">{{Port clé}}</label>
-      <div class="col-sm-4">
-        <select class="configKey form-control" data-l1key="serialPort">
-          <option value="none">{{Aucun}}</option>
-          <?php
-          foreach (jeedom::getUsbMapping('', true) as $name => $value) {
-            echo '<option value="' . $name . '">' . $name . ' (' . $value . ')</option>';
-          }
-          ?>
-        </select>
-      </div>
-    </div>
 		<div class="form-group">
       <label class="col-sm-4 control-label">{{Port du Serveur (laisser vide par défault)}}</label>
 			<div class="col-sm-2">
