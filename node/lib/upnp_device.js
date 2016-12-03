@@ -78,7 +78,7 @@ class UpnpDevice extends EventEmitter
 			);
 		}
 
-		if (device.serviceList)
+		if (device.serviceList && device.serviceList[0] && device.serviceList[0].service)
 		{
 			//On lance la fonction en timeout de facon a laisser le controlpoint s'abonner au message avant qu'il ne soit emis
 			setTimeout(() =>
