@@ -22,7 +22,7 @@ $eqLogics = eqLogic::byType('upnp');
   </div>
 
   <div class="col-lg-10 col-md-9 col-sm-8 eqLogicThumbnailDisplay" style="border-left: solid 1px #EEE; padding-left: 25px;">
-    <legend><i class="fa fa-table"></i> {{Mes equipements}} </legend>
+    <legend><i class="fa fa-table"></i> {{Mes equipements}} <a class="btn btn-default btn-xs pull-right expertModeVisible" id="bt_removeAll"> {{Supprimer tous}}</a></legend>
     <div class="eqLogicThumbnailContainer">
       <?php
       foreach ($eqLogics as $eqLogic) {
@@ -128,9 +128,15 @@ $eqLogics = eqLogic::byType('upnp');
                   </div>
                 </div>
                 <div class="form-group expertModeVisible">
-                  <label class="col-sm-3 control-label">{{Description}}</label>
+                  <label class="col-sm-3 control-label">{{Device Description}}</label>
                   <div class="col-sm-8">
                     <span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="description" title="{{Description}}" style="font-size : 1em;cursor : default;"></span>
+                  </div>
+                </div>
+                <div class="form-group expertModeVisible">
+                  <label class="col-sm-3 control-label">{{Service Description}}</label>
+                  <div class="col-sm-8">
+                    <span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="serviceDescription" title="{{serviceDescription}}" style="font-size : 1em;cursor : default;"></span>
                   </div>
                 </div>
               </fieldset>
@@ -151,7 +157,8 @@ $eqLogics = eqLogic::byType('upnp');
         <table id="table_cmd" class="table table-bordered table-condensed">
           <thead>
             <tr>
-              <th>{{Nom}}</th><th>{{Source}}</th><th>{{Options}}</th><th>{{Paramètre}}</th><th>{{Action}}</th>
+              <!--<th>{{Nom}}</th><th>{{Source}}</th><th>{{Type}}</th><th>{{Nom UPnP}}</th><th>{{Options}}</th><th>{{Paramètre}}</th><th>{{Action}}</th>-->
+              <th>{{Nom}}</th><th>{{Type}}</th><th>{{Nom UPnP}}</th><th>{{Options}}</th><th>{{Paramètre}}</th><th>{{Action}}</th>
             </tr>
           </thead>
           <tbody>

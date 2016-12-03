@@ -24,6 +24,12 @@ try {
         throw new Exception(__('401 - Accès non autorisé', __FILE__));
     }
 
+    if (init('action') == 'removeAll') {
+      $eqLogics = eqLogic::byType('upnp');
+      foreach (eqLogic::byType('upnp') as $eqp) $eqp->remove();
+      ajax::success();
+    }
+
     throw new Exception(__('Aucune méthode correspondante à : ', __FILE__) . init('action'));
     /*     * *********Catch exeption*************** */
 } catch (Exception $e) {
