@@ -26,6 +26,7 @@ class UpnpBaseService
 		this._controlURL = serviceData.controlURL[0];
 		this._eventSubURL = serviceData.eventSubURL[0];
 		this._SCPDURL = serviceData.SCPDURL[0];
+    if (this._SCPDURL.charAt(0) != '/') this._SCPDURL = '/' + serviceData.SCPDURL[0];
 		this._eventServer = eventServer;
 		this._eventSubscribe = false;
 		this._subscriptionTimeout = 1800;

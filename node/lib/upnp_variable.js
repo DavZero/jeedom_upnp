@@ -12,6 +12,7 @@ class UpnpVariable extends EventEmitter
 		Logger.log("Création de la variable : " + JSON.stringify(variableData), LogType.DEBUG);
 		this._service = service;
 		this._fromDevice = fromDevice;
+    this._sendEvents = false;
 		this._initialize(variableData);
 	}
 
@@ -28,7 +29,12 @@ class UpnpVariable extends EventEmitter
 			);
 		}
 		this._type = variableData.dataType[0];
-		this._sendEvents = variableData['$'].sendEvents == "yes" ? true : false;
+    if (variableData['$']) this._sendEvents = variableData['$'].sendEvents == "yes" ? true : false;
+    else
+    {
+      Logger.log("Processing variable error, no sendEvents parameter found : " + JSON.stringify(variableData), LogType.DEBUG);
+      
+    }
 	}
 
 	get IsFromDevice()
