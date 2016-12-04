@@ -166,7 +166,8 @@ class UpnpBaseService
 			var eventProperties = body.Event[0];
 			if (!eventProperties)
 				eventProperties = body.Event;
-			var instance = eventProperties.InstanceID[0];
+			var instance = eventProperties;
+      if (eventProperties.InstanceID && eventProperties.InstanceID[0]) instance = eventProperties.InstanceID[0];
 			for (var prop in instance)
 			{
 				if (prop == '$')
