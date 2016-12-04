@@ -68,8 +68,8 @@ class ControlPoint extends EventEmitter
 								//Manage error
 								if (err)
 								{
-									Logger.log("Error processing Event : " + service.Device.UDN + '/' + service.ID + ", err : " + err, LogType.ERROR);
-									this.emit('error', "Error LastChange Event : " + service.Device.UDN + '/' + service.ID + ", err : " + err);
+									Logger.log("Error processing Event : " + service.Device.UDN + '::' + service.ID + " ==> xml : " + body + ", err : " + err, LogType.ERROR);
+									this.emit('error', "Error processing Event : " + service.Device.UDN + '::' + service.ID + " ==> xml : " + body + ", err : " + err);
 								}
 								else
 								{

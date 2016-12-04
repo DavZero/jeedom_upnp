@@ -4,6 +4,21 @@ if (!isConnect('admin')) {
 }
 sendVarToJS('eqType', 'upnp');
 $eqLogics = eqLogic::byType('upnp');
+
+/**
+ * Vérifie l'existance d'une URL
+ * @paramstring$url
+ * @returnboolean
+ */
+function url_exists($url){
+  if(!is_string($url) || strlen($url)==0)return false;
+  try {
+    $essais = get_headers($url, 1);
+    if(preg_match("#[^a-z0-9]2[0-9]{2}([^a-z0-9].*)$#i",$essais[0]))return true;
+  }catch(Exception $e){}
+  
+  return false;
+}
 ?>
 
 <div class="row row-overflow">
@@ -29,7 +44,7 @@ $eqLogics = eqLogic::byType('upnp');
         echo '<div class="eqLogicDisplayCard cursor" data-eqLogic_id="' . $eqLogic->getId() . '" style="background-color : #ffffff; height : 200px;margin-bottom : 10px;padding : 5px;border-radius: 2px;width : 160px;margin-left : 10px;" >';
         echo "<center>";
         $icon = $eqLogic->getConfiguration('icon');
-        if (!isset($icon) || $icon=='') echo '<img src="plugins/upnp/doc/images/upnp_icon.png" height="105" width="95" />';
+        if (!isset($icon) || $icon=='' || !url_exists($icon)) echo '<img src="plugins/upnp/doc/images/upnp_icon.png" height="105" width="95" />';
         else echo '<img src="'.$icon.'" height="100" width="100" />';
         echo "</center>";
         echo '<span style="font-size : 1.1em;position:relative; top : 15px;word-break: break-all;white-space: pre-wrap;word-wrap: break-word;"><center>' . $eqLogic->getHumanName(true, true) . '</center></span>';

@@ -188,8 +188,8 @@ class UpnpBaseService
 				//Manage Error
 				if (err)
 				{
-					Logger.log("Error LastChange Event : " + this.Device.UDN + '/' + this.ID + ", err : " + err, LogType.ERROR);
-					this.Device.emit('error', "Error LastChange Event : " + this.Device.UDN + '/' + this.ID + ", err : " + err);
+					Logger.log("Error decoding LastChange Event : " + this.Device.UDN + '::' + this.ID + " ==> xml : " + body + ", err : " + err, LogType.ERROR);
+					this.Device.emit('error', "Error decoding LastChange Event : " + this.Device.UDN + '::' + this.ID + " ==> xml : " + body + ", err : " + err);
 				}
 				else
 					this.processLastChangeEvent(data)

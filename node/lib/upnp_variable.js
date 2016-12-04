@@ -32,8 +32,7 @@ class UpnpVariable extends EventEmitter
     if (variableData['$']) this._sendEvents = variableData['$'].sendEvents == "yes" ? true : false;
     else
     {
-      Logger.log("Processing variable error, no sendEvents parameter found : " + JSON.stringify(variableData), LogType.DEBUG);
-      
+      Logger.log("Error processing variable, no sendEvent parameter found : " + JSON.stringify(variableData), LogType.DEBUG); 
     }
 	}
 

@@ -300,7 +300,7 @@
         $msg = array();
         $msg['command'] = 'stopDaemon';
         upnp::sendToDaemon(json_encode($msg));
-        sleep(1);
+        sleep(2);
       }
       $deamon_info = self::deamon_info();
       if ($deamon_info['state'] == 'ok') {
