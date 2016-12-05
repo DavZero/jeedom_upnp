@@ -24,7 +24,9 @@ class UpnpBaseService
 		this._type = serviceData.serviceType[0];
 		this._ID = serviceData.serviceId[0];
 		this._controlURL = serviceData.controlURL[0];
+    if (this._controlURL.charAt(0) != '/') this._controlURL = '/' + serviceData.controlURL[0];
 		this._eventSubURL = serviceData.eventSubURL[0];
+    if (this._eventSubURL.charAt(0) != '/') this._eventSubURL = '/' + serviceData.eventSubURL[0];
 		this._SCPDURL = serviceData.SCPDURL[0];
     if (this._SCPDURL.charAt(0) != '/') this._SCPDURL = '/' + serviceData.SCPDURL[0];
 		this._eventServer = eventServer;

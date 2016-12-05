@@ -10,14 +10,26 @@ $eqLogics = eqLogic::byType('upnp');
  * @paramstring$url
  * @returnboolean
  */
-function url_exists($url){
+/*function url_exists($url){
   if(!is_string($url) || strlen($url)==0)return false;
   try {
-    $essais = get_headers($url, 1);
-    if(preg_match("#[^a-z0-9]2[0-9]{2}([^a-z0-9].*)$#i",$essais[0]))return true;
+    //$essais = get_headers($url, 1);
+    //if(preg_match("#[^a-z0-9]2[0-9]{2}([^a-z0-9].*)$#i",$essais[0]))return true;
   }catch(Exception $e){}
   
   return false;
+}*/
+function url_exists($url){
+  $curl = curl_init();
+  curl_setopt($curl, CURLOPT_URL, $url);
+  curl_setopt($curl, CURLOPT_HEADER, true);
+  curl_setopt($curl, CURLOPT_TIMEOUT, 1);
+  curl_setopt($curl, CURLOPT_NOBODY, true);
+  curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+  $data = curl_exec($curl);
+  curl_close($curl);
+  preg_match("/HTTP\/1\.[1|0]\s(\d{3})/",$data,$matches);
+  return ($matches[1] == 200);
 }
 ?>
 

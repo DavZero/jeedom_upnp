@@ -26,7 +26,7 @@ class UpnpDevice extends EventEmitter
 		{
 			if (prop != 'deviceType' && prop != 'friendlyName' && prop != 'serviceList' && prop != 'UDN' && prop != 'deviceList' && prop != 'iconList')
 				this._additionalInfo[prop] = device[prop][0];
-		}
+        }
 
 		//Récuparation de l'icone
 		//{"mimetype":["image/png"],"url":["/icons/sm.png"],"width":["48"],"height":["48"],"depth":["24"]},{"mimetype":["image/png"],"url":["/icons/lrg.png"],"width":["120"],"height":["120"],"depth":["24"]},{"mimetype":["image/jpeg"],"url":["/icons/sm.jpg"],"width":["48"],"height":["48"],"depth":["24"]},{"mimetype":["image/jpeg"],"url":["/icons/lrg.jpg"],"width":["120"],"height":["120"],"depth":["24"]}
@@ -36,7 +36,8 @@ class UpnpDevice extends EventEmitter
 			{
 				if (item.mimetype[0] == 'image/png' && parseInt(item.width[0]) > 100)
 				{
-					this._iconUrl = this.BaseAddress + item.url[0];
+					if (item.url[0].charAt(0) == '/') this._iconUrl = this.BaseAddress + item.url[0];
+          else this._iconUrl = this.BaseAddress + '/' + item.url[0];
 				}
 			}
 			);
