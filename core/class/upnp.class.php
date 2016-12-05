@@ -166,7 +166,15 @@
         break;
         
       case 'updateService':
-        if (isset($data->friendlyName)) $eqp->setConfiguration('friendlyName', $data->friendlyName);
+        if (isset($data->friendlyName)) 
+        {
+          $eqp->setConfiguration('friendlyName', $data->friendlyName);
+          //On vérifie si le nom est celui par defaut, dans ce cas, on met a jour le nom sinon on laisse la valeur (cas du renommage manuel)
+          if ($eqp->getName() == $data->deviceUDN.'_'.$data->serviceId)
+          {
+            $eqp->setName($data->friendlyName.':'.array_reverse(explode(":", $data->serviceId))[0]);
+          }
+        }
         if (isset($data->location)) $eqp->setConfiguration('location', $data->location);
         if (isset($data->additionalData)) $eqp->setConfiguration('additionalData', $data->additionalData);
         if (isset($data->icon)) $eqp->setConfiguration('icon', $data->icon);

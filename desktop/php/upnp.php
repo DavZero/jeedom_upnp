@@ -23,7 +23,8 @@ function url_exists($url){
   $curl = curl_init();
   curl_setopt($curl, CURLOPT_URL, $url);
   curl_setopt($curl, CURLOPT_HEADER, true);
-  curl_setopt($curl, CURLOPT_TIMEOUT, 1);
+  curl_setopt($curl, CURLOPT_TIMEOUT_MS, 20);
+  //curl_setopt($curl, CURLOPT_TIMEOUT, 1);
   curl_setopt($curl, CURLOPT_NOBODY, true);
   curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
   $data = curl_exec($curl);
@@ -49,7 +50,7 @@ function url_exists($url){
   </div>
 
   <div class="col-lg-10 col-md-9 col-sm-8 eqLogicThumbnailDisplay" style="border-left: solid 1px #EEE; padding-left: 25px;">
-    <legend><i class="fa fa-table"></i> {{Mes equipements}} <a class="btn btn-default btn-xs pull-right expertModeVisible" id="bt_removeAll"> {{Supprimer tous}}</a></legend>
+    <legend><i class="fa fa-table"></i> {{Mes equipements}} <a class="btn btn-default btn-xs pull-right eqLogicAction" data-action="gotoPluginConf" ><i class="fa fa-wrench"></i> {{Configuration}}</a><a class="btn btn-default btn-xs pull-right expertModeVisible" id="bt_removeAll"> {{Supprimer tous}}</a></legend>
     <div class="eqLogicThumbnailContainer">
       <?php
       foreach ($eqLogics as $eqLogic) {
@@ -69,6 +70,7 @@ function url_exists($url){
     <a class="btn btn-success eqLogicAction pull-right" data-action="save"><i class="fa fa-check-circle"></i> {{Sauvegarder}}</a>
     <a class="btn btn-danger eqLogicAction pull-right" data-action="remove"><i class="fa fa-minus-circle"></i> {{Supprimer}}</a>
     <a class="btn btn-default eqLogicAction pull-right" data-action="configure"><i class="fa fa-cogs"></i> {{Configuration avancée}}</a>
+    
 
     <ul class="nav nav-tabs" role="tablist">
       <li role="presentation"><a href="#" class="eqLogicAction" aria-controls="home" role="tab" data-toggle="tab" data-action="returnToThumbnailDisplay"><i class="fa fa-arrow-circle-left"></i></a></li>
