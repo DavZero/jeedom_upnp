@@ -83,7 +83,7 @@ var processJeedomSendQueue = function ()
 				jeedomSendQueue.unshift(nextMessage);
 			}
 			else
-				Logger.log("Unable to send to jeedom: " + JSON.stringify(nextMessage) + ", errror : " + JSON.stringify(err), LogType.ERROR);
+				Logger.log("Unable to send to jeedom: " + JSON.stringify(nextMessage) + ", error : " + JSON.stringify(err), LogType.ERROR);
 		}
 		//else Logger.log("Response from Jeedom: " + response.statusCode, LogType.DEBUG);
 		processJeedomSendQueue();

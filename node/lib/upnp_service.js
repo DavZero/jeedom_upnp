@@ -61,8 +61,11 @@ class UpnpBaseService
 					}
 					});
 					});*/
-					this.subscribe(eventServer);
-					this._specializedInitialisation();
+          
+          this._specializedInitialisation();
+          //Gestion des services qui n'ont pas d'URL d'evenenemt
+					if (this._eventSubURL != '/') this.subscribe(eventServer);
+					
 				}
 				);
 			}
@@ -373,30 +376,23 @@ class UpnpBaseService
 			{
 				'SID': this._subscribeSID
 			}
-		}, (error, response, body) =>
-		{
+		}, (error, response, body) => {
 			if (error || response.statusCode != 200)
 			{
-				Logger.log("Erreur de desinscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " err : " + error, LogType.ERROR);
-				this._eventSubscribe = false;
-				delete this._subscribeSID;
-				delete this._resubscribe;
+				Logger.log("Erreur de desinscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " err : " + error + " query resturn code : " + response.statusCode, LogType.ERROR);
 			}
-			Logger.log("Desinscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " OK");
-		}
-		);
-		delete this._subscribeSID;
-		this._eventSubscribe = false;
+      else Logger.log("Desinscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " OK");
+      this._eventSubscribe = false;
+			delete this._subscribeSID;
+		});
 	}
 
 	get HasEvent()
 	{
-		this._variables.forEach((item) =>
-		{
+		this._variables.forEach((item) =>	{
 			if (item.HasEvent)
 				return true;
-		}
-		);
+		});
 	}
 
 	ToString()
