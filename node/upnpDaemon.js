@@ -172,21 +172,12 @@ server.listen(
 	Logger.log("Création du serveur sur le port " + serverPort, LogType.INFO);
 	Logger.log("Création du controlPoint");
 	cp = new controlPointAPI.ControlPoint(1900);
-	cp.search();
-	//cp.search('upnp:rootdevice');
-	cp.on('upnpError', function (err)
-	{
-		sendToJeedom(
-		{
-			eventType: 'error',
-			description: err
-		}
-		);
-	}
-	);
+	
+	cp.on('upnpError', function (err)	{
+		sendToJeedom({eventType: 'error',description: err	});
+	});
 
-	cp.on('actionDiscovered', function (action)
-	{
+	cp.on('actionDiscovered', function (action)	{
 		var data =
 		{
 			eventType: 'createAction',
@@ -196,8 +187,7 @@ server.listen(
 			fromDevice: action.IsFromDevice,
 			arguments: []
 		};
-		action.Arguments.forEach((item) =>
-		{
+		action.Arguments.forEach((item) =>{
 			if (item.Direction == 'in')
 			{
 				var argument =
@@ -213,14 +203,11 @@ server.listen(
 
 				data.arguments.push(argument);
 			}
-		}
-		);
+		});
 		sendToJeedom(data);
-	}
-	);
+	});
 
-	cp.on('variableDiscovered', function (variable)
-	{
+	cp.on('variableDiscovered', function (variable){
 		var data =
 		{
 			eventType: 'createInfo',
@@ -232,11 +219,9 @@ server.listen(
 		};
 
 		sendToJeedom(data);
-	}
-	);
+	});
 
-	cp.on('variableUpdated', function (variable, newVal)
-	{
+	cp.on('variableUpdated', function (variable, newVal){
 		var data =
 		{
 			eventType: 'updateInfo',
@@ -249,11 +234,9 @@ server.listen(
 		};
 
 		sendToJeedom(data);
-	}
-	);
+	});
 
-	cp.on('serviceUpdated', function (service)
-	{
+	cp.on('serviceUpdated', function (service){
 		var data =
 		{
 			eventType: 'updateService',
@@ -269,11 +252,9 @@ server.listen(
 		};
 
 		sendToJeedom(data);
-	}
-	);
+	});
 
-	cp.on('serviceOffline', function (service)
-	{
+	cp.on('serviceOffline', function (service) {
 		var data =
 		{
 			eventType: 'updateService',
@@ -281,12 +262,14 @@ server.listen(
 			serviceId: service.ID,
 			isOnline: false
 		};
-
 		sendToJeedom(data);
-	}
-	);
-}
-);
+	});
+  
+  //Search for all UPnP device
+  cp.search();
+  //For Wemo we need to perform a specific search because it doesn't respond to ssdp::all
+	cp.search('upnp:rootdevice');
+});
 
 var processJeedomMessage = function (payload, callback)
 {
