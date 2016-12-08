@@ -193,10 +193,10 @@ server.listen(
 				var argument =
 				{
 					name: item.Name,
-					type: item.RelatedStateVariable.Type
+					type: (item.RelatedStateVariable && item.RelatedStateVariable.Type) ? item.RelatedStateVariable.Type : 'Unknow'
 				};
 
-				if (item.RelatedStateVariable.AllowedValue)
+				if (item.RelatedStateVariable && item.RelatedStateVariable.AllowedValue)
 				{
 					argument.allowedValue = item.RelatedStateVariable.AllowedValue;
 				}

@@ -161,6 +161,7 @@ class UpnpActionArgument
 		this._name = variable.name[0];
 		this._direction = variable.direction[0];
 		this._relatedStateVariable = service.getVariableByName(variable.relatedStateVariable[0]);
+    if (!this._relatedStateVariable) Logger.log("Unable to map argument : " + variable.name[0] + " with corresponding variable of service " + service.ID, LogType.WARNING);
 	}
 
 	get Name()
