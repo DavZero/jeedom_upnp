@@ -20,7 +20,7 @@ class UpnpAction
 	{
 		this._name = actionData.name[0];
 		this._arguments = [];
-		if (actionData.argumentList)
+		if (actionData.argumentList && actionData.argumentList[0].argument)
 		{
 			actionData.argumentList[0].argument.forEach((item) =>
 			{
