@@ -23,8 +23,8 @@ class UpnpAction
 		if (actionData.argumentList && actionData.argumentList[0].argument)
 		{
 			actionData.argumentList[0].argument.forEach((item) => {
-        if (!item.Name) Logger.log("Unable to create argument without name for action : " + JSON.stringify(actionData), LogType.WARNING);
-				else if (!item.Direction) Logger.log("Unable to create argument without direction for action : " + JSON.stringify(actionData), LogType.WARNING);
+        if (!item.name) Logger.log("Unable to create argument without name for action : " + JSON.stringify(actionData), LogType.WARNING);
+				else if (!item.direction) Logger.log("Unable to create argument without direction for action : " + JSON.stringify(actionData), LogType.WARNING);
         else this._arguments.push(new UpnpActionArgument(item, this._service));
 			});
 		}
