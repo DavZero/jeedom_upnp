@@ -1,4 +1,4 @@
-==== Configuration du plugin
+==== The plugin configuration
 
 Une fois le plugin activé, les dépendances doivent s’installer automatiquement.
 Si ce n’est pas le cas ou si elle ne sont pas OK, cliquer sur relancer.

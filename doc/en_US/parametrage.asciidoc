@@ -1,4 +1,4 @@
-==== Paramétrage
+==== Setting
 
 Pour les services disposant d'un widget spécifiques :
 
