@@ -199,7 +199,7 @@ class ControlPoint extends EventEmitter
 					/*this._devices[location.href] = new upnpDeviceAPI.UpnpDevice(location, data,(device) => {
 					device.subscribeServicesEvents('http://' + ip.address() + ':' + this._eventPort);
 					}));*/
-          if (data.root && data.root.device)
+          if (!err && data && data.root && data.root.device)
           {
             this._devices[location.href] = new upnpDeviceAPI.UpnpDevice(location, data.root.device[0], 'http://' + ip.address() + ':' + this._eventPort);
             this._devices[location.href].on('serviceUpdated', (service) => { this.emit('serviceUpdated', service); });
