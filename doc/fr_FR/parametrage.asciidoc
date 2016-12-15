@@ -24,8 +24,14 @@ Ensuite, après enregistrement, les paramètre de la commande apparaissent dans 
 image::../images/upnp_customAction.png[]
 
 
-TIP: Si vous n'avez pas besoin d'afficher les paramètres des commandes sur le dashboard (parce que par exemple la valeur par defaut que vous avez indiquer est la seul valeur qui vous interesse alors vous pouvez décocher la checbox "Afficher les options")
+TIP: Si vous n'avez pas besoin d'afficher les paramètres des commandes sur le dashboard (parce que par exemple la valeur par defaut que vous 
+avez indiquer est la seul valeur qui vous interesse alors vous pouvez décocher la checbox "Afficher les options")
 
-TIP: La valeur du champ information peut être renseigner afin de définir quel info est en relation avec cette action (a part pour la commande SetBinaryState je ne vois pas de cas d'usage mais on ne sais jamais soyez inventif)
+TIP: La valeur du champ information peut être renseigner afin de définir quel info est en relation avec cette action (a part pour la commande 
+SetBinaryState je ne vois pas de cas d'usage mais on ne sais jamais soyez inventif)
+
+TIP: L'option WaitResponse est utilise si vous souhaiter "enchainer" des commandes dans un sénario par exemple, le traitement ne passera à la commande 
+suivante que lorsque la commande avec WaitResponse = 1 ou true sera fini alors que si WaitResponse = 0 ou false, 
+alors la commande suivante sera executer sans attendre la fin de la première commande. Dans la plupart des cas, mettre 0 ou 1 ou rien n'a pas d'incidence.
 
 
