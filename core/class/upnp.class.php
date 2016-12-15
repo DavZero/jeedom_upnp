@@ -61,6 +61,13 @@
         $eqp->setConfiguration('displayUnmanagedCommand', true);
         $eqp->setConfiguration('standardDisplayOfCustomizedCommand', false);
         $eqp->setIsEnable(1);
+        //Recuparation de l'objet parent par defaut et vérification qu'il existe
+        $objetParent = object::byId(config::byKey('defaultParentObject', 'upnp'));
+        if (is_object($objetParent)) 
+        {
+          log::add('upnp', 'debug', 'Obj parent existe');
+          $eqp->setObject_id($objetParent->getId());
+        }
         $eqp->save();
         event::add('upnp::includeDevice', $eqp->getId());
       }
@@ -179,6 +186,7 @@
         if (isset($data->additionalData)) $eqp->setConfiguration('additionalData', $data->additionalData);
         if (isset($data->icon)) $eqp->setConfiguration('icon', $data->icon);
         if (isset($data->description)) $eqp->setConfiguration('description', $data->description);
+        if (isset($data->deviceType)) $eqp->setConfiguration('deviceType', $data->deviceType);
         if (isset($data->isOnline)) $eqp->setConfiguration('isOnline',$data->isOnline?true:false);
         if (isset($data->serviceDescription)) $eqp->setConfiguration('serviceDescription',$data->serviceDescription);
         $eqp->save();
@@ -516,7 +524,7 @@
         
         $args = $cmd->getConfiguration('arguments');
         
-        if ($cmd->getType()=='action' && count($args) > 0)
+        if ($cmd->getType()=='action' && count($args) > 0 && $cmd->getConfiguration('isOptionsVisible'))
         {
           $cmdUID = 'cmd' . $cmd->getId() . eqLogic::UIDDELIMITER . mt_rand() . eqLogic::UIDDELIMITER;
           
@@ -529,20 +537,22 @@
             
             if (isset($option['allowedValue']) && count($option['allowedValue']) > 0)
             {
-              $cmd_html .= '<select class="form-control '. $option['name'] .'">';
+              $cmd_html .= '<select class="form-control '. $option['name'] .'" >';
               foreach($option['allowedValue'] as $val)
               {
-                $cmd_html .= '<option value="' .$val. '">' .$val. '</option>';
+                if ($val == $cmd->getConfiguration('ArgVal_'.$option['name']))
+                  $cmd_html .= '<option value="' .$val. '" selected >' .$val. '</option>';
+                else $cmd_html .= '<option value="' .$val. '">' .$val. '</option>';
               }
               $cmd_html .= '</select>';
             }
             else if ($option['type'] == 'ui1' || $option['type'] == 'ui2' || $option['type'] == 'ui4')
             {
-              $cmd_html .= '<input class="form-control input-sm '. $option['name'] .'" type="number" placeholder="'.__('Value', __FILE__).'" value=0 />';
+              $cmd_html .= '<input class="form-control input-sm '. $option['name'] .'" type="number" placeholder="'.__('Value', __FILE__).'" value='.$cmd->getConfiguration('ArgVal_'.$option['name']).' />';
             }
             else
             {
-              $cmd_html .= '<input class="form-control input-sm '. $option['name'] .'" type="string" placeholder="'.__('Value', __FILE__).'" />';
+              $cmd_html .= '<input class="form-control input-sm '. $option['name'] .'" type="string" placeholder="'.__('Value', __FILE__).'" value="'.$cmd->getConfiguration('ArgVal_'.$option['name']).'" />';
             }
             $cmd_html .= '</div>';
           }
@@ -608,6 +618,22 @@
       */
     
     public function execute($_options = array()) {
+      if ($this->getLogicalId() == 'UpnpUserAction')
+      {
+        $upnpAction = upnpCmd::byId($this->getConfiguration('upnpAction'));
+        if (is_object($upnpAction))
+        {
+          //Calcul des paramètres
+          $opt = $this->getParameters($upnpAction,$_options);
+          log::add('upnp', 'info', 'execute userAction '.$this->getName().' avec option : '.json_encode($opt));
+          return $upnpAction->execute($opt);
+        }
+        else
+        {
+          log::add('upnp', 'error', 'Unable to find UPnP action with logicalId '.$this->getConfiguration('upnpAction').' avec option : '.json_encode($opt));
+        }
+        return;
+      }
       log::add('upnp', 'info', 'execute '.$this->getLogicalId().' avec option : '.json_encode($_options));
       switch ($this->getType()) {
       case 'action':
@@ -617,20 +643,40 @@
         $msg['UDN'] = $this->getEqLogic()->getConfiguration('UDN');
         $msg['serviceID'] = $this->getEqLogic()->getConfiguration('serviceId');
         $msg['actionName'] = $this->getLogicalId();
-        $msg['options'] = array();
-        /*if (isset($_options['message'])) $param = $_options['message']; //Pour une gestion via les scenario
-            else $param = $_options;
-          log::add('upnp', 'info', 'params '.json_encode($param));*/
-        $param = $_options;
-        foreach($this->getConfiguration('arguments') as $option)
-        {
-          $msg['options'][$option['name']] = $param[$option['name']];
-        }
-        if (!isset($param['waitResponse'])) $param['waitResponse'] = false;
-        log::add('upnp', 'debug', 'waitReponse : '.($param['waitResponse']?'true':'false'));
-        return upnp::sendToDaemon(json_encode($msg),$param['waitResponse']?true:false);
+        $msg['options'] = $this->getParameters($this,$_options);
+        log::add('upnp', 'debug', 'WaitResponse : '.($msg['options']['WaitResponse']?'true':'false'));
+        return upnp::sendToDaemon(json_encode($msg),$msg['options']);
         break;
       }
+    }
+    
+    private function getParameters($originalCmd,$_options = array())
+    {
+      //Calcul des paramètres
+      $opt = array();
+      foreach($originalCmd->getConfiguration('arguments') as $option)
+      {
+        log::add('upnp', 'debug', 'Traitement de l\'option '.$option['name']);
+        if (isset($_options[$option['name']]))
+        {
+          log::add('upnp', 'debug', 'Paramètre dynamique '.$_options[$option['name']]);
+          $opt[$option['name']] = $_options[$option['name']];
+        }
+        else
+        {
+          $optVal = $this->getConfiguration('ArgVal_'.$option['name']);
+          log::add('upnp', 'debug', 'Paramètre par defaut '.$optVal);
+          if ($optVal != null) $opt[$option['name']] = $optVal;
+        }
+      }
+      if (isset($_options['WaitResponse'])) $opt['WaitResponse'] = $_options['WaitResponse'];
+      else
+      {
+        $optVal = $this->getConfiguration('ArgVal_WaitResponse');
+        if ($optVal == 1) $opt['WaitResponse'] = true;
+        else $opt['WaitResponse'] = false;
+      }
+      return $opt;
     }
     /*     * **********************Getteur Setteur*************************** */
   }

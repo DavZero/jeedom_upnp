@@ -133,15 +133,21 @@ function url_exists($url){
                   </div>
                 </div>
                 <div class="form-group">
+                  <label class="col-sm-3 control-label">{{Device Type}}</label>
+                  <div class="col-sm-8">
+                    <span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="deviceType" title="{{Device Type}}" style="font-size : 1em;cursor : default;"></span>
+                  </div>
+                </div>
+                <div class="form-group">
                   <label class="col-sm-3 control-label">{{UDN}}</label>
                   <div class="col-sm-8">
                     <span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="UDN" title="{{UDN}}" style="font-size : 1em;cursor : default;"></span>
                   </div>
                 </div>
-                <div class="form-group">
-                  <label class="col-sm-3 control-label">{{Service ID}}</label>
+                <div class="form-group expertModeVisible">
+                  <label class="col-sm-3 control-label">{{Device Description}}</label>
                   <div class="col-sm-8">
-                    <span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="serviceId" title="{{Service ID}}" style="font-size : 1em;cursor : default;"></span>
+                    <span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="description" title="{{Description}}" style="font-size : 1em;cursor : default;"></span>
                   </div>
                 </div>
                 <div class="form-group">
@@ -156,10 +162,10 @@ function url_exists($url){
                     <span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="location" title="{{Location}}" style="font-size : 1em;cursor : default;"></span>
                   </div>
                 </div>
-                <div class="form-group expertModeVisible">
-                  <label class="col-sm-3 control-label">{{Device Description}}</label>
+                <div class="form-group">
+                  <label class="col-sm-3 control-label">{{Service ID}}</label>
                   <div class="col-sm-8">
-                    <span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="description" title="{{Description}}" style="font-size : 1em;cursor : default;"></span>
+                    <span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="serviceId" title="{{Service ID}}" style="font-size : 1em;cursor : default;"></span>
                   </div>
                 </div>
                 <div class="form-group expertModeVisible">
@@ -183,6 +189,7 @@ function url_exists($url){
       </div>
       <div role="tabpanel" class="tab-pane" id="commandtab">
         <br/>
+        <a class="btn btn-success btn-sm cmdAction pull-right" data-action="addUserCmd"><i class="fa fa-plus-circle"></i> Ajouter une commande</a><br/><br/>
         <table id="table_cmd" class="table table-bordered table-condensed">
           <thead>
             <tr>

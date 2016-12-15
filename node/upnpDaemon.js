@@ -14,8 +14,7 @@ var serverPort = 5001;
 var actionTimeout = 5;
 
 // print process.argv
-process.argv.forEach(function (val, index, array)
-{
+process.argv.forEach(function (val, index, array){
 	switch (index)
 	{
 	case 2:
@@ -40,10 +39,9 @@ process.argv.forEach(function (val, index, array)
 		actionTimeout = val;
 		break;
 	}
-}
-);
+});
 
-Logger.log("Démon version 1.0.5", LogType.INFO);
+Logger.log("Démon version 1.0.6", LogType.INFO);
 Logger.log("urlJeedom = " + urlJeedom, LogType.DEBUG);
 Logger.log("serverPort = " + serverPort, LogType.DEBUG);
 Logger.log("logLevel = " + logLevel, LogType.INFO);
@@ -241,6 +239,7 @@ server.listen(
 		{
 			eventType: 'updateService',
 			deviceUDN: service.Device.UDN,
+      deviceType: service.Device.Type,
 			serviceId: service.ID,
 			friendlyName: service.Device.Name,
 			location: service.Device.BaseAddress,

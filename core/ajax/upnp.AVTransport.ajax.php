@@ -39,7 +39,7 @@
         'InstanceID' => '0',
         'CurrentURI' => init('uri'),
         'CurrentURIMetaData' => init('metadata'),
-        'waitResponse' => true
+        'WaitResponse' => true
       );
       
       $cmd->execute($option);

@@ -138,7 +138,7 @@ class ControlPoint extends EventEmitter
 			//this.emit(ssdpAPI.NTS_EVENTS[headers.NTS],headers);
 			switch (ssdpAPI.NTS_EVENTS[headers.NTS])
 			{
-			case 'DeviceAvailable':
+        case 'DeviceAvailable':
 				this._addDevice(url.parse(headers.LOCATION));
 				break;
 			case 'DeviceUpdate':
@@ -199,39 +199,21 @@ class ControlPoint extends EventEmitter
 					/*this._devices[location.href] = new upnpDeviceAPI.UpnpDevice(location, data,(device) => {
 					device.subscribeServicesEvents('http://' + ip.address() + ':' + this._eventPort);
 					}));*/
-					this._devices[location.href] = new upnpDeviceAPI.UpnpDevice(location, data.root.device[0], 'http://' + ip.address() + ':' + this._eventPort);
-					this._devices[location.href].on('serviceUpdated', (service) =>
-					{
-						this.emit('serviceUpdated', service)
-					}
-					);
-					this._devices[location.href].on('actionCreated', (action) =>
-					{
-						this.emit('actionDiscovered', action)
-					}
-					);
-					this._devices[location.href].on('variableCreated', (variable) =>
-					{
-						this.emit('variableDiscovered', variable)
-					}
-					);
-					this._devices[location.href].on('variableUpdated', (variable, newVal) =>
-					{
-						this.emit('variableUpdated', variable, newVal)
-					}
-					);
-					this._devices[location.href].on('serviceOffline', (service) =>
-					{
-						this.emit('serviceOffline', service)
-					}
-					);
-					this._devices[location.href].on('error', (error) =>
-					{
-						this.emit('upnpError', error)
-					}
-					);
-				}
-				);
+          if (data.root && data.root.device)
+          {
+            this._devices[location.href] = new upnpDeviceAPI.UpnpDevice(location, data.root.device[0], 'http://' + ip.address() + ':' + this._eventPort);
+            this._devices[location.href].on('serviceUpdated', (service) => { this.emit('serviceUpdated', service); });
+            this._devices[location.href].on('actionCreated', (action) => { this.emit('actionDiscovered', action); });
+            this._devices[location.href].on('variableCreated', (variable) => { this.emit('variableDiscovered', variable); });
+            this._devices[location.href].on('variableUpdated', (variable, newVal) => { this.emit('variableUpdated', variable, newVal); });
+            this._devices[location.href].on('serviceOffline', (service) => { this.emit('serviceOffline', service); });
+            this._devices[location.href].on('error', (error) => { this.emit('upnpError', error); });
+          }
+          else
+          {
+            Logger.log("Unable to parse xml or get device attribute xml : " + body + ", json : " + JSON.stringify(data) + ", err : " + err, LogType.WARNING);
+          }
+				});
 			}
 			delete this._requestedDeviceQueue[location.href];
 		}

@@ -144,7 +144,12 @@ class UpnpDevice extends EventEmitter
 	{
 		return this._UDN;
 	}
-
+  
+  get Type()
+	{
+		return this._type;
+	}
+ 
 	get Name()
 	{
 		return this._name;

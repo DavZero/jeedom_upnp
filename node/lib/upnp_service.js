@@ -273,9 +273,18 @@ class UpnpBaseService
 		return null;
 	}
 
-	subscribe(server)
+	subscribe(server, tryCount)
 	{
-		request(
+    if (!tryCount) tryCount = 1; 
+    else if (tryCount>5) 
+    {
+      Logger.log("Erreur d'inscription au evenement après 5 tentatives, coupure de l'accès au service, url : " + this._device.BaseAddress + this._eventSubURL + " pour le service " + this._ID + ", err : " + error, LogType.ERROR);
+      //Le service est probablement éteint, on coupe le service a voir si c'est bien??
+      this.prepareForRemove();
+      return;
+    }
+    
+    request(
 		{
 			//host: this._device.Location.hostname,
 			//port: this._device.Location.port,
@@ -291,10 +300,11 @@ class UpnpBaseService
 		{
 			if (error || response.statusCode != 200)
 			{
-				Logger.log("Erreur d'inscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " pour le service " + this._ID + ", err : " + error, LogType.ERROR);
-				setTimeout((service) =>
+				Logger.log("Erreur d'inscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " pour le service " + this._ID + ", err : " + error, LogType.WARNING);
+				//Gestion du code d'erreur pour detecté les services deconnecté??
+        setTimeout((service) =>
 				{
-					service.subscribe(server);
+					service.subscribe(server, tryCount++);
 				}, 15 * 1000, this);
 				return;
 			}
@@ -306,10 +316,9 @@ class UpnpBaseService
 				var timeout = response.headers.timeout.match(/\d+/);
 				//this._subscriptionTimeout = response.headers.timeout.match(/\d+/);
 				Logger.log("Inscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " pour " + timeout + " secondes, SID : " + this._subscribeSID);
-				this._resubscribe = setTimeout((service) =>
-					{
-						service.resubscribe();
-					}, (timeout - 2) * 1000, this);
+				this._resubscribe = setTimeout((service) =>	{
+					service.resubscribe();
+				}, (timeout - 2) * 1000, this);
 			}
 		}
 		);
@@ -330,14 +339,14 @@ class UpnpBaseService
 		{
 			if (error || response.statusCode != 200)
 			{
-				Logger.log("Erreur de re-inscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " err : " + error, LogType.ERROR);
+				Logger.log("Erreur de re-inscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " err : " + error, LogType.WARNING);
 				this._eventSubscribe = false;
 				delete this._subscribeSID;
 				delete this._resubscribe;
 				setTimeout((service) =>
 				{
-					service.subscribe(this._eventServer);
-				}, 5 * 1000, this);
+					service.subscribe(this._eventServer,1);
+				}, 15 * 1000, this);
 				return;
 			}
 			else
@@ -379,7 +388,7 @@ class UpnpBaseService
 		}, (error, response, body) => {
 			if (error || response.statusCode != 200)
 			{
-				Logger.log("Erreur de desinscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " err : " + error + " query resturn code : " + response.statusCode, LogType.ERROR);
+				Logger.log("Erreur de desinscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " err : " + error + " query resturn code : " + response.statusCode, LogType.WARNING);
 			}
       else Logger.log("Desinscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " OK");
       this._eventSubscribe = false;
