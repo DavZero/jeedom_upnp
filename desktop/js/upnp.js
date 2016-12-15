@@ -212,8 +212,6 @@ function addCmdToTable(_cmd) {
     jeedom.cmd.byId({
       id:_cmd.configuration.upnpAction, 
       success: function (upnpCmd){
-        console.info('test : ',upnpCmd);
-        //args = upnpCmd.configuration.arguments;
         updateOptions(tr,_cmd,upnpCmd.configuration.arguments);
       }
     });
