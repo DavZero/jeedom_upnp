@@ -427,7 +427,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_paramétrage">3. Paramétrage</a>
 <ul class="sectlevel3">
-<li><a href="#_setting">3.1. Setting</a></li>
+<li><a href="#_paramétrage_equipement">3.1. Paramétrage Equipement</a></li>
+<li><a href="#_paramétrage_commandes">3.2. Paramétrage Commandes</a></li>
 </ul>
 </li>
 <li><a href="#_faq">4. FAQ</a></li>
@@ -480,7 +481,7 @@ Si ce n’est pas le cas ou si elle ne sont pas OK, cliquer sur relancer.</p>
 <h2 id="_paramétrage">3. Paramétrage</h2>
 <div class="sectionbody">
 <div class="sect3">
-<h4 id="_setting">3.1. Setting</h4>
+<h4 id="_paramétrage_equipement">3.1. Paramétrage Equipement</h4>
 <div class="paragraph">
 <p>Pour les services disposant d&#8217;un widget spécifiques :</p>
 </div>
@@ -496,7 +497,8 @@ Si ce n’est pas le cas ou si elle ne sont pas OK, cliquer sur relancer.</p>
 </div>
 <div class="paragraph">
 <p>il est possible de choisir entre l&#8217;affichage "standard" des commandes et l&#8217;affichage spécifique aux service.
-En complément de l&#8217;affichage spécifique, il est possible d&#8217;afficher les commandes du service "non géré" par l&#8217;affichage spécifique et de forcer l&#8217;affichage des commandes en "standard" en plus de l&#8217;affichage spécifique</p>
+En complément de l&#8217;affichage spécifique, il est possible d&#8217;afficher les commandes du service "non géré" par l&#8217;affichage spécifique et de forcer
+l&#8217;affichage des commandes en "standard" en plus de l&#8217;affichage spécifique</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -506,6 +508,62 @@ En complément de l&#8217;affichage spécifique, il est possible d&#8217;affiche
 </td>
 <td class="content">
 Que se soit pour les services disposant d&#8217;un widget spécifique ou pour les autres services, l&#8217;affichage en mode "standard" prend en compte les paramètrage des commandes (affichage On/Off).
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_paramétrage_commandes">3.2. Paramétrage Commandes</h4>
+<div class="paragraph">
+<p>Les actions mises a disposition par le plugin nécessitent la plupart du temps des paramètres.
+Il est possible via l&#8217;onglet "Commandes" de la page de configuration d&#8217;un equipement de définir des valeurs par defaut pour ces paramètres
+et de créer plusieur configuration de la même commande, ceci permet par exemples afin de créer les actions On et Off pour la commande UPnP "SetBinaryState"
+ou encore de créer un bouton permettant de charger ma chanson préféré ou encore de paramètré plusieur radio.
+Pour cela il faut créer une nouvelle commande d&#8217;action et dans le champs "Action" correspondant à la commande créer définir l&#8217;action UPnP qu&#8217;on souhaite paramètré.
+Ensuite, après enregistrement, les paramètre de la commande apparaissent dans le champ Option de la commande.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../images/upnp_customAction.png" alt="upnp customAction">
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Si vous n&#8217;avez pas besoin d&#8217;afficher les paramètres des commandes sur le dashboard (parce que par exemple la valeur par defaut que vous
+avez indiquer est la seul valeur qui vous interesse alors vous pouvez décocher la checbox "Afficher les options")
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+La valeur du champ information peut être renseigner afin de définir quel info est en relation avec cette action (a part pour la commande
+SetBinaryState je ne vois pas de cas d&#8217;usage mais on ne sais jamais soyez inventif)
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+L&#8217;option WaitResponse est utilise si vous souhaiter "enchainer" des commandes dans un sénario par exemple, le traitement ne passera à la commande
+suivante que lorsque la commande avec WaitResponse = 1 ou true sera fini alors que si WaitResponse = 0 ou false,
+alors la commande suivante sera executer sans attendre la fin de la première commande. Dans la plupart des cas, mettre 0 ou 1 ou rien n&#8217;a pas d&#8217;incidence.
 </td>
 </tr>
 </table>
