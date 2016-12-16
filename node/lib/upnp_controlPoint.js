@@ -94,9 +94,15 @@ class ControlPoint extends EventEmitter
 		}
 		);
 		//Initiliastion de la liste des devices
+    this._blackList = {};
 		this._devices = {};
 		this._requestedDeviceQueue = {};
 	}
+  
+  purgeBlackList()
+  {
+    this._blackList = {};
+  }
 
 	shutdown()
 	{
@@ -190,10 +196,25 @@ class ControlPoint extends EventEmitter
 		request(location.href, (error, response, body) =>
 		{
 			if (error || response.statusCode != 200)
-				this.emit('upnpError', 'Unable to add ' + location.href + ', ' + error);
+      {
+				if (!this._blackList[location.href]) this._blackList[location.href] = 1;
+        if (this._blackList[location.href] < 5)
+        {
+          Logger.log('Unable to add ' + location.href + ' remains  ' + 5-this._blackList[location.href]  + 'tries, ' + error, LogType.WARNING);
+          this._blackList[location.href]++;
+        }
+        else if (this._blackList[location.href] == 5)
+        {
+          Logger.log('Unable to add ' + location.href + ', ' + error, LogType.ERROR);
+          this.emit('upnpError', 'Unable to add ' + location.href + ', ' + error);
+          this._blackList[location.href]++;
+        }
+        else this._blackList[location.href]++;  
+      }
 			else
 			{
-				xml2js.parseString(body, (err, data) =>
+				if (this._blackList[location.href]) delete this._blackList[location.href];
+        xml2js.parseString(body, (err, data) =>
 				{
 					//LogDate(logType.INFO, JSON.stringify(data));
 					/*this._devices[location.href] = new upnpDeviceAPI.UpnpDevice(location, data,(device) => {

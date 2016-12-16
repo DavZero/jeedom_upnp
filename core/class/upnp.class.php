@@ -30,7 +30,6 @@
       if ($data->eventType == 'error')
       {
         log::add('upnp', 'error', $data->description);
-        //throw new Exception('Plugwise event Error : ' . init('description'));
         return;
       }
       
@@ -644,7 +643,6 @@
         $msg['serviceID'] = $this->getEqLogic()->getConfiguration('serviceId');
         $msg['actionName'] = $this->getLogicalId();
         $msg['options'] = $this->getParameters($this,$_options);
-        log::add('upnp', 'debug', 'WaitResponse : '.($msg['options']['WaitResponse']?'true':'false'));
         return upnp::sendToDaemon(json_encode($msg),$msg['options']);
         break;
       }
@@ -659,13 +657,11 @@
         log::add('upnp', 'debug', 'Traitement de l\'option '.$option['name']);
         if (isset($_options[$option['name']]))
         {
-          log::add('upnp', 'debug', 'Paramètre dynamique '.$_options[$option['name']]);
           $opt[$option['name']] = $_options[$option['name']];
         }
         else
         {
           $optVal = $this->getConfiguration('ArgVal_'.$option['name']);
-          log::add('upnp', 'debug', 'Paramètre par defaut '.$optVal);
           if ($optVal != null) $opt[$option['name']] = $optVal;
         }
       }
