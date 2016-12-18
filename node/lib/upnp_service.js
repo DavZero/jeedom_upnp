@@ -50,11 +50,18 @@ class UpnpBaseService
 			else if (body != '')
 			{
 				xml2js.parseString(body, (err, data) => {
-					this.processSCPD(data.scpd, true);   
-          if (callback) callback();
-          this._specializedInitialisation();
-          //Gestion des services qui n'ont pas d'URL d'evenenemt
-					if (this._eventSubURL != '/') this.subscribe(this._eventServer);	
+          if (err)
+          {
+            Logger.log("Unable to parse SCPDURL XML, source : " + body + ", err : " + err, LogType.ERROR);
+          }
+					else
+          {
+            this.processSCPD(data.scpd, true);   
+            if (callback) callback();
+            this._specializedInitialisation();
+            //Gestion des services qui n'ont pas d'URL d'evenenemt
+            if (this._eventSubURL != '/') this.subscribe(this._eventServer);
+          }
 				});
 			}
 			else
@@ -71,7 +78,7 @@ class UpnpBaseService
 	//fromDevice == true if from device, false if from template
 	processSCPD(scpd, fromDevice)
 	{
-		if (scpd.serviceStateTable[0] && scpd.serviceStateTable[0].stateVariable)
+    if (scpd.serviceStateTable && scpd.serviceStateTable[0] && scpd.serviceStateTable[0].stateVariable)
 		{
 			scpd.serviceStateTable[0].stateVariable.forEach((item) =>
 			{
@@ -91,7 +98,7 @@ class UpnpBaseService
 		else
 			Logger.log("No variable found for service " + this.Device.UDN + "::" + this.ID + ", source " + fromDevice?"device":"template", LogType.DEBUG);
 
-		if (scpd.actionList[0] && scpd.actionList[0].action)
+		if (scpd.actionList && scpd.actionList[0] && scpd.actionList[0].action)
 		{
 			scpd.actionList[0].action.forEach((item) =>
 			{
