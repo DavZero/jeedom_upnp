@@ -88,9 +88,19 @@ class UpnpDevice extends EventEmitter
 				{
 					//Logger.log("debug service création : " + JSON.stringify(item.serviceType[0]), LogType.DEBUG);
 					var service;
-          if (device['manufacturer'])
-            Logger.log("debug service for manufacturer : " + JSON.stringify(device['manufacturer'][0]), LogType.DEBUG);
-          if (item.serviceType[0].indexOf(":AVTransport") !== -1 && device['manufacturer'] && device['manufacturer'][0] == 'OpenHome')
+          //if (device['manufacturer'])
+          //  Logger.log("debug service for manufacturer : " + JSON.stringify(device['manufacturer'][0]), LogType.DEBUG);
+          if (this._type == 'urn:Belkin:device:insight:1' && item.serviceType[0] == 'urn:Belkin:service:basicevent:1')
+          {
+            //Création d'un service spécial pour le WEMO Insight
+            service = new UpnpService.WemoInsigthBasicevent(this, item, eventServer);
+          }
+          else if (this._type == 'urn:Belkin:device:Maker:1' && item.serviceType[0] == 'urn:Belkin:service:deviceevent:1')
+          {
+            //Création d'un service spécial pour le WEMO Maker
+            service = new UpnpService.WemoMakerDeviceevent(this, item, eventServer);
+          }
+          else if (item.serviceType[0].indexOf(":AVTransport") !== -1 && device['manufacturer'] && device['manufacturer'][0] == 'OpenHome')
             service = new UpnpService.OpenHomeAVTransportService(this, item, eventServer);
 					else if (item.serviceType[0].indexOf(":AVTransport") !== -1)
 						service = new UpnpService.AVTransportService(this, item, eventServer);

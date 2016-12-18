@@ -4,6 +4,8 @@ var LogType = require('./logger/logger.js').logType;
 var Logger = require('./logger/logger.js').getInstance();
 var request = require('request');
 var net = require('net');
+var xml2js = require('xml2js');
+var XmlEntities = require('html-entities').XmlEntities;
 
 Logger.setLogLevel(LogType.DEBUG);
 
@@ -383,10 +385,8 @@ processJeedomMessage(JSON.stringify(data));
 }, 10000);
  */
 
-process.on('uncaughtException', function (err)
-{
+process.on('uncaughtException', function (err) {
 	console.error('An uncaughtException was found, the program will end : ' + err);
 	Logger.log('An uncaughtException was found, the program will end : ' + err, LogType.ERROR);
 	throw err;
-}
-);
+});

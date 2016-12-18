@@ -124,7 +124,7 @@
           $cmd->setType('info');
           if ($data->type == 'boolean')
           $cmd->setSubType('binary');
-          else if ($data->type == 'ui1' || $data->type == 'ui2' || $data->type == 'ui4')
+          else if ($data->type == 'ui1' || $data->type == 'ui2' || $data->type == 'ui4' || $data->type == 'number')
           {
             $cmd->setSubType('numeric');
             $cmd->setTemplate('dashboard', 'badge');

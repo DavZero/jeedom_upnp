@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <servicesTemplate>
-  <serviceTemplate type="urn:schemas-upnp-org:service:RenderingControl:1">
+  <serviceTemplate serviceType="urn:schemas-upnp-org:service:RenderingControl:1">
     <scpd xmlns="urn:schemas-upnp-org:service-1-0">
       <specVersion>
         <major>1</major>
@@ -701,7 +701,7 @@
         <stateVariable sendEvents="no">
           <name>VolumeDB</name>
           <dataType>i2</dataType>
-          <allowedValueRange></allowedValueRange>
+          <allowedValueRange/>
         </stateVariable>
         <stateVariable sendEvents="no">
           <name>Loudness</name>
@@ -738,6 +738,422 @@
             <allowedValue>FactoryDefaults</allowedValue>
             <allowedValue>InstallationDefaults</allowedValue>
           </allowedValueList>
+        </stateVariable>
+      </serviceStateTable>
+    </scpd>
+  </serviceTemplate>
+  <serviceTemplate serviceType="originalInsightEvent">
+    <scpd xmlns="urn:Belkin:service-1-0">
+      <specVersion>
+        <major>1</major>
+        <minor>0</minor>
+      </specVersion>
+      <actionList>
+        <action>
+          <name>GetPower</name>
+          <argumentList>
+            <argument>
+              <retval/>
+              <name>InstantPower</name>
+              <relatedStateVariable>InstantPower</relatedStateVariable>
+              <direction>out</direction>
+            </argument>
+          </argumentList>
+        </action>
+        <action>
+          <name>GetTodayKWH</name>
+          <argumentList>
+            <argument>
+              <retval/>
+              <name>TodayKWH</name>
+              <relatedStateVariable>TodayKWH</relatedStateVariable>
+              <direction>out</direction>
+            </argument>
+          </argumentList>
+        </action>
+        <action>
+          <name>SetAutoPowerThreshold</name>
+          <argumentList>
+            <argument>
+              <retval/>
+              <name>PowerThreshold</name>
+              <relatedStateVariable>PowerThreshold</relatedStateVariable>
+              <direction>in</direction>
+            </argument>
+          </argumentList>
+        </action>
+        <action>
+          <name>GetPowerThreshold</name>
+          <argumentList>
+            <argument>
+              <retval/>
+              <name>PowerThreshold</name>
+              <relatedStateVariable>PowerThreshold</relatedStateVariable>
+              <direction>out</direction>
+            </argument>
+          </argumentList>
+        </action>
+        <action>
+          <name>SetPowerThreshold</name>
+          <argumentList>
+            <argument>
+              <retval/>
+              <name>PowerThreshold</name>
+              <relatedStateVariable>PowerThreshold</relatedStateVariable>
+              <direction>in</direction>
+            </argument>
+          </argumentList>
+        </action>
+        <action>
+          <name>ResetPowerThreshold</name>
+          <argumentList>
+            <argument>
+              <retval/>
+              <name>PowerThreshold</name>
+              <relatedStateVariable>PowerThreshold</relatedStateVariable>
+              <direction>in</direction>
+            </argument>
+          </argumentList>
+        </action>
+        <action>
+          <name>GetInsightInfo</name>
+          <argumentList>
+            <argument>
+              <retval/>
+              <name>InsightInfo</name>
+              <relatedStateVariable>InsightInfo</relatedStateVariable>
+              <direction>out</direction>
+            </argument>
+          </argumentList>
+        </action>
+        <action>
+          <name>GetInsightParams</name>
+          <argumentList>
+            <argument>
+              <retval/>
+              <name>InsightParams</name>
+              <relatedStateVariable>InsightParams</relatedStateVariable>
+              <direction>out</direction>
+            </argument>
+          </argumentList>
+        </action>
+        <action>
+          <name>GetONFor</name>
+          <argumentList>
+            <argument>
+              <retval/>
+              <name>ONFor</name>
+              <relatedStateVariable>ONFor</relatedStateVariable>
+              <direction>out</direction>
+            </argument>
+          </argumentList>
+        </action>
+        <action>
+          <name>GetInSBYSince</name>
+          <argumentList>
+            <argument>
+              <retval/>
+              <name>InSBYSince</name>
+              <relatedStateVariable>InSBYSince</relatedStateVariable>
+              <direction>out</direction>
+            </argument>
+          </argumentList>
+        </action>
+        <action>
+          <name>GetTodayONTime</name>
+          <argumentList>
+            <argument>
+              <retval/>
+              <name>TodayONTime</name>
+              <relatedStateVariable>TodayONTime</relatedStateVariable>
+              <direction>out</direction>
+            </argument>
+          </argumentList>
+        </action>
+        <action>
+          <name>GetTodaySBYTime</name>
+          <argumentList>
+            <argument>
+              <retval/>
+              <name>TodaySBYTime</name>
+              <relatedStateVariable>TodaySBYTime</relatedStateVariable>
+              <direction>out</direction>
+            </argument>
+          </argumentList>
+        </action>
+        <action>
+          <name>ScheduleDataExport</name>
+          <argumentList>
+            <argument>
+              <retval/>
+              <name>EmailAddress</name>
+              <relatedStateVariable>EmailAddress</relatedStateVariable>
+              <direction>in</direction>
+            </argument>
+            <argument>
+              <retval/>
+              <name>DataExportType</name>
+              <relatedStateVariable>DataExportType</relatedStateVariable>
+              <direction>in</direction>
+            </argument>
+          </argumentList>
+        </action>
+        <action>
+          <name>GetDataExportInfo</name>
+          <argumentList>
+            <argument>
+              <retval/>
+              <name>LastDataExportTS</name>
+              <relatedStateVariable>LastDataExportTS</relatedStateVariable>
+              <direction>out</direction>
+            </argument>
+            <argument>
+              <retval/>
+              <name>DataExportType</name>
+              <relatedStateVariable>DataExportType</relatedStateVariable>
+              <direction>out</direction>
+            </argument>
+            <argument>
+              <retval/>
+              <name>EmailAddress</name>
+              <relatedStateVariable>EmailAddress</relatedStateVariable>
+              <direction>out</direction>
+            </argument>
+          </argumentList>
+        </action>
+      </actionList>
+      <serviceStateTable>
+        <stateVariable sendEvents="yes">
+          <name>InstantPower</name>
+          <dataType>String</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>TodayKWH</name>
+          <dataType>String</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>InsightInfo</name>
+          <dataType>String</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>InsightParams</name>
+          <dataType>String</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>TodayONTime</name>
+          <dataType>String</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>InSBYSince</name>
+          <dataType>String</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>ONFor</name>
+          <dataType>String</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>TodaySBYTime</name>
+          <dataType>String</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>PowerThreshold</name>
+          <dataType>String</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>EmailAddress</name>
+          <dataType>string</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>DataExportType</name>
+          <dataType>string</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>LastDataExportTS</name>
+          <dataType>string</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+      </serviceStateTable>
+    </scpd>
+  </serviceTemplate>
+  <serviceTemplate deviceType="urn:Belkin:device:insight:1" serviceType="urn:Belkin:service:basicevent:1">
+    <scpd xmlns="urn:Belkin:service-1-0">
+      <specVersion>
+        <major>1</major>
+        <minor>0</minor>
+      </specVersion>
+      <actionList/>
+      <serviceStateTable>
+        <stateVariable sendEvents="yes">
+          <name>State</name>
+          <dataType>number</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>HumanState</name>
+          <dataType>string</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>LastModify</name>
+          <dataType>number</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>OnFor</name>
+          <dataType>number</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>OnToday</name>
+          <dataType>number</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>OnTotal</name>
+          <dataType>number</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>TimePeriod</name>
+          <dataType>number</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>WifiStrength</name>
+          <dataType>number</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>Power</name>
+          <dataType>number</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>TodayComsuption</name>
+          <dataType>number</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>TotalComsuption</name>
+          <dataType>number</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>PowerThreshold</name>
+          <dataType>number</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+      </serviceStateTable>
+    </scpd>
+  </serviceTemplate>
+  <serviceTemplate deviceType="urn:Belkin:device:Maker:1" serviceType="urn:Belkin:service:deviceevent:1">
+    <scpd xmlns="urn:Belkin:service-1-0">
+      <specVersion>
+        <major>1</major>
+        <minor>0</minor>
+      </specVersion>
+      <actionList>
+        <action>
+          <name>GetAttributeList</name>
+          <argumentList>
+            <argument>
+              <name>attributeList</name>
+              <relatedStateVariable>attributeListDefinition</relatedStateVariable>
+              <direction>out</direction>
+            </argument>
+          </argumentList>
+        </action>
+        <action>
+          <name>GetAttributes</name>
+          <argumentList>
+            <argument>
+              <retval/>
+              <name>attributeList</name>
+              <relatedStateVariable>attributeList</relatedStateVariable>
+              <direction>out</direction>
+            </argument>
+          </argumentList>
+        </action>
+        <action>
+          <name>SetAttributes</name>
+          <argumentList>
+            <argument>
+              <retval/>
+              <name>attributeList</name>
+              <relatedStateVariable>String</relatedStateVariable>
+              <direction>in</direction>
+            </argument>
+          </argumentList>
+        </action>
+        <action>
+          <name>SetBlobStorage</name>
+          <argumentList>
+            <argument>
+              <retval/>
+              <name>attributeList</name>
+              <relatedStateVariable>String</relatedStateVariable>
+              <direction>in</direction>
+            </argument>
+          </argumentList>
+        </action>
+        <action>
+          <name>GetBlobStorage</name>
+          <argumentList>
+            <argument>
+              <retval/>
+              <name>attributeList</name>
+              <relatedStateVariable>String</relatedStateVariable>
+              <direction>in</direction>
+            </argument>
+          </argumentList>
+        </action>
+      </actionList>
+      <serviceStateTable>
+        <stateVariable sendEvents="yes">
+          <name>attributeList</name>
+          <dataType>String</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="no">
+          <name>attributeListDefinition</name>
+          <dataType>String</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="no">
+          <name>Switch</name>
+          <dataType>boolean</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="no">
+          <name>Sensor</name>
+          <dataType>String</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="no">
+          <name>SensorPresent</name>
+          <dataType>boolean</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="no">
+          <name>SwitchMode</name>
+          <dataType>number</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="no">
+          <name>HumanSwitchMode</name>
+          <dataType>String</dataType>
+          <defaultValue>OnOff</defaultValue>
         </stateVariable>
       </serviceStateTable>
     </scpd>

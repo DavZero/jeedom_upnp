@@ -86,7 +86,7 @@ class UpnpAction
 							continue;
 						Logger.log("Processing update action's output argument " + JSON.stringify(prop) + " with val " + JSON.stringify(outputsVariable[prop][0]), LogType.DEBUG);
 						var arg = this.getArgumentByName(prop);
-						if (arg)
+						if (arg && arg.RelatedStateVariable)
 						{
 							arg.RelatedStateVariable.Value = outputsVariable[prop][0];
 						}

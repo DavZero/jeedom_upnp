@@ -15,11 +15,12 @@ class UpnpBaseService
 	{
 		Logger.log("Création du service : " + JSON.stringify(serviceData), LogType.INFO);
 		this._device = device;
-
 		this._initialize(serviceData, eventServer);
+    
+    this._processDeviceSCPD(callback);
 	}
 
-	_initialize(serviceData, eventServer, callback)
+	_initialize(serviceData, eventServer)
 	{
 		this._type = serviceData.serviceType[0];
 		this._ID = serviceData.serviceId[0];
@@ -34,10 +35,12 @@ class UpnpBaseService
 		this._subscriptionTimeout = 1800;
 		this._variables = [];
 		this._actions = [];
-
+  }
+  
+  _processDeviceSCPD(callback)
+  {
 		//On récupère le xml listant les actions et les variable
-		request(this._device.BaseAddress + this._SCPDURL, (error, response, body) =>
-		{
+		request(this._device.BaseAddress + this._SCPDURL, (error, response, body) => {
 			if (error || response.statusCode != 200)
 			{
 				Logger.log("Unable to read SCPDURL, url : " + this._device.BaseAddress + this._SCPDURL + ", err : " + error, LogType.ERROR);
@@ -46,40 +49,24 @@ class UpnpBaseService
 			}
 			else if (body != '')
 			{
-				xml2js.parseString(body, (err, data) =>
-				{
-					this.processSCPD(data.scpd, true);
-
-					//Process serviceTemplate to Add standard commande if not exist
-					/*var xmlTemplate = fs.readFileSync(__dirname+'/../../resources/ServicesTemplate.xml', 'utf8');
-					xml2js.parseString(xmlTemplate, (err, templatesData) => {
-					templatesData.servicesTemplate.serviceTemplate.forEach((serviceTemplate) => {
-					if (serviceTemplate['$']['type'] == this._type)
-				{
-					Logger.log("Processing scpd template", LogType.DEBUG);
-					this.processSCPD(serviceTemplate.scpd[0],false);
-					}
-					});
-					});*/
-          
+				xml2js.parseString(body, (err, data) => {
+					this.processSCPD(data.scpd, true);   
+          if (callback) callback();
           this._specializedInitialisation();
           //Gestion des services qui n'ont pas d'URL d'evenenemt
-					if (this._eventSubURL != '/') this.subscribe(eventServer);
-					
-				}
-				);
+					if (this._eventSubURL != '/') this.subscribe(this._eventServer);	
+				});
 			}
 			else
 			{
 				Logger.log("Body is empty for " + this._device.BaseAddress + this._SCPDURL);
 				//I don't see any case on which we should do a _specializedInitialisation
 			}
-		}
-		);
+		});
 	}
-
-	//Fonction to override in heritedClass to do some more initialisation
-	_specializedInitialisation() {}
+  
+  _specializedInitialisation()
+  { }
 
 	//fromDevice == true if from device, false if from template
 	processSCPD(scpd, fromDevice)
@@ -91,11 +78,7 @@ class UpnpBaseService
 				if (!this._variables.some(elem => elem.Name == item.name[0]))
 				{
 					var variable = new UpnpVariable(this, item, fromDevice);
-					variable.on('updated', (varObj, newVal) =>
-					{
-						this.Device.emit('variableUpdated', varObj, newVal)
-					}
-					);
+					variable.on('updated', (varObj, newVal) => { this.Device.emit('variableUpdated', varObj, newVal) });
 					this._variables.push(variable);
 					this.Device.emit('variableCreated', variable);
 				}
@@ -106,7 +89,7 @@ class UpnpBaseService
 			);
 		}
 		else
-			Logger.log("No variable found for service " + this.Device.UDN + "::" + this.ID, LogType.DEBUG);
+			Logger.log("No variable found for service " + this.Device.UDN + "::" + this.ID + ", source " + fromDevice?"device":"template", LogType.DEBUG);
 
 		if (scpd.actionList[0] && scpd.actionList[0].action)
 		{
@@ -126,7 +109,7 @@ class UpnpBaseService
 			);
 		}
 		else
-			Logger.log("No action found for service " + this.Device.UDN + "::" + this.ID, LogType.DEBUG);
+			Logger.log("No action found for service " + this.Device.UDN + "::" + this.ID + ", source " + fromDevice?"device":"template", LogType.DEBUG);
 	}
 
 	/*getVariableByName(name){
@@ -760,6 +743,136 @@ class OpenHomeAVTransportService extends UpnpAVTransportService
 	}
 }
 
+class WemoInsightBasicevent extends UpnpBaseService
+{
+  constructor(device, serviceData, eventServer)
+	{
+		super(device, serviceData, eventServer);
+	}
+  
+  _specializedInitialisation()
+	{
+    Logger.log("Specialisation for WemoInsight Basicevent", LogType.DEBUG);
+    //Création des infos spécifiques au Insigth decodable dans le BinaryState
+    //Process serviceTemplate to Add standard commande if not exist
+		var xmlTemplate = fs.readFileSync(__dirname+'/../../resources/ServicesTemplate.xml', 'utf8');
+		xml2js.parseString(xmlTemplate, (err, templatesData) => {
+      templatesData.servicesTemplate.serviceTemplate.forEach((serviceTemplate) => {
+        if ((serviceTemplate['$']['serviceType'] == this._type || !serviceTemplate['$']['serviceType']) && 
+          (serviceTemplate['$']['deviceType'] == this.Device.Type || !serviceTemplate['$']['deviceType']))
+        {
+          Logger.log("Processing scpd template", LogType.DEBUG);
+          this.processSCPD(serviceTemplate.scpd[0],false);
+          
+          //On s'abonne au evenement de la variable BinaryState pour en faire le decodage
+          var binaryState = this.getVariableByName('BinaryState');
+          if (!binaryState)
+          {
+            Logger.log("Unable to find BinaryState variable of the Wemo Insight " + this.Device.BaseAddress, LogType.ERROR);
+            return;
+          }
+          binaryState.on('updated', (varObj, newVal) =>	{
+						//On split la variable pour definir les valeurs des sous variable
+            var subVariables = newVal.split('|');      
+        
+            if (subVariables[0]) this.updateSubVariable('State',Number(subVariables[0]));
+            if (subVariables[0] == '0') this.updateSubVariable('HumanState','Off');
+            if (subVariables[0] == '1') this.updateSubVariable('HumanState','On');
+            if (subVariables[0] == '2') this.updateSubVariable('HumanState','OnWithoutLoad');
+            if (subVariables[1]) this.updateSubVariable('LastModify',Number(subVariables[1]));
+            if (subVariables[2]) this.updateSubVariable('OnFor',Number(subVariables[2]));
+            if (subVariables[3]) this.updateSubVariable('OnToday',Number(subVariables[3]));
+            if (subVariables[4]) this.updateSubVariable('OnTotal',Number(subVariables[4]));
+            if (subVariables[5]) this.updateSubVariable('TimePeriod',Number(subVariables[5]));
+            if (subVariables[6]) this.updateSubVariable('WifiStrength',Number(subVariables[6]));
+            if (subVariables[7]) this.updateSubVariable('Power',Number(subVariables[7])*0.001); //conversion mW en W
+            if (subVariables[8]) this.updateSubVariable('TodayComsuption',Number(subVariables[8])*0.001*(1/60)); //conversion mW*minutes en KWh
+            if (subVariables[9]) this.updateSubVariable('TotalComsuption',Number(subVariables[9])*0.001*(1/60)); //conversion mW*minutes en KWh
+            if (subVariables[10]) this.updateSubVariable('PowerThreshold',Number(subVariables[10])*0.001); //conversion mW en W??? 
+					});
+        }
+      });
+		});  
+  }
+  
+  updateSubVariable(name, value)
+  {
+    var variable = this.getVariableByName(name);
+    if (!variable)
+    {
+      Logger.log("Unable to find BinaryState variable of the Wemo Insight " + this.Device.BaseAddress, LogType.ERROR);
+      return;
+    }
+    variable.Value = value;
+  }
+}
+
+class WemoMakerDeviceevent extends UpnpBaseService
+{
+  constructor(device, serviceData, eventServer)
+	{
+		super(device, serviceData, eventServer);
+	}
+  
+  //On ne traite pas le xml du device mais un template car celui du device n'est pas correct
+  _processDeviceSCPD(callback)
+  {
+		Logger.log("Specialisation for WemoMaker Deviceevent", LogType.DEBUG);
+    //Création des infos spécifiques au Maker decodable dans le attributeList
+		var xmlTemplate = fs.readFileSync(__dirname+'/../../resources/ServicesTemplate.xml', 'utf8');
+		xml2js.parseString(xmlTemplate, (err, templatesData) => {
+      templatesData.servicesTemplate.serviceTemplate.forEach((serviceTemplate) => {
+        if ((serviceTemplate['$']['serviceType'] == this._type || !serviceTemplate['$']['serviceType']) && 
+          (serviceTemplate['$']['deviceType'] == this.Device.Type || !serviceTemplate['$']['deviceType']))
+        {
+          Logger.log("Processing scpd template", LogType.DEBUG);
+          this.processSCPD(serviceTemplate.scpd[0],false);
+          
+          //On s'abonne au evenement de la variable attributeList pour en faire le decodage
+          var attributeList = this.getVariableByName('attributeList');
+          if (!attributeList)
+          {
+            Logger.log("Unable to find attributeList variable of the Wemo Maker " + this.Device.BaseAddress, LogType.ERROR);
+            return;
+          }
+          attributeList.on('updated', (varObj, newVal) =>	{
+            xml2js.parseString("<AttributeList>"+XmlEntities.decode(newVal)+"</AttributeList>", (err, parsed) => {
+              if (err)
+              {
+                Logger.log("Unable to parse xml (bad format? : " + err, LogType.DEBUG);
+              }
+              else
+              {
+                parsed.AttributeList.attribute.forEach((attr) => {
+                  var variable = this.getVariableByName(attr.name[0]);
+                  if (variable)
+                  {
+                    variable.Value = attr.value[0];
+                    if (attr.name[0] == 'SwitchMode')
+                    {
+                      var humanVariable = this.getVariableByName('Human'+attr.name[0]);
+                      if (attr.value[0] == '0') humanVariable.Value = 'OnOff';
+                      else humanVariable.Value = 'Momentary';
+                    }
+                  }
+                  else
+                  {
+                    Logger.log("Unable to find " + attr.name[0] + " variable of the Wemo Maker " + this.Device.BaseAddress, LogType.ERROR);
+                  }
+                  
+                });
+              }
+            });
+					});
+        }
+      });
+      if (this._eventSubURL != '/') this.subscribe(this._eventServer);	
+		});  
+  }
+}
+
 exports.BaseService = UpnpBaseService;
 exports.AVTransportService = UpnpAVTransportService;
 exports.OpenHomeAVTransportService = OpenHomeAVTransportService;
+exports.WemoInsightBasicevent = WemoInsightBasicevent;
+exports.WemoMakerDeviceevent = WemoMakerDeviceevent;

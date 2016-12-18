@@ -11,7 +11,7 @@ var Logger = require('../logger/logger.js').getInstance();
 var portfinder = require('portfinder');
 var ip = require('ip');
 var xml2js = require('xml2js');
-var XmlEntities = require('html-entities').XmlEntities;
+//var XmlEntities = require('html-entities').XmlEntities;
 
 ip.address() // my ip address
 
