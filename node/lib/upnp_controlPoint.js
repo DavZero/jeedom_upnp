@@ -200,7 +200,8 @@ class ControlPoint extends EventEmitter
 				if (!this._blackList[location.href]) this._blackList[location.href] = 1;
         if (this._blackList[location.href] < 5)
         {
-          Logger.log('Unable to add ' + location.href + ' remains  ' + 5-this._blackList[location.href]  + 'tries, ' + error, LogType.WARNING);
+          var remainsTry = 5-this._blackList[location.href];
+          Logger.log('Unable to add ' + location.href + ' remains  ' + remainsTry.toString() + ' tries, ' + error, LogType.WARNING);
           this._blackList[location.href]++;
         }
         else if (this._blackList[location.href] == 5)
