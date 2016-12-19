@@ -210,7 +210,7 @@ class ControlPoint extends EventEmitter
         else if (this._blackList[location.href] == 5)
         {
           Logger.log('Unable to add ' + location.href + ', ' + error, LogType.ERROR);
-          this.emit('upnpError', 'Unable to add ' + location.href + ', ' + error);
+          //this.emit('upnpError', 'Unable to add ' + location.href + ', ' + error);
           this._blackList[location.href]++;
         }
         else this._blackList[location.href]++;  
