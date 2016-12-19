@@ -355,6 +355,36 @@ var processJeedomMessage = function (payload, callback)
 		if (callback)
 			callback();
 	}
+  else if (data.command == 'controlPointAction')
+  {
+    if (data.subCommand == 'changeIncludeState') 
+    {
+      Logger.log("Changement d'état de l'inclusion "  + data.value, LogType.INFO);
+      cp.setIncludeState(data.value);
+    }
+    else if (data.subCommand == 'scan') 
+    {
+      Logger.log("Lancement d'un scan", LogType.INFO);
+      cp.search();
+      cp.search('upnp:rootdevice');
+    }
+    else if (data.subCommand == 'removeEqLogic') 
+    {
+      Logger.log("Suppression du service "  + data.UDN +"::"+ data.serviceId, LogType.INFO);
+      cp.removeService(data.UDN, data.serviceId);
+    }
+    else
+    {
+      var message =
+      {
+        eventType: 'error',
+        description: "Commande de controlPoint inconnu " + JSON.stringify(data)
+      };
+      sendToJeedom(message);
+    }
+    if (callback)
+			callback();
+  }
 	else
 	{
 		var message =

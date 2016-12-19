@@ -78,10 +78,14 @@ class UpnpBaseService
 	//fromDevice == true if from device, false if from template
 	processSCPD(scpd, fromDevice)
 	{
+    if (!scpd) 
+    {
+      Logger.log("SCPD is null for " + this.Device.UDN + "::" + this.ID + ", source " + fromDevice?"device":"template", LogType.DEBUG);
+      return;
+    }
     if (scpd.serviceStateTable && scpd.serviceStateTable[0] && scpd.serviceStateTable[0].stateVariable)
 		{
-			scpd.serviceStateTable[0].stateVariable.forEach((item) =>
-			{
+			scpd.serviceStateTable[0].stateVariable.forEach((item) =>	{
 				if (!this._variables.some(elem => elem.Name == item.name[0]))
 				{
 					var variable = new UpnpVariable(this, item, fromDevice);
@@ -92,16 +96,14 @@ class UpnpBaseService
 				/*else if (fromDevice){
 				this._variables.filter((elem) => { return elem.Name == item.name[0]})[0].updateDefinition();
 				}*/
-			}
-			);
+			});
 		}
 		else
 			Logger.log("No variable found for service " + this.Device.UDN + "::" + this.ID + ", source " + fromDevice?"device":"template", LogType.DEBUG);
 
 		if (scpd.actionList && scpd.actionList[0] && scpd.actionList[0].action)
 		{
-			scpd.actionList[0].action.forEach((item) =>
-			{
+			scpd.actionList[0].action.forEach((item) =>	{
 				//Si l'action n'existe pas, on la créer
 				if (!this._actions.some(elem => elem.Name == item.name[0]))
 				{
@@ -112,8 +114,7 @@ class UpnpBaseService
 				/*else if (fromDevice){
 				this._actions.filter((elem) => { return elem.Name == item.name[0]})[0].updateDefinition();
 				}*/
-			}
-			);
+			});
 		}
 		else
 			Logger.log("No action found for service " + this.Device.UDN + "::" + this.ID + ", source " + fromDevice?"device":"template", LogType.DEBUG);

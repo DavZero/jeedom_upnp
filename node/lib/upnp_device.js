@@ -138,6 +138,19 @@ class UpnpDevice extends EventEmitter
 		}
 		);
 	}
+  
+  removeDirectService(serviceID)
+  {
+    for (var prop in this._services)
+		{
+			if (serviceID == this._services[prop].ID)
+			{
+				this._services[prop].prepareForRemove();
+        delete this._services[prop];
+        return;
+			}
+		}    
+  }
 
 	get BaseAddress()
 	{

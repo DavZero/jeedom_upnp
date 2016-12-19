@@ -33,6 +33,8 @@ class ControlPoint extends EventEmitter
 	constructor(ssdpPort)
 	{
 		super();
+    
+    this._includeState = true;
 
 		//On créer un serveur http pour gérer les events
 		portfinder.getPort((err, port) =>
@@ -145,7 +147,8 @@ class ControlPoint extends EventEmitter
 			switch (ssdpAPI.NTS_EVENTS[headers.NTS])
 			{
         case 'DeviceAvailable':
-				this._addDevice(url.parse(headers.LOCATION));
+				if (this._includeState) this._addDevice(url.parse(headers.LOCATION));
+        else Logger.log("Control point not in include state, ignore device " + headers.LOCATION, LogType.DEBUG);
 				break;
 			case 'DeviceUpdate':
 				this._updateDevice(url.parse(headers.LOCATION));
@@ -264,6 +267,12 @@ class ControlPoint extends EventEmitter
 	if (device == null) return;
 	return service.getActionByName(actionName);
 	}*/
+  
+  setIncludeState(val)
+  {
+    if (val) this._includeState = true;
+    else this._includeState = false;
+  }
 
 	getService(udn, serviceID)
 	{
@@ -272,6 +281,17 @@ class ControlPoint extends EventEmitter
 			return;
 		return device.getDirectService(serviceID);
 	}
+  
+  removeService(udn, serviceID)
+  {
+    var device = this.getDevice(udn);
+    if (device)
+    {
+      device.removeDirectService(serviceID);
+      //Si il n'y a plus de service on supprime le device
+      if (Object.keys(device.Services).length == 0) delete this._devices[device.Location.href];
+    }
+  }
 
 	getServiceBySID(subscriptionID)
 	{

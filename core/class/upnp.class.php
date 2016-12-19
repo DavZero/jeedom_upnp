@@ -31,7 +31,7 @@
       {
         log::add('upnp', 'error', $data->description);
         return;
-      }
+        }
       
       if (!isset($data->deviceUDN))
       {

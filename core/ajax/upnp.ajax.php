@@ -29,7 +29,28 @@ try {
       foreach (eqLogic::byType('upnp') as $eqp) $eqp->remove();
       ajax::success();
     }
-
+    
+    if (init('action') == 'scanUpnp') {
+      if (!upnp::deamon_info()['state'] == 'ok') throw new Exception(__('Le service doit être démarré avant de lancer l\'action : ', __FILE__) . init('action'));
+      $msg = array(
+        'command' => 'controlPointAction',
+        'subCommand' => 'scan'
+      );
+      upnp::sendToDaemon($msg) ;
+      ajax::success();
+    }
+    
+    if (init('action') == 'changeIncludeState') {
+      if (!upnp::deamon_info()['state'] == 'ok') throw new Exception(__('Le service doit être démarré avant de lancer l\'action : ', __FILE__) . init('action'));
+      $msg = array(
+        'command' => 'controlPointAction',
+        'subCommand' => 'changeIncludeState',
+        'value' => init('state')
+      );
+      upnp::sendToDaemon($msg) ;
+      ajax::success();
+    }
+    
     throw new Exception(__('Aucune méthode correspondante à : ', __FILE__) . init('action'));
     /*     * *********Catch exeption*************** */
 } catch (Exception $e) {
