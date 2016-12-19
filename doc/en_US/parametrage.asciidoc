@@ -6,11 +6,11 @@ Pour les services disposant d'un widget spécifiques :
 
 * AVTransport
 
-il est possible de choisir entre l'affichage "standard" des commandes et l'affichage spécifique aux service.
+Il est possible de choisir entre l'affichage "standard" des commandes et l'affichage spécifique aux services.
 En complément de l'affichage spécifique, il est possible d'afficher les commandes du service "non géré" par l'affichage spécifique et de forcer 
 l'affichage des commandes en "standard" en plus de l'affichage spécifique
 
-TIP: Que se soit pour les services disposant d'un widget spécifique ou pour les autres services, l'affichage en mode "standard" prend en compte les paramètrage des commandes (affichage On/Off).
+TIP: Que se soit pour les services disposant d'un widget spécifique ou pour les autres services, l'affichage en mode "standard" prend en compte les paramètrages des commandes (affichage On/Off).
 
 ==== Paramétrage Commandes
 
