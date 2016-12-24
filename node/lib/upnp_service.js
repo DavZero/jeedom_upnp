@@ -29,7 +29,7 @@ class UpnpBaseService
 		this._eventSubURL = serviceData.eventSubURL[0];
     if (this._eventSubURL.charAt(0) != '/') this._eventSubURL = '/' + serviceData.eventSubURL[0];
 		this._SCPDURL = serviceData.SCPDURL[0];
-    if (this._SCPDURL.charAt(0) != '/') this._SCPDURL = '/' + serviceData.SCPDURL[0];
+    if (this._SCPDURL.charAt(0) != '/' && this._SCPDURL.indexOf('http:') === -1) this._SCPDURL = '/' + serviceData.SCPDURL[0];
 		this._eventServer = eventServer;
 		this._eventSubscribe = false;
 		this._subscriptionTimeout = 1800;
@@ -39,7 +39,7 @@ class UpnpBaseService
   
   _processDeviceSCPD(callback)
   {
-		//On récupère le xml listant les actions et les variable
+		//On récupère le xml listant les actions et les variables
     var SCPDURLuri = this._SCPDURL.indexOf('http:') === -1 ? this._device.BaseAddress + this._SCPDURL : this._SCPDURL;
 		request(SCPDURLuri, (error, response, body) => {
 			if (error || response.statusCode != 200)
@@ -185,8 +185,8 @@ class UpnpBaseService
 				//Manage Error
 				if (err)
 				{
-					Logger.log("Error decoding LastChange Event : " + this.Device.UDN + '::' + this.ID + " ==> xml : " + body + ", err : " + err, LogType.ERROR);
-					this.Device.emit('error', "Error decoding LastChange Event : " + this.Device.UDN + '::' + this.ID + " ==> xml : " + body + ", err : " + err);
+					Logger.log("Error decoding LastChange Event : " + this.Device.UDN + '::' + this.ID + " ==> xml : " + JSON.stringify(body) + ", err : " + err, LogType.ERROR);
+					this.Device.emit('error', "Error decoding LastChange Event : " + this.Device.UDN + '::' + this.ID + " ==> xml : " + JSON.stringify(body) + ", err : " + err);
 				}
 				else
 					this.processLastChangeEvent(data)
