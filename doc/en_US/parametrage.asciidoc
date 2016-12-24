@@ -1,6 +1,6 @@
 ==== Equipment Setting
 
-Pour les services disposant d'un widget spécifiques :
+Having a widget-specific services:
 
 * ContentDirectory
 

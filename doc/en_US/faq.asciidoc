@@ -1,5 +1,5 @@
 [panel,primary]
-.Comment faire un appel aux commandes des equipements Upnp dans les scénarios ?
+. How to make a call to Upnp equipment commands in the scenarii?
 --
 Les commandes Upnp nécessitent des paramètres pour être executées, il est nécessaire de passer par un bloc code. Exemple :
 
