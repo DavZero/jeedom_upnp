@@ -39,44 +39,21 @@ class UpnpDevice extends EventEmitter
 					if (item.url[0].charAt(0) == '/') this._iconUrl = this.BaseAddress + item.url[0];
           else this._iconUrl = this.BaseAddress + '/' + item.url[0];
 				}
-			}
-			);
+			});
 		}
 
 		//Gestion des subDevice
 		if (device.deviceList)
 		{
-			device.deviceList[0].device.forEach((item) =>
-			{
+			device.deviceList[0].device.forEach((item) =>	{
 				var subDevice = new UpnpDevice(location, item, eventServer);
-				subDevice.on('serviceUpdated', (service) =>
-				{
-					this.emit('serviceUpdated', service)
-				}
-				);
-				subDevice.on('actionCreated', (action) =>
-				{
-					this.emit('actionCreated', action)
-				}
-				);
-				subDevice.on('variableCreated', (variable) =>
-				{
-					this.emit('variableCreated', variable)
-				}
-				);
-				subDevice.on('variableUpdated', (variable, newVal) =>
-				{
-					this.emit('variableUpdated', variable, newVal)
-				}
-				);
-				subDevice.on('error', (error) =>
-				{
-					this.emit('error', error)
-				}
-				);
+				subDevice.on('serviceUpdated', (service) =>	{	this.emit('serviceUpdated', service); });
+				subDevice.on('actionCreated', (action) =>	{	this.emit('actionCreated', action); });
+				subDevice.on('variableCreated', (variable) =>	{	this.emit('variableCreated', variable);	});
+				subDevice.on('variableUpdated', (variable, newVal) =>	{	this.emit('variableUpdated', variable, newVal);	});
+				subDevice.on('error', (error) => { this.emit('error', error);	});
 				this._subDevices.push(subDevice);
-			}
-			);
+			});
 		}
 
 		if (device.serviceList && device.serviceList[0] && device.serviceList[0].service)
@@ -239,11 +216,7 @@ class UpnpDevice extends EventEmitter
 	ToString()
 	{
 		var serviceString = "";
-		this._services.forEach((item) =>
-		{
-			serviceString += item.ToString() + "\n";
-		}
-		);
+		this._services.forEach((item) => {	serviceString += item.ToString() + "\n"; });
 
 		return "Device Name : " + this._name + " => \n" + serviceString;
 	}

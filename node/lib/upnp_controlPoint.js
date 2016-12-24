@@ -37,63 +37,50 @@ class ControlPoint extends EventEmitter
     this._includeState = true;
 
 		//On créer un serveur http pour gérer les events
-		portfinder.getPort((err, port) =>
-		{
+		portfinder.getPort((err, port) => {
 			this._eventPort = port;
 			this._eventServer = http.createServer((request, response) =>
-				{
-					response.writeHead(200);
-					response.end();
-					var headers = request.headers;
-					var method = request.method;
-					var url = request.url;
-					var body = [];
-					request.on('error', (err) =>
-					{
-						console.error(err);
-					}
-					).on('data', (chunk) =>
-					{
-						body.push(chunk);
-					}
-					).on('end', () =>
-					{
-						body = Buffer.concat(body).toString();
-						Logger.log("Event header: " + JSON.stringify(headers) + " receive, search for service", LogType.DEBUG);
-						Logger.log("Event body: " + body + " receive, search for service", LogType.DEBUG);
-						var service = this.getServiceBySID(headers.sid);
-						if (service)
-						{
-							Logger.log("Service found.", LogType.DEBUG);
-							xml2js.parseString(body, (err, data) =>
-							{
-								//Manage error
-								if (err)
-								{
-									Logger.log("Error processing Event : " + service.Device.UDN + '::' + service.ID + " ==> xml : " + body + ", err : " + err, LogType.ERROR);
-									this.emit('error', "Error processing Event : " + service.Device.UDN + '::' + service.ID + " ==> xml : " + body + ", err : " + err);
-								}
-								else
-								{
-									service.processEvent(data);
-								}
-							}
-							);
-						}
-					}
-					);
+      {
+				response.writeHead(200);
+				response.end();
+				var headers = request.headers;
+				var method = request.method;
+				var url = request.url;
+				var body = [];
+				request.on('error', (err) =>{
+					console.error(err);
 				}
-				);
+        ).on('data', (chunk) =>	{	body.push(chunk);	}
+				).on('end', () =>	{
+					body = Buffer.concat(body).toString();
+					Logger.log("Event header: " + JSON.stringify(headers) + " receive, search for service", LogType.DEBUG);
+					Logger.log("Event body: " + body + " receive, search for service", LogType.DEBUG);
+					var service = this.getServiceBySID(headers.sid);
+					if (service)
+					{
+						Logger.log("Service found.", LogType.DEBUG);
+						xml2js.parseString(body, (err, data) =>
+						{
+							//Manage error
+							if (err)
+							{
+								Logger.log("Error processing Event : " + service.Device.UDN + '::' + service.ID + " ==> xml : " + body + ", err : " + err, LogType.ERROR);
+								this.emit('error', "Error processing Event : " + service.Device.UDN + '::' + service.ID + " ==> xml : " + body + ", err : " + err);
+							}
+							else
+							{
+								service.processEvent(data);
+							}
+						});
+					}
+				});
+			});
 			this._eventServer.listen(port);
-		}
-		);
+		});
 
 		//On créer un serveur pour gérer le ssdp
 		this._SSDPserver = new ssdpAPI.SSDP(ssdpPort);
-		this._SSDPserver.startServer((msg, rinfo) =>
-		{
-			this._onSSDPMessage(msg, rinfo);
-		}
+		this._SSDPserver.startServer((msg, rinfo) => {	this._onSSDPMessage(msg, rinfo); }
 		);
 		//Initiliastion de la liste des devices
     this._blackList = {};
@@ -128,11 +115,7 @@ class ControlPoint extends EventEmitter
 	search(st)
 	{
 		Logger.log("Start searching request for " + (typeof st === 'undefined' ? 'All' : st), LogType.INFO);
-		this._SSDPserver.sendMSearch(st, (msg, rinfo) =>
-		{
-			this._onMSearchMessage(msg, rinfo);
-		}
-		);
+		this._SSDPserver.sendMSearch(st, (msg, rinfo) =>	{	this._onMSearchMessage(msg, rinfo);	});
 	}
 
 	_onSSDPMessage(msg, rinfo)
@@ -196,8 +179,7 @@ class ControlPoint extends EventEmitter
 		Logger.log("Add Device " + location.href + " to ceation queued", LogType.DEBUG);
 
 		// Retrieve device/service/... description
-		request(location.href, (error, response, body) =>
-		{
+		request(location.href, (error, response, body) =>	{
 			if (error || response.statusCode != 200)
       {
 				if (!this._blackList[location.href]) this._blackList[location.href] = 1;
@@ -241,8 +223,7 @@ class ControlPoint extends EventEmitter
 				});
 			}
 			delete this._requestedDeviceQueue[location.href];
-		}
-		);
+		});
 	}
 
 	_removeDevice(usn)

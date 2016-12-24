@@ -31,13 +31,14 @@ try {
     }
     
     if (init('action') == 'scanUpnp') {
-      if (!upnp::deamon_info()['state'] == 'ok') throw new Exception(__('Le service doit être démarré avant de lancer l\'action : ', __FILE__) . init('action'));
+      if (upnp::deamon_info()['state'] != 'ok') throw new Exception(__('Le service doit être démarré avant de lancer l\'action : ', __FILE__) . init('action'));
       $msg = array(
         'command' => 'controlPointAction',
         'subCommand' => 'scan'
       );
-      upnp::sendToDaemon($msg) ;
-      ajax::success();
+      //upnp::offlineAll();
+      upnp::sendToDaemon(json_encode($msg)) ;
+      ajax::success('Scan en cours ...');
     }
     
     if (init('action') == 'changeIncludeState') {
@@ -47,7 +48,7 @@ try {
         'subCommand' => 'changeIncludeState',
         'value' => init('state')
       );
-      upnp::sendToDaemon($msg) ;
+      upnp::sendToDaemon(json_encode($msg)) ;
       ajax::success();
     }
     

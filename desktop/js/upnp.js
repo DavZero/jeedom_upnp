@@ -36,7 +36,8 @@ $('#bt_scanEqLogic').on('click', function () {
               $('#div_alert').showAlert({message: data.result, level: 'danger'});
               return;
           }
-          window.location.reload();
+          else $('#div_alert').showAlert({message: data.result, level: 'warning'});
+          //window.location.reload();
       }
   });
 });

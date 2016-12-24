@@ -40,10 +40,11 @@ class UpnpBaseService
   _processDeviceSCPD(callback)
   {
 		//On récupère le xml listant les actions et les variable
-		request(this._device.BaseAddress + this._SCPDURL, (error, response, body) => {
+    var SCPDURLuri = this._SCPDURL.indexOf('http:') === -1 ? this._device.BaseAddress + this._SCPDURL : this._SCPDURL;
+		request(SCPDURLuri, (error, response, body) => {
 			if (error || response.statusCode != 200)
 			{
-				Logger.log("Unable to read SCPDURL, url : " + this._device.BaseAddress + this._SCPDURL + ", err : " + error, LogType.ERROR);
+				Logger.log("Unable to read SCPDURL, url : " + SCPDURLuri + ", err : " + error, LogType.ERROR);
 				if (callback)
 					callback(error);
 			}
@@ -60,13 +61,13 @@ class UpnpBaseService
             if (callback) callback();
             this._specializedInitialisation();
             //Gestion des services qui n'ont pas d'URL d'evenenemt
-            if (this._eventSubURL != '/') this.subscribe(this._eventServer);
+            if (this._eventSubURL != '/') this.subscribe();
           }
 				});
 			}
 			else
 			{
-				Logger.log("Body is empty for " + this._device.BaseAddress + this._SCPDURL);
+				Logger.log("Body is empty for " + SCPDURLuri);
 				//I don't see any case on which we should do a _specializedInitialisation
 			}
 		});
@@ -180,8 +181,7 @@ class UpnpBaseService
 		}
 		else
 		{
-			xml2js.parseString(body, (err, data) =>
-			{
+			xml2js.parseString(body, (err, data) => {
 				//Manage Error
 				if (err)
 				{
@@ -190,8 +190,7 @@ class UpnpBaseService
 				}
 				else
 					this.processLastChangeEvent(data)
-			}
-			);
+			});
 		}
 	}
 
@@ -264,12 +263,12 @@ class UpnpBaseService
 		return null;
 	}
 
-	subscribe(server, tryCount)
+	subscribe(tryCount)
 	{
     if (!tryCount) tryCount = 1; 
     else if (tryCount>5) 
     {
-      Logger.log("Erreur d'inscription au evenement après 5 tentatives, coupure de l'accès au service, url : " + this._device.BaseAddress + this._eventSubURL + " pour le service " + this._ID + ", err : " + error, LogType.ERROR);
+      Logger.log("Erreur d'inscription aux evenements après 5 tentatives, coupure de l'accès au service, url : " + this._device.BaseAddress + this._eventSubURL + " pour le service " + this._ID + ", err : " + error, LogType.ERROR);
       //Le service est probablement éteint, on coupe le service a voir si c'est bien??
       this.prepareForRemove();
       return;
@@ -283,7 +282,7 @@ class UpnpBaseService
 			method: 'SUBSCRIBE',
 			headers:
 			{
-				'CALLBACK': "<" + server + ">",
+				'CALLBACK': "<" + this._eventServer + ">",
 				'NT': 'upnp:event',
 				'TIMEOUT': 'Second-' + this._subscriptionTimeout
 			}
@@ -293,10 +292,10 @@ class UpnpBaseService
 			{
 				Logger.log("Erreur d'inscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " pour le service " + this._ID + ", err : " + error, LogType.WARNING);
 				//Gestion du code d'erreur pour detecté les services deconnecté??
-        setTimeout((service) =>
+        setTimeout((service,tries) =>
 				{
-					service.subscribe(server, tryCount++);
-				}, 15 * 1000, this);
+					service.subscribe(service._eventServer,tries);
+				}, 15 * 1000, this, tryCount++ );
 				return;
 			}
 			else
@@ -336,7 +335,7 @@ class UpnpBaseService
 				delete this._resubscribe;
 				setTimeout((service) =>
 				{
-					service.subscribe(this._eventServer,1);
+					service.subscribe(1);
 				}, 15 * 1000, this);
 				return;
 			}
@@ -379,7 +378,8 @@ class UpnpBaseService
 		}, (error, response, body) => {
 			if (error || response.statusCode != 200)
 			{
-				Logger.log("Erreur de desinscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " err : " + error + " query resturn code : " + response.statusCode, LogType.WARNING);
+				Logger.log("Erreur de desinscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " err : " + error, LogType.WARNING);
+        if (response && response.statusCode) Logger.log("Réponse http de la desinscription : " + response.statusCode, LogType.WARNING);
 			}
       else Logger.log("Desinscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " OK");
       this._eventSubscribe = false;
@@ -874,7 +874,7 @@ class WemoMakerDeviceevent extends UpnpBaseService
 					});
         }
       });
-      if (this._eventSubURL != '/') this.subscribe(this._eventServer);	
+      if (this._eventSubURL != '/') this.subscribe();	
 		});  
   }
 }

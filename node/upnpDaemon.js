@@ -43,7 +43,7 @@ process.argv.forEach(function (val, index, array){
 	}
 });
 
-Logger.log("Démon version 1.1.0", LogType.INFO);
+Logger.log("Démon version 1.1.1", LogType.INFO);
 Logger.log("urlJeedom = " + urlJeedom, LogType.DEBUG);
 Logger.log("serverPort = " + serverPort, LogType.DEBUG);
 Logger.log("logLevel = " + logLevel, LogType.INFO);
@@ -267,9 +267,11 @@ server.listen(
 	});
   
   //Search for all UPnP device
-  cp.search();
+  //cp.search();
   //For Wemo we need to perform a specific search because it doesn't respond to ssdp::all
-	cp.search('upnp:rootdevice');
+	//cp.search('upnp:rootdevice');
+  //Search for all root device
+  cp.search('upnp:rootdevice');
 });
 
 var processJeedomMessage = function (payload, callback)
@@ -365,7 +367,7 @@ var processJeedomMessage = function (payload, callback)
     else if (data.subCommand == 'scan') 
     {
       Logger.log("Lancement d'un scan", LogType.INFO);
-      cp.search();
+      //cp.search();
       cp.search('upnp:rootdevice');
     }
     else if (data.subCommand == 'removeEqLogic') 

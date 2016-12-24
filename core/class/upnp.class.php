@@ -271,7 +271,7 @@
       if ($servicePort == '') $servicePort = 5002;
       $cmdTimeout = config::byKey('cmdTimeout', 'upnp');
       if ($cmdTimeout < 5 || $cmdTimeout > 20) $cmdTimeout = 10;
-      $url  = network::getNetworkAccess().'/core/api/jeeApi.php?api='.config::byKey('api');
+      $url  = network::getNetworkAccess('internal').'/core/api/jeeApi.php?api='.config::byKey('api');
       upnp::launch_svc($url, $servicePort, $cmdTimeout);
     }
     

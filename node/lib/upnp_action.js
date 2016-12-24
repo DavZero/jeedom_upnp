@@ -64,7 +64,12 @@ class UpnpAction
 					}
 					else
 					{
-						returnData = data['s:Envelope']['s:Body'][0];
+						if (!data || !data['s:Envelope'] || !data['s:Envelope']['s:Body'])
+            {
+              Logger.log("Unable to process action " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " response : " + JSON.stringify(data), LogType.ERROR);
+              return;
+            }
+            returnData = data['s:Envelope']['s:Body'][0];
 						if (returnData['s:Fault'])
 							//returnData = data['Envelope']['Body'][0];
 							//if (returnData['Fault'])
@@ -93,11 +98,9 @@ class UpnpAction
 						else
 							Logger.log("Unable to process output argument " + prop + " of action " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options), LogType.WARNING);
 					}
-				}
-				);
+				});
 			}
-		}
-		);
+		});
 	}
 
 	get Service()

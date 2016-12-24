@@ -24,8 +24,7 @@ class SOAPBuilder
 	{
 		var output = SAOP_Header;
 		output += '<u:' + this._action.Name + ' xmlns:u=\"' + this._action.Service.Type + '\">\n';
-		this._action.Arguments.forEach((item) =>
-		{
+		this._action.Arguments.forEach((item) => {
 			if (item.Direction == 'in')
 			{
 				if (item.Name in this._options)
@@ -37,8 +36,7 @@ class SOAPBuilder
 				else
 					throw new Error('input variable ' + item.Name + ' must be defined');
 			}
-		}
-		);
+		});
 		output += '</u:' + this._action.Name + '>';
 		output += SOAP_Footer;
 
