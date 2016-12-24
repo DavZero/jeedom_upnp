@@ -43,7 +43,7 @@ class UpnpDevice extends EventEmitter
 		}
 
 		//Gestion des subDevice
-		if (device.deviceList)
+		if (device.deviceList && device.deviceList[0] && device.deviceList[0].device)
 		{
 			device.deviceList[0].device.forEach((item) =>	{
 				var subDevice = new UpnpDevice(location, item, eventServer);
