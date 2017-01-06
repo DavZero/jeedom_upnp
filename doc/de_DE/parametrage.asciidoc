@@ -1,4 +1,4 @@
-==== Paramétrage Equipement
+==== Geräte Einrichtung
 
 Pour les services disposant d'un widget spécifiques :
 
@@ -12,7 +12,7 @@ l'affichage des commandes en "standard" en plus de l'affichage spécifique
 
 TIP: Que se soit pour les services disposant d'un widget spécifique ou pour les autres services, l'affichage en mode "standard" prend en compte les paramètrages des commandes (affichage On/Off).
 
-==== Paramétrage Commandes
+==== Befehls Einrichtung
 
 Les actions mises a disposition par le plugin nécessitent la plupart du temps des paramètres. 
 Il est possible via l'onglet "Commandes" de la page de configuration d'un equipement de définir des valeurs par defaut pour ces paramètres 
