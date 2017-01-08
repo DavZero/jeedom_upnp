@@ -15,36 +15,46 @@ class UpnpBaseService
 	{
 		Logger.log("Création du service : " + JSON.stringify(serviceData), LogType.INFO);
 		this._device = device;
-		this._initialize(serviceData, eventServer);
+    this._eventServer = eventServer;
+    this._eventSubscribe = false;
+		this._subscriptionTimeout = 600;
+		this._variables = [];
+		this._actions = [];
     
+		this._initialize(serviceData);
     this._processDeviceSCPD(callback);
 	}
+  
+  update(serviceData)
+  {
+    Logger.log("Mise a jour du service : " + JSON.stringify(serviceData), LogType.INFO);
+    this._initialize(serviceData);
+  }
 
-	_initialize(serviceData, eventServer)
+	_initialize(serviceData)
 	{
 		this._type = serviceData.serviceType[0];
 		this._ID = serviceData.serviceId[0];
-		this._controlURL = serviceData.controlURL[0];
-    if (this._controlURL.charAt(0) != '/') this._controlURL = '/' + serviceData.controlURL[0];
-		this._eventSubURL = serviceData.eventSubURL[0];
-    if (this._eventSubURL.charAt(0) != '/') this._eventSubURL = '/' + serviceData.eventSubURL[0];
-		this._SCPDURL = serviceData.SCPDURL[0];
-    if (this._SCPDURL.charAt(0) != '/' && this._SCPDURL.indexOf('http:') === -1) this._SCPDURL = '/' + serviceData.SCPDURL[0];
-		this._eventServer = eventServer;
-		this._eventSubscribe = false;
-		this._subscriptionTimeout = 1800;
-		this._variables = [];
-		this._actions = [];
+		this._controlURL = this._updateServiceURL(serviceData.controlURL[0]);
+    this._eventSubURL = this._updateServiceURL(serviceData.eventSubURL[0]);
+    this._SCPDURL = this._updateServiceURL(serviceData.SCPDURL[0]);
+  }
+  
+  _updateServiceURL(path)
+  {
+    if (!path) return;
+    if (path.indexOf('http') !== -1) return path;
+    if (path.charAt(0) != '/') return this._device.BaseAddress + "/" + path;
+    return this._device.BaseAddress + path;
   }
   
   _processDeviceSCPD(callback)
   {
 		//On récupère le xml listant les actions et les variables
-    var SCPDURLuri = this._SCPDURL.indexOf('http:') === -1 ? this._device.BaseAddress + this._SCPDURL : this._SCPDURL;
-		request(SCPDURLuri, (error, response, body) => {
+		request(this._SCPDURL, (error, response, body) => {
 			if (error || response.statusCode != 200)
 			{
-				Logger.log("Unable to read SCPDURL, url : " + SCPDURLuri + ", err : " + error, LogType.ERROR);
+				Logger.log("Unable to read SCPDURL, url : " + this._SCPDURL + ", err : " + error, LogType.ERROR);
 				if (callback)
 					callback(error);
 			}
@@ -60,14 +70,13 @@ class UpnpBaseService
             this.processSCPD(data.scpd, true);   
             if (callback) callback();
             this._specializedInitialisation();
-            //Gestion des services qui n'ont pas d'URL d'evenenemt
-            if (this._eventSubURL != '/') this.subscribe();
+            if (this.HasEvent) this.subscribe();
           }
 				});
 			}
 			else
 			{
-				Logger.log("Body is empty for " + SCPDURLuri);
+				Logger.log("Body is empty for " + this._SCPDURL, LogType.WARNING );
 				//I don't see any case on which we should do a _specializedInitialisation
 			}
 		});
@@ -176,7 +185,7 @@ class UpnpBaseService
 					variable.Value = instance[prop][0]['$'].val;
 				}
 				else
-					Logger.log("Unable to process LastChange propertie Event " + prop, LogType.WARNING);
+					Logger.log("Unable to process LastChange propertie Event " + prop + " with value " + instance[prop][0]['$'].val + " of service " + this.Device.UDN + "::" + this.ID, LogType.WARNING);
 			}
 		}
 		else
@@ -226,7 +235,7 @@ class UpnpBaseService
   
   get DescriptionURL()
   {
-    return this.Device.BaseAddress + this._SCPDURL
+    return this._SCPDURL;
   }
 
 	get Type()
@@ -268,9 +277,9 @@ class UpnpBaseService
     if (!tryCount) tryCount = 1; 
     else if (tryCount>5) 
     {
-      Logger.log("Erreur d'inscription aux evenements après 5 tentatives, coupure de l'accès au service, url : " + this._device.BaseAddress + this._eventSubURL + " pour le service " + this._ID + ", err : " + error, LogType.ERROR);
-      //Le service est probablement éteint, on coupe le service a voir si c'est bien??
-      this.prepareForRemove();
+      Logger.log("Erreur d'inscription aux evenements après 5 tentatives, annulation de l'inscription aux evenement du service, url : " + this._eventSubURL + " pour le service " + this._ID, LogType.ERROR);
+      //Le service est probablement éteint, on coupe le service ou pas ?
+      //this.prepareForRemove();
       return;
     }
     
@@ -278,7 +287,7 @@ class UpnpBaseService
 		{
 			//host: this._device.Location.hostname,
 			//port: this._device.Location.port,
-			uri: this._device.BaseAddress + this._eventSubURL,
+			uri: this._eventSubURL,
 			method: 'SUBSCRIBE',
 			headers:
 			{
@@ -288,27 +297,29 @@ class UpnpBaseService
 			}
 		}, (error, response, body) =>
 		{
-			if (error || response.statusCode != 200)
+      if (error || response.statusCode != 200)
 			{
-				Logger.log("Erreur d'inscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " pour le service " + this._ID + ", err : " + error, LogType.WARNING);
+				Logger.log("Erreur d'inscription au evenement, url : " + this._eventSubURL + " pour le service " + this._ID + 
+          ", reste " + (5-tryCount) + " tentative(s)" + 
+          ", response : " + JSON.stringify(response) + ", err : " + error, LogType.WARNING);
 				//Gestion du code d'erreur pour detecté les services deconnecté??
-        setTimeout((service,tries) =>
+        this._resubscribe = setTimeout((service,tries) =>
 				{
-					service.subscribe(service._eventServer,tries);
-				}, 15 * 1000, this, tryCount++ );
+					service.subscribe(tries);
+				}, 15 * 1000, this, ++tryCount);
 				return;
 			}
 			else
 			{
-				//Logger.log("Inscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " OK");
+				//Logger.log("Inscription au evenement, url : " + this._eventSubURL + " OK");
 				this._eventSubscribe = true;
 				this._subscribeSID = response.headers.sid;
 				var timeout = response.headers.timeout.match(/\d+/);
 				//this._subscriptionTimeout = response.headers.timeout.match(/\d+/);
-				Logger.log("Inscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " pour " + timeout + " secondes, SID : " + this._subscribeSID);
+				Logger.log("Inscription au evenement, url : " + this._eventSubURL + " pour " + timeout + " secondes, SID : " + this._subscribeSID);
 				this._resubscribe = setTimeout((service) =>	{
 					service.resubscribe();
-				}, (timeout - 2) * 1000, this);
+				}, (timeout * 0.75) * 1000, this);
 			}
 		}
 		);
@@ -318,7 +329,7 @@ class UpnpBaseService
 	{
 		request(
 		{
-			uri: this._device.BaseAddress + this._eventSubURL,
+			uri: this._eventSubURL,
 			method: 'SUBSCRIBE',
 			headers:
 			{
@@ -329,11 +340,11 @@ class UpnpBaseService
 		{
 			if (error || response.statusCode != 200)
 			{
-				Logger.log("Erreur de re-inscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " err : " + error, LogType.WARNING);
+				Logger.log("Erreur de re-inscription au evenement, url : " + this._eventSubURL + " err : " + error, LogType.WARNING);
 				this._eventSubscribe = false;
 				delete this._subscribeSID;
 				delete this._resubscribe;
-				setTimeout((service) =>
+				this._resubscribe = setTimeout((service) =>
 				{
 					service.subscribe(1);
 				}, 15 * 1000, this);
@@ -342,11 +353,11 @@ class UpnpBaseService
 			else
 			{
 				this._subscriptionTimeout = response.headers.timeout.match(/\d+/);
-				Logger.log("Re-inscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " pour " + this._subscriptionTimeout + ", header : " + JSON.stringify(response.headers));
+				Logger.log("Re-inscription au evenement, url : " + this._eventSubURL + " pour " + this._subscriptionTimeout + ", header : " + JSON.stringify(response.headers));
 				this._resubscribe = setTimeout((service) =>
 					{
 						service.resubscribe();
-					}, (this._subscriptionTimeout - 2) * 1000, this);
+					}, (this._subscriptionTimeout * 0.75) * 1000, this);
 			}
 		}
 		);
@@ -369,7 +380,7 @@ class UpnpBaseService
 
 		request(
 		{
-			uri: this._device.BaseAddress + this._eventSubURL,
+			uri: this._eventSubURL,
 			method: 'UNSUBSCRIBE',
 			headers:
 			{
@@ -378,10 +389,10 @@ class UpnpBaseService
 		}, (error, response, body) => {
 			if (error || response.statusCode != 200)
 			{
-				Logger.log("Erreur de desinscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " err : " + error, LogType.WARNING);
-        if (response && response.statusCode) Logger.log("Réponse http de la desinscription : " + response.statusCode, LogType.WARNING);
+				Logger.log("Erreur de desinscription au evenement, url : " + this._eventSubURL + " err : " + error, LogType.WARNING);
+        if (response && response.statusCode) Logger.log("Réponse http de la desinscription : " + JSON.stringify(response), LogType.WARNING);
 			}
-      else Logger.log("Desinscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " OK");
+      else Logger.log("Desinscription au evenement, url : " + this._eventSubURL + " OK");
       this._eventSubscribe = false;
 			delete this._subscribeSID;
 		});
@@ -389,26 +400,19 @@ class UpnpBaseService
 
 	get HasEvent()
 	{
-		this._variables.forEach((item) =>	{
-			if (item.HasEvent)
-				return true;
-		});
+		for (var i = 0 ; i < this._variables.length ; i++)
+    {
+      if (this._variables[i].SendEvent) return true;
+    }
+    return false;
 	}
 
 	ToString()
 	{
 		var varString = "";
-		this._variables.forEach((item) =>
-		{
-			varString += item.ToString() + "\n";
-		}
-		);
+		this._variables.forEach((item) =>	{	varString += item.ToString() + "\n"; });
 		var actString = "";
-		this._actions.forEach((item) =>
-		{
-			actString += item.ToString() + "\n";
-		}
-		);
+		this._actions.forEach((item) =>	{	actString += item.ToString() + "\n"; });
 		return "Service Name : " + this._name + " => \n" + varString + "\n" + actString;
 	}
 
@@ -432,7 +436,7 @@ class UpnpAVTransportService extends UpnpBaseService
 	//Fonction call for specific fonction after all initialisation
 	_specializedInitialisation()
 	{
-		Logger.log("Specialisation for service AVTransport", LogType.DEBUG);
+		Logger.log("Specialisation for service AVTransport", LogType.Info);
 		var relativeTime = this.getVariableByName("RelativeTimePosition");
 		//Implémentation pour OpenHome
 		if (!relativeTime)
@@ -553,32 +557,22 @@ class UpnpAVTransportService extends UpnpBaseService
 
 		if (actionName == 'SetAVTransportURI')
 		{
-			this.getActionByName('Stop').execute(options, (err, stopMessage) =>
-			{
-				//if (err) callback(err, stopMessage);
-				//else
-				//{
-				this.getActionByName('SetAVTransportURI').execute(options, (err, SetAVTransportURIMessage) =>
-				{
+			this.getActionByName('Stop').execute(options, (err, stopMessage) => {
+				this.getActionByName('SetAVTransportURI').execute(options, (err, SetAVTransportURIMessage) => {
 					if (err)
 						callback(err, SetAVTransportURIMessage);
 					else
 					{
 						options.Speed = 1;
-						this.getActionByName('Play').execute(options, (err, PlayMessage) =>
-						{
+						this.getActionByName('Play').execute(options, (err, PlayMessage) =>	{
 							if (err)
 								callback(err, PlayMessage);
 							else
 								this.getActionByName('GetPositionInfo').execute(options, callback);
-						}
-						);
+						});
 					}
-				}
-				);
-				//}
-			}
-			);
+				});
+			});
 			return;
 		}
 
@@ -610,14 +604,12 @@ class UpnpAVTransportService extends UpnpBaseService
 				{
 					options.CurrentURI = CurrentTrackURI.Value;
 					options.CurrentURIMetaData = XmlEntities.encode(CurrentTrackMetaData.Value);
-					this.getActionByName('SetAVTransportURI').execute(options, (err, SetAVTransportURIMessage) =>
-					{
+					this.getActionByName('SetAVTransportURI').execute(options, (err, SetAVTransportURIMessage) =>	{
 						if (err)
 							callback(err, SetAVTransportURIMessage);
 						else
 							this.getActionByName('Play').execute(options, callback);
-					}
-					);
+					});
 				}
 				else
 					callback("You must select a media before start playing. No media actually available.", null);
@@ -676,7 +668,7 @@ class OpenHomeAVTransportService extends UpnpAVTransportService
   
   _specializedInitialisation()
 	{
-    Logger.log("Specialisation for OpenHome AVTransport", LogType.DEBUG);
+    Logger.log("Specialisation for OpenHome AVTransport", LogType.Info);
     super._specializedInitialisation();
   }
   
@@ -760,7 +752,7 @@ class WemoInsightBasicevent extends UpnpBaseService
   
   _specializedInitialisation()
 	{
-    Logger.log("Specialisation for WemoInsight Basicevent", LogType.DEBUG);
+    Logger.log("Specialisation for WemoInsight Basicevent", LogType.INFO);
     //Création des infos spécifiques au Insigth decodable dans le BinaryState
     //Process serviceTemplate to Add standard commande if not exist
 		var xmlTemplate = fs.readFileSync(__dirname+'/../../resources/ServicesTemplate.xml', 'utf8');
@@ -825,7 +817,7 @@ class WemoMakerDeviceevent extends UpnpBaseService
   //On ne traite pas le xml du device mais un template car celui du device n'est pas correct
   _processDeviceSCPD(callback)
   {
-		Logger.log("Specialisation for WemoMaker Deviceevent", LogType.DEBUG);
+		Logger.log("Specialisation for WemoMaker Deviceevent", LogType.INFO);
     //Création des infos spécifiques au Maker decodable dans le attributeList
 		var xmlTemplate = fs.readFileSync(__dirname+'/../../resources/ServicesTemplate.xml', 'utf8');
 		xml2js.parseString(xmlTemplate, (err, templatesData) => {

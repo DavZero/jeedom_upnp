@@ -49,6 +49,8 @@
       $eqp = eqlogic::byLogicalId($data->deviceUDN.'_'.$data->serviceId,'upnp');
       
       if (!is_object($eqp)) {
+        //Si on n'est pas en mode inclusion, on quitte
+        if (config::byKey('eqLogicIncludeState', 'upnp', 0) != 1) return;
         log::add('upnp', 'info', 'création de l\'équipement ' . $data->deviceUDN.'_'.$data->serviceId);
         $eqp = new upnp();
         $eqp->setEqType_name('upnp');
@@ -66,11 +68,27 @@
         {
           log::add('upnp', 'debug', 'Obj parent existe');
           $eqp->setObject_id($objetParent->getId());
-        }
+          }
         $eqp->save();
         event::add('upnp::includeDevice', $eqp->getId());
       }
       
+      //Ajout de l'information isOnline
+      $cmd = $eqp->getCmd('info','isOnline');
+      if (!is_object($cmd))
+      {
+        log::add('upnp', 'info', 'création de l\'info ' . 'isOnline' . ' pour l\'équipement ' . $data->deviceUDN.'_'.$data->serviceId);
+        $cmd = new upnpCmd();
+        $cmd->setName(__('isOnline', __FILE__));
+        $cmd->setLogicalId('isOnline');
+        $cmd->setEqLogic_id($eqp->getId());
+        $cmd->setType('info');
+        $cmd->setSubType('binary');
+        $cmd->setConfiguration('source','Plugin');
+        $cmd->save();
+        $cmd->event(1);
+      }
+          
       switch ($data->eventType)
       {
       case 'createAction':
@@ -186,7 +204,12 @@
         if (isset($data->icon)) $eqp->setConfiguration('icon', $data->icon);
         if (isset($data->description)) $eqp->setConfiguration('description', $data->description);
         if (isset($data->deviceType)) $eqp->setConfiguration('deviceType', $data->deviceType);
-        if (isset($data->isOnline)) $eqp->setConfiguration('isOnline',$data->isOnline?true:false);
+        if (isset($data->isOnline)) 
+        {
+          $eqp->setConfiguration('isOnline',$data->isOnline?true:false);
+          $cmd = $eqp->getCmd('info','isOnline');
+          $cmd->event($data->isOnline?1:0);
+        }
         if (isset($data->serviceDescription)) $eqp->setConfiguration('serviceDescription',$data->serviceDescription);
         $eqp->save();
         break;
@@ -200,6 +223,25 @@
         $eqp->setConfiguration('isOnline',false);
         $eqp->save();
       }
+    }
+    
+    public static function getAllowedList()
+    {
+      $list = array();
+      foreach (eqlogic::byType('upnp') as $eqp)
+      {
+        $eqpUDN = $eqp->getConfiguration('UDN');
+        $serviceID = $eqp->getConfiguration('serviceId');
+        if (!isset($list[$eqpUDN])) $list[$eqpUDN] = array();
+        $list[$eqpUDN][] = $serviceID;
+      }
+      return $list;
+    }
+    
+    public static function getDisallowedList()
+    {
+      $list = array();
+      return $list;
     }
     
     public static function health() {
@@ -272,15 +314,27 @@
       $cmdTimeout = config::byKey('cmdTimeout', 'upnp');
       if ($cmdTimeout < 5 || $cmdTimeout > 20) $cmdTimeout = 10;
       $url  = network::getNetworkAccess('internal').'/core/api/jeeApi.php?api='.config::byKey('api');
-      upnp::launch_svc($url, $servicePort, $cmdTimeout);
+      $includeState = config::byKey('eqLogicIncludeState', 'upnp', 0) == 1 ? 1 : 0;
+      
+      $allowedList = upnp::getAllowedList();
+      $allowedListFile = fopen('/tmp/allowedDevice.lst', 'w');
+      fputs($allowedListFile, json_encode($allowedList));
+      fclose($allowedListFile);
+      
+      $disallowedList = upnp::getDisallowedList();
+      $disallowedListFile = fopen('/tmp/disallowedDevice.lst', 'w');
+      fputs($disallowedListFile, json_encode($disallowedList));
+      fclose($disallowedListFile);
+      
+      upnp::launch_svc($url, $servicePort, $cmdTimeout, $includeState, '/tmp/allowedDevice.lst','/tmp/disallowedDevice.lst');
     }
     
-    public static function launch_svc($url, $servicePort, $cmdTimeout)
+    public static function launch_svc($url, $servicePort, $cmdTimeout, $includeState, $allowedListFile, $disallowedListFile)
     {
       $logLevel = log::convertLogLevel(log::getLogLevel('upnp'));
       //$logLevel = log::getLogLevel('upnp');
       $upnp_path = realpath(dirname(__FILE__) . '/../../node');
-      $cmd = 'nice -n 19 nodejs ' . $upnp_path . '/upnpDaemon.js ' . $url .' '. $servicePort . ' ' . $logLevel . ' ' . $cmdTimeout;
+      $cmd = 'nice -n 19 nodejs ' . $upnp_path . '/upnpDaemon.js ' . $url .' '. $servicePort . ' ' . $cmdTimeout. ' ' . $includeState. ' ' . $allowedListFile . ' ' . $disallowedListFile . ' ' . $logLevel;
       
       log::add('upnp', 'debug', 'Lancement démon upnp : ' . $cmd);
       
@@ -584,15 +638,38 @@
       return $this->postToHtml($_version, template_replace($replace, getTemplate('core', $version, 'eqLogic')));
     }
     
-    /*     * *********************Méthodes d'instance************************* */
-    /*
-        * Non obligatoire mais permet de modifier l'affichage du widget si vous en avez besoin
-        public function toHtml($_version = 'dashboard') {
-        
-        }
-      */
     
-    /*     * **********************Getteur Setteur*************************** */
+    /*public function preInsert() {
+        
+    }
+    
+    public function postInsert() {
+        
+    }
+    public function preSave() {
+        
+    }
+    public function postSave() {
+        
+    }
+    public function preUpdate() {
+        
+    }
+    public function postUpdate() {
+        
+    }
+    public function preRemove() {
+        
+    }*/
+    public function postRemove() {
+      if (upnp::deamon_info()['state'] != 'ok') return;
+      $msg = array();
+      $msg['command'] = 'controlPointAction';
+      $msg['subCommand'] = 'removeService';
+      $msg['UDN'] = $this->getConfiguration('UDN');
+      $msg['serviceId'] = $this->getConfiguration('serviceId');
+      upnp::sendToDaemon(json_encode($msg));
+    }
   }
 
   class upnpCmd extends cmd {
@@ -643,7 +720,7 @@
         $msg['serviceID'] = $this->getEqLogic()->getConfiguration('serviceId');
         $msg['actionName'] = $this->getLogicalId();
         $msg['options'] = $this->getParameters($this,$_options);
-        return upnp::sendToDaemon(json_encode($msg),$msg['options']);
+        return upnp::sendToDaemon(json_encode($msg),$msg['options']['WaitResponse']);
         break;
       }
     }

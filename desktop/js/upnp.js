@@ -63,7 +63,7 @@ $('.changeIncludeState').on('click', function () {
         else {
           jeedom.config.save({
             plugin : 'upnp',
-            configuration: {autoDiscoverEqLogic: el.attr('data-state')},
+            configuration: {eqLogicIncludeState: el.attr('data-state')},
             error: function (error) {
               $('#div_alert').showAlert({message: error.message, level: 'danger'});
             },

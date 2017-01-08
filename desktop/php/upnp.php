@@ -65,7 +65,7 @@ function url_exists($url){
         <span style="font-size : 1.1em;position:relative; top : 15px;word-break: break-all;white-space: pre-wrap;word-wrap: break-word;color:#767676"><center>{{Santé}}</center></span>
       </div>-->
       <?php
-      /*if (config::byKey('autoDiscoverEqLogic', 'upnp', 0) == 1) {
+      if (config::byKey('eqLogicIncludeState', 'upnp', 0) == 1) {
         echo '<div class="cursor changeIncludeState expertModeVisible card" data-mode="1" data-state="0" style="background-color : #8000FF; height : 140px;margin-bottom : 10px;padding : 5px;border-radius: 2px;width : 160px;margin-left : 10px;" >';
         echo '<center>';
         echo '<i class="fa fa-sign-in fa-rotate-90" style="font-size : 5em;color:#94ca02;"></i>';
@@ -79,7 +79,7 @@ function url_exists($url){
         echo '</center>';
         echo '<span style="font-size : 1.1em;position:relative; top : 15px;word-break: break-all;white-space: pre-wrap;word-wrap: break-word;color:#94ca02"><center>{{Mode inclusion}}</center></span>';
         echo '</div>';
-      }*/
+      }
       ?>
       <div class="cursor expertModeVisible" id="bt_scanEqLogic" style="background-color : #ffffff; height : 140px;margin-bottom : 10px;padding : 5px;border-radius: 2px;width : 160px;margin-left : 10px;" >
         <center>

@@ -20,7 +20,7 @@ class SOAPBuilder
 		this._options = options;
 	}
 
-	_getBody()
+_getBody()
 	{
 		var output = SAOP_Header;
 		output += '<u:' + this._action.Name + ' xmlns:u=\"' + this._action.Service.Type + '\">\n';
@@ -50,7 +50,7 @@ class SOAPBuilder
 			var options =
 			{
 				method: 'POST',
-				uri: this._action.Service.Device.BaseAddress + this._action.Service.ControlUrl,
+				uri: this._action.Service.ControlUrl,
 				headers:
 				{
 					'SOAPAction': '"' + this._action.Service.Type + '#' + this._action.Name + '"',
