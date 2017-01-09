@@ -311,11 +311,12 @@ class UpnpBaseService
 			}
 			else
 			{
-				//Logger.log("Inscription au evenement, url : " + this._eventSubURL + " OK");
+				Logger.log("Inscription au evenement, url : " + this._eventSubURL + ", response : " + JSON.stringify(response), LogType.DEBUG);
 				this._eventSubscribe = true;
 				this._subscribeSID = response.headers.sid;
-				var timeout = response.headers.timeout.match(/\d+/);
-				//this._subscriptionTimeout = response.headers.timeout.match(/\d+/);
+        var tiemout = this._subscriptionTimeout;
+        if (!response.headers.timeout) Logger.log("Erreur de lecture du timeout lors de l'inscription au evenement, url : " + this._eventSubURL + ", response : " + JSON.stringify(response), LogType.ERROR);
+				else timeout = response.headers.timeout.match(/\d+/);
 				Logger.log("Inscription au evenement, url : " + this._eventSubURL + " pour " + timeout + " secondes, SID : " + this._subscribeSID);
 				this._resubscribe = setTimeout((service) =>	{
 					service.resubscribe();
