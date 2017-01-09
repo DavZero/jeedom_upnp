@@ -353,7 +353,8 @@ class UpnpBaseService
 			}
 			else
 			{
-				this._subscriptionTimeout = response.headers.timeout.match(/\d+/);
+				if (!response.headers.timeout) Logger.log("Erreur de lecture du timeout lors de la ré-inscription au evenement, url : " + this._eventSubURL + ", response : " + JSON.stringify(response), LogType.ERROR);
+				else this._subscriptionTimeout = response.headers.timeout.match(/\d+/);
 				Logger.log("Re-inscription au evenement, url : " + this._eventSubURL + " pour " + this._subscriptionTimeout + ", header : " + JSON.stringify(response.headers));
 				this._resubscribe = setTimeout((service) =>
 					{
