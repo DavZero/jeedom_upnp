@@ -314,7 +314,7 @@ class UpnpBaseService
 				Logger.log("Inscription au evenement, url : " + this._eventSubURL + ", response : " + JSON.stringify(response), LogType.DEBUG);
 				this._eventSubscribe = true;
 				this._subscribeSID = response.headers.sid;
-        var tiemout = this._subscriptionTimeout;
+        var timeout = this._subscriptionTimeout;
         if (!response.headers.timeout) Logger.log("Erreur de lecture du timeout lors de l'inscription au evenement, url : " + this._eventSubURL + ", response : " + JSON.stringify(response), LogType.ERROR);
 				else timeout = response.headers.timeout.match(/\d+/);
 				Logger.log("Inscription au evenement, url : " + this._eventSubURL + " pour " + timeout + " secondes, SID : " + this._subscribeSID);
