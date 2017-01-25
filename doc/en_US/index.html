@@ -427,8 +427,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_paramétrage">3. Paramétrage</a>
 <ul class="sectlevel3">
-<li><a href="#_equipment_setting">3.1. Equipment Setting</a></li>
-<li><a href="#_paramétrage_commandes">3.2. Paramétrage Commandes</a></li>
+<li><a href="#_recherche_d_équipement">3.1. Recherche d&#8217;équipement</a></li>
+<li><a href="#_equipment_setting">3.2. Equipment Setting</a></li>
+<li><a href="#_paramétrage_commandes">3.3. Paramétrage Commandes</a></li>
 </ul>
 </li>
 <li><a href="#_faq">4. FAQ</a></li>
@@ -481,7 +482,33 @@ Si ce n’est pas le cas ou si elle ne sont pas OK, cliquer sur relancer.</p>
 <h2 id="_paramétrage">3. Paramétrage</h2>
 <div class="sectionbody">
 <div class="sect3">
-<h4 id="_equipment_setting">3.1. Equipment Setting</h4>
+<h4 id="_recherche_d_équipement">3.1. Recherche d&#8217;équipement</h4>
+<div class="paragraph">
+<p>Lors du démarrage du plugin, un scan des equipements upnp présent sur votre reseau est effectué.</p>
+</div>
+<div class="paragraph">
+<p>Si le plugin est en mode inclusion (voir page de configuration des équipements) alors des équipements vont se créer, sinon seul les équipements déjà présent dans votre Jeedom seront opérationnel.
+Si vous souhaiter ajouter des equipements, il faut que le plugin soit en mode inclusion (voir page de configuration des équipements) et lancer une recherche (voir page de configuration des équipements).
+Bien sur seul les équipements allumer et présent sur votre reseau local pourront être detecté.</p>
+</div>
+<div class="paragraph">
+<p>Une fois que les equipements requis ont été detecté, vous pouvez quitter le mode inclusion et supprimer ceux que vous considerer comme inutile.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Si vous supprimer des equipements mais que vous rester en mode inclusion, ceux ci risque de se recréer même sans faire de recherche.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_equipment_setting">3.2. Equipment Setting</h4>
 <div class="paragraph">
 <p>Having a widget-specific services:</p>
 </div>
@@ -514,7 +541,7 @@ Que se soit pour les services disposant d&#8217;un widget spécifique ou pour le
 </div>
 </div>
 <div class="sect3">
-<h4 id="_paramétrage_commandes">3.2. Paramétrage Commandes</h4>
+<h4 id="_paramétrage_commandes">3.3. Paramétrage Commandes</h4>
 <div class="paragraph">
 <p>Les actions mises a disposition par le plugin nécessitent la plupart du temps des paramètres.
 Il est possible via l&#8217;onglet "Commandes" de la page de configuration d&#8217;un equipement de définir des valeurs par defaut pour ces paramètres

@@ -1,3 +1,14 @@
+==== Recherche d'équipement
+Lors du démarrage du plugin, un scan des equipements upnp présent sur votre reseau est effectué.
+
+Si le plugin est en mode inclusion (voir page de configuration des équipements) alors des équipements vont se créer, sinon seul les équipements déjà présent dans votre Jeedom seront opérationnel.
+Si vous souhaiter ajouter des equipements, il faut que le plugin soit en mode inclusion (voir page de configuration des équipements) et lancer une recherche (voir page de configuration des équipements).
+Bien sur seul les équipements allumer et présent sur votre reseau local pourront être detecté.
+
+Une fois que les equipements requis ont été detecté, vous pouvez quitter le mode inclusion et supprimer ceux que vous considerer comme inutile.
+
+TIP: Si vous supprimer des equipements mais que vous rester en mode inclusion, ceux ci risque de se recréer même sans faire de recherche.
+
 ==== Geräte Einrichtung
 
 Pour les services disposant d'un widget spécifiques :
