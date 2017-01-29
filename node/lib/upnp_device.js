@@ -46,7 +46,7 @@ class UpnpDevice extends EventEmitter
 			});
 		}
     else
-      Logger.log("No service list found for device" + this._UDN + " adresse : " + this._location.href + " : " + JSON.stringify(device), LogType.DEBUG);
+      Logger.log("No service list found for device" + this._UDN + " adresse : " + this._location.href + " : " + JSON.stringify(deviceDescription), LogType.DEBUG);
     
     //On supprime les services qui n'existe plus
     for (var prop in this._services)
