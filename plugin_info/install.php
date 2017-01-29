@@ -23,7 +23,15 @@ function upnp_install() {
 }
 
 function upnp_update() {
-
+  foreach (eqLogic::byType('upnp') as $eqLogic) {
+    $logical = $eqLogic->getLogicalId();
+    $newlogical = str_replace("uuid:","",$logical);
+    if ($logical != $newlogical)
+    {
+      $eqLogic->sertLogicalId($logical);
+      $eqLogic->save();
+    }
+  }
 }
 
 

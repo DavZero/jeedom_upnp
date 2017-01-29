@@ -25,14 +25,27 @@ if (!isConnect()) {
 <form class="form-horizontal">
   <fieldset>
 		<div class="form-group">
-      <label class="col-sm-4 control-label">{{Port du Serveur (laisser vide par défault)}}</label>
-			<div class="col-sm-2">
+      <label class="col-sm-4 control-label">{{Port du Serveur (laisser vide par défaut)}}</label>
+			<div class="col-sm-4">
 				<input class="configKey form-control" data-l1key="servicePort" placeholder="5002" />
 			</div>
 		</div>
+    <div class="form-group">
+      <label class="col-sm-4 control-label" >{{Objet parent par défaut}}</label>
+      <div class="col-sm-4">
+        <select id="sel_object" class="configKey form-control" data-l1key="defaultParentObject">
+          <option value="">{{Aucun}}</option>
+          <?php
+            foreach (object::all() as $object) {
+              echo '<option value="' . $object->getId() . '">' . $object->getName() . '</option>';
+            }
+          ?>
+        </select>
+      </div>
+    </div>
     <div class="form-group expertModeVisible">
       <label class="col-sm-4 control-label">{{Commande timeout}}</label>
-			<div class="col-sm-2">
+			<div class="col-sm-4">
 				<input class="configKey form-control" type="number" data-l1key="cmdTimeout" step="1" min="5" max="20" value="10"/>
 			</div>
 		</div>

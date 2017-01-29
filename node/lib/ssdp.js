@@ -146,35 +146,17 @@ class SSDP //extends EventEmmitter
 			"ST:" + st + "\r\n" +
 			"Man:\"ssdp:discover\"\r\n" +
 			"MX:3\r\n\r\n",
-		client = dgram.createSocket(
-			{
-				type: 'udp4',
-				reuseAddr: true
-			}
-			),
+      client = dgram.createSocket({type: 'udp4',reuseAddr: true}),
 		//client = dgram.createSocket('udp4'),
-		server = dgram.createSocket(
-			{
-				type: 'udp4',
-				reuseAddr: true
-			}
-			);
+      server = dgram.createSocket({type: 'udp4',reuseAddr: true});
 
-		server.on('message', function (msg, rinfo)
-		{
-			callback(new SSDPMessage(msg), rinfo);
-		}
-		);
+		server.on('message', function (msg, rinfo) {callback(new SSDPMessage(msg), rinfo);});
 
-		server.on('listening', () =>
-		{
-			client.send(new Buffer(message, "ascii"), 0, message.length, this._ssdpPort, BROADCAST_ADDR, function ()
-			{
+		server.on('listening', () => {
+			client.send(new Buffer(message, "ascii"), 0, message.length, this._ssdpPort, BROADCAST_ADDR, function () {
 				client.close();
-			}
-			);
-		}
-		);
+			});
+		});
 
 		client.on('listening', function ()
 		{

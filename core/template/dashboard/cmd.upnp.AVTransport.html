@@ -127,14 +127,14 @@
     $('.previousSeek[data-cmd_id=#cmd_seek_id#]').click(function() {
       var actualTime = $( '.trackSlider[data-cmd_id=#cmd_relativeTimePosition_id#]' ).slider("value");
       var target = (new Date((actualTime-30) * 1000)).toUTCString().match(/(\d\d:\d\d:\d\d)/)[0];
-      console.log(target);
+      //console.log(target);
       jeedom.cmd.execute({id: '#cmd_seek_id#', value: {InstanceID: 0, Unit: "REL_TIME", Target: target}});
     });
 
     $('.nextSeek[data-cmd_id=#cmd_seek_id#]').click(function() {
       var actualTime = $( '.trackSlider[data-cmd_id=#cmd_relativeTimePosition_id#]' ).slider("value");
       var target = (new Date((actualTime+30) * 1000)).toUTCString().match(/(\d\d:\d\d:\d\d)/)[0];
-      console.log(target);
+      //console.log(target);
       jeedom.cmd.execute({id: '#cmd_seek_id#', value: {InstanceID: 0, Unit: "REL_TIME", Target: target}});
     });
 

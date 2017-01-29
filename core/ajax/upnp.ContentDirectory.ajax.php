@@ -39,7 +39,7 @@
         'StartingIndex' => '0',
         'RequestedCount' => '0',
         'SortCriteria' => '',
-        'waitResponse' => true
+        'WaitResponse' => true
       );
       
       if (init('node_id') =='#')
@@ -122,7 +122,7 @@
         'StartingIndex' => '0',
         'RequestedCount' => '0',
         'SortCriteria' => '',
-        'waitResponse' => true
+        'WaitResponse' => true
       );
       
       //Metadata au formatXML

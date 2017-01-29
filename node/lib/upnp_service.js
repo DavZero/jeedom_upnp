@@ -15,97 +15,105 @@ class UpnpBaseService
 	{
 		Logger.log("Création du service : " + JSON.stringify(serviceData), LogType.INFO);
 		this._device = device;
-
-		this._initialize(serviceData, eventServer);
+    this._eventServer = eventServer;
+    this._eventSubscribe = false;
+		this._subscriptionTimeout = 600;
+		this._variables = [];
+		this._actions = [];
+    
+		this._initialize(serviceData);
+    this._processDeviceSCPD(callback);
 	}
+  
+  update(serviceData)
+  {
+    Logger.log("Mise a jour du service : " + JSON.stringify(serviceData), LogType.INFO);
+    this._initialize(serviceData);
+  }
 
-	_initialize(serviceData, eventServer, callback)
+	_initialize(serviceData)
 	{
 		this._type = serviceData.serviceType[0];
 		this._ID = serviceData.serviceId[0];
-		this._controlURL = serviceData.controlURL[0];
-		this._eventSubURL = serviceData.eventSubURL[0];
-		this._SCPDURL = serviceData.SCPDURL[0];
-		this._eventServer = eventServer;
-		this._eventSubscribe = false;
-		this._subscriptionTimeout = 1800;
-		this._variables = [];
-		this._actions = [];
-
-		//On récupère le xml listant les actions et les variable
-		request(this._device.BaseAddress + this._SCPDURL, (error, response, body) =>
-		{
+		this._controlURL = this._updateServiceURL(serviceData.controlURL[0]);
+    this._eventSubURL = this._updateServiceURL(serviceData.eventSubURL[0]);
+    this._SCPDURL = this._updateServiceURL(serviceData.SCPDURL[0]);
+  }
+  
+  _updateServiceURL(path)
+  {
+    if (!path) return;
+    if (path.indexOf('http') !== -1) return path;
+    if (path.charAt(0) != '/') return this._device.BaseAddress + "/" + path;
+    return this._device.BaseAddress + path;
+  }
+  
+  _processDeviceSCPD(callback)
+  {
+		//On récupère le xml listant les actions et les variables
+		request(this._SCPDURL, (error, response, body) => {
 			if (error || response.statusCode != 200)
 			{
-				Logger.log("Unable to read SCPDURL, url : " + this._device.BaseAddress + this._SCPDURL + ", err : " + error, LogType.ERROR);
+				Logger.log("Unable to read SCPDURL, url : " + this._SCPDURL + ", err : " + error, LogType.ERROR);
 				if (callback)
 					callback(error);
 			}
 			else if (body != '')
 			{
-				xml2js.parseString(body, (err, data) =>
-				{
-					this.processSCPD(data.scpd, true);
-
-					//Process serviceTemplate to Add standard commande if not exist
-					/*var xmlTemplate = fs.readFileSync(__dirname+'/../../resources/ServicesTemplate.xml', 'utf8');
-					xml2js.parseString(xmlTemplate, (err, templatesData) => {
-					templatesData.servicesTemplate.serviceTemplate.forEach((serviceTemplate) => {
-					if (serviceTemplate['$']['type'] == this._type)
-				{
-					Logger.log("Processing scpd template", LogType.DEBUG);
-					this.processSCPD(serviceTemplate.scpd[0],false);
-					}
-					});
-					});*/
-					this.subscribe(eventServer);
-					this._specializedInitialisation();
-				}
-				);
+				xml2js.parseString(body, (err, data) => {
+          if (err)
+          {
+            Logger.log("Unable to parse SCPDURL XML, source : " + body + ", err : " + err, LogType.ERROR);
+          }
+					else
+          {
+            this.processSCPD(data.scpd, true);   
+            if (callback) callback();
+            this._specializedInitialisation();
+            if (this.HasEvent) this.subscribe();
+          }
+				});
 			}
 			else
 			{
-				Logger.log("Body is empty for " + this._device.BaseAddress + this._SCPDURL);
+				Logger.log("Body is empty for " + this._SCPDURL, LogType.WARNING );
 				//I don't see any case on which we should do a _specializedInitialisation
 			}
-		}
-		);
+		});
 	}
-
-	//Fonction to override in heritedClass to do some more initialisation
-	_specializedInitialisation() {}
+  
+  _specializedInitialisation()
+  { }
 
 	//fromDevice == true if from device, false if from template
 	processSCPD(scpd, fromDevice)
 	{
-		if (scpd.serviceStateTable[0] && scpd.serviceStateTable[0].stateVariable)
+    if (!scpd) 
+    {
+      Logger.log("SCPD is null for " + this.Device.UDN + "::" + this.ID + ", source " + fromDevice?"device":"template", LogType.DEBUG);
+      return;
+    }
+    if (scpd.serviceStateTable && scpd.serviceStateTable[0] && scpd.serviceStateTable[0].stateVariable)
 		{
-			scpd.serviceStateTable[0].stateVariable.forEach((item) =>
-			{
+			scpd.serviceStateTable[0].stateVariable.forEach((item) =>	{
 				if (!this._variables.some(elem => elem.Name == item.name[0]))
 				{
 					var variable = new UpnpVariable(this, item, fromDevice);
-					variable.on('updated', (varObj, newVal) =>
-					{
-						this.Device.emit('variableUpdated', varObj, newVal)
-					}
-					);
+					variable.on('updated', (varObj, newVal) => { this.Device.emit('variableUpdated', varObj, newVal) });
 					this._variables.push(variable);
 					this.Device.emit('variableCreated', variable);
 				}
 				/*else if (fromDevice){
 				this._variables.filter((elem) => { return elem.Name == item.name[0]})[0].updateDefinition();
 				}*/
-			}
-			);
+			});
 		}
 		else
-			Logger.log("No variable found for service " + this.Device.UDN + "::" + this.ID, LogType.DEBUG);
+			Logger.log("No variable found for service " + this.Device.UDN + "::" + this.ID + ", source " + fromDevice?"device":"template", LogType.DEBUG);
 
-		if (scpd.actionList[0] && scpd.actionList[0].action)
+		if (scpd.actionList && scpd.actionList[0] && scpd.actionList[0].action)
 		{
-			scpd.actionList[0].action.forEach((item) =>
-			{
+			scpd.actionList[0].action.forEach((item) =>	{
 				//Si l'action n'existe pas, on la créer
 				if (!this._actions.some(elem => elem.Name == item.name[0]))
 				{
@@ -116,11 +124,10 @@ class UpnpBaseService
 				/*else if (fromDevice){
 				this._actions.filter((elem) => { return elem.Name == item.name[0]})[0].updateDefinition();
 				}*/
-			}
-			);
+			});
 		}
 		else
-			Logger.log("No action found for service " + this.Device.UDN + "::" + this.ID, LogType.DEBUG);
+			Logger.log("No action found for service " + this.Device.UDN + "::" + this.ID + ", source " + fromDevice?"device":"template", LogType.DEBUG);
 	}
 
 	/*getVariableByName(name){
@@ -165,7 +172,8 @@ class UpnpBaseService
 			var eventProperties = body.Event[0];
 			if (!eventProperties)
 				eventProperties = body.Event;
-			var instance = eventProperties.InstanceID[0];
+			var instance = eventProperties;
+      if (eventProperties.InstanceID && eventProperties.InstanceID[0]) instance = eventProperties.InstanceID[0];
 			for (var prop in instance)
 			{
 				if (prop == '$')
@@ -177,23 +185,21 @@ class UpnpBaseService
 					variable.Value = instance[prop][0]['$'].val;
 				}
 				else
-					Logger.log("Unable to process LastChange propertie Event " + prop, LogType.WARNING);
+					Logger.log("Unable to process LastChange propertie Event " + prop + " with value " + instance[prop][0]['$'].val + " of service " + this.Device.UDN + "::" + this.ID, LogType.WARNING);
 			}
 		}
 		else
 		{
-			xml2js.parseString(body, (err, data) =>
-			{
+			xml2js.parseString(body, (err, data) => {
 				//Manage Error
 				if (err)
 				{
-					Logger.log("Error LastChange Event : " + this.Device.UDN + '/' + this.ID + ", err : " + err, LogType.ERROR);
-					this.Device.emit('error', "Error LastChange Event : " + this.Device.UDN + '/' + this.ID + ", err : " + err);
+					Logger.log("Error decoding LastChange Event : " + this.Device.UDN + '::' + this.ID + " ==> xml : " + JSON.stringify(body) + ", err : " + err, LogType.ERROR);
+					this.Device.emit('error', "Error decoding LastChange Event : " + this.Device.UDN + '::' + this.ID + " ==> xml : " + JSON.stringify(body) + ", err : " + err);
 				}
 				else
 					this.processLastChangeEvent(data)
-			}
-			);
+			});
 		}
 	}
 
@@ -229,7 +235,7 @@ class UpnpBaseService
   
   get DescriptionURL()
   {
-    return this.Device.BaseAddress + this._SCPDURL
+    return this._SCPDURL;
   }
 
 	get Type()
@@ -266,43 +272,55 @@ class UpnpBaseService
 		return null;
 	}
 
-	subscribe(server)
+	subscribe(tryCount)
 	{
-		request(
+    if (!tryCount) tryCount = 1; 
+    else if (tryCount>5) 
+    {
+      Logger.log("Erreur d'inscription aux evenements après 5 tentatives, annulation de l'inscription aux evenement du service, url : " + this._eventSubURL + " pour le service " + this._ID, LogType.ERROR);
+      //Le service est probablement éteint, on coupe le service ou pas ?
+      //this.prepareForRemove();
+      return;
+    }
+    
+    request(
 		{
 			//host: this._device.Location.hostname,
 			//port: this._device.Location.port,
-			uri: this._device.BaseAddress + this._eventSubURL,
+			uri: this._eventSubURL,
 			method: 'SUBSCRIBE',
 			headers:
 			{
-				'CALLBACK': "<" + server + ">",
+				'CALLBACK': "<" + this._eventServer + ">",
 				'NT': 'upnp:event',
 				'TIMEOUT': 'Second-' + this._subscriptionTimeout
 			}
 		}, (error, response, body) =>
 		{
-			if (error || response.statusCode != 200)
+      if (error || response.statusCode != 200)
 			{
-				Logger.log("Erreur d'inscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " pour le service " + this._ID + ", err : " + error, LogType.ERROR);
-				setTimeout((service) =>
+				Logger.log("Erreur d'inscription au evenement, url : " + this._eventSubURL + " pour le service " + this._ID + 
+          ", reste " + (5-tryCount) + " tentative(s)" + 
+          ", response : " + JSON.stringify(response) + ", err : " + error, LogType.WARNING);
+				//Gestion du code d'erreur pour detecté les services deconnecté??
+        this._resubscribe = setTimeout((service,tries) =>
 				{
-					service.subscribe(server);
-				}, 15 * 1000, this);
+					service.subscribe(tries);
+				}, 15 * 1000, this, ++tryCount);
 				return;
 			}
 			else
 			{
-				//Logger.log("Inscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " OK");
+				Logger.log("Inscription au evenement, url : " + this._eventSubURL + ", response : " + JSON.stringify(response), LogType.DEBUG);
 				this._eventSubscribe = true;
 				this._subscribeSID = response.headers.sid;
-				var timeout = response.headers.timeout.match(/\d+/);
-				//this._subscriptionTimeout = response.headers.timeout.match(/\d+/);
-				Logger.log("Inscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " pour " + timeout + " secondes, SID : " + this._subscribeSID);
-				this._resubscribe = setTimeout((service) =>
-					{
-						service.resubscribe();
-					}, (timeout - 2) * 1000, this);
+        var timeout = this._subscriptionTimeout;
+        if (!response.headers.timeout) Logger.log("Erreur de lecture du timeout lors de l'inscription au evenement, url : " + this._eventSubURL + ", response : " + JSON.stringify(response), LogType.ERROR);
+				else timeout = response.headers.timeout.match(/\d+/);
+				Logger.log("Inscription au evenement, url : " + this._eventSubURL + " pour " + timeout + " secondes, SID : " + this._subscribeSID);
+				this._resubscribe = setTimeout((service) =>	{
+					service.resubscribe();
+				}, (timeout * 0.75) * 1000, this);
 			}
 		}
 		);
@@ -312,7 +330,7 @@ class UpnpBaseService
 	{
 		request(
 		{
-			uri: this._device.BaseAddress + this._eventSubURL,
+			uri: this._eventSubURL,
 			method: 'SUBSCRIBE',
 			headers:
 			{
@@ -323,24 +341,25 @@ class UpnpBaseService
 		{
 			if (error || response.statusCode != 200)
 			{
-				Logger.log("Erreur de re-inscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " err : " + error, LogType.ERROR);
+				Logger.log("Erreur de re-inscription au evenement, url : " + this._eventSubURL + " err : " + error, LogType.WARNING);
 				this._eventSubscribe = false;
 				delete this._subscribeSID;
 				delete this._resubscribe;
-				setTimeout((service) =>
+				this._resubscribe = setTimeout((service) =>
 				{
-					service.subscribe(this._eventServer);
-				}, 5 * 1000, this);
+					service.subscribe(1);
+				}, 15 * 1000, this);
 				return;
 			}
 			else
 			{
-				this._subscriptionTimeout = response.headers.timeout.match(/\d+/);
-				Logger.log("Re-inscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " pour " + this._subscriptionTimeout + ", header : " + JSON.stringify(response.headers));
+				if (!response.headers.timeout) Logger.log("Erreur de lecture du timeout lors de la ré-inscription au evenement, url : " + this._eventSubURL + ", response : " + JSON.stringify(response), LogType.ERROR);
+				else this._subscriptionTimeout = response.headers.timeout.match(/\d+/);
+				Logger.log("Re-inscription au evenement, url : " + this._eventSubURL + " pour " + this._subscriptionTimeout + ", header : " + JSON.stringify(response.headers));
 				this._resubscribe = setTimeout((service) =>
 					{
 						service.resubscribe();
-					}, (this._subscriptionTimeout - 2) * 1000, this);
+					}, (this._subscriptionTimeout * 0.75) * 1000, this);
 			}
 		}
 		);
@@ -363,52 +382,39 @@ class UpnpBaseService
 
 		request(
 		{
-			uri: this._device.BaseAddress + this._eventSubURL,
+			uri: this._eventSubURL,
 			method: 'UNSUBSCRIBE',
 			headers:
 			{
 				'SID': this._subscribeSID
 			}
-		}, (error, response, body) =>
-		{
+		}, (error, response, body) => {
 			if (error || response.statusCode != 200)
 			{
-				Logger.log("Erreur de desinscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " err : " + error, LogType.ERROR);
-				this._eventSubscribe = false;
-				delete this._subscribeSID;
-				delete this._resubscribe;
+				Logger.log("Erreur de desinscription au evenement, url : " + this._eventSubURL + " err : " + error, LogType.WARNING);
+        if (response && response.statusCode) Logger.log("Réponse http de la desinscription : " + JSON.stringify(response), LogType.WARNING);
 			}
-			Logger.log("Desinscription au evenement, url : " + this._device.BaseAddress + this._eventSubURL + " OK");
-		}
-		);
-		delete this._subscribeSID;
-		this._eventSubscribe = false;
+      else Logger.log("Desinscription au evenement, url : " + this._eventSubURL + " OK");
+      this._eventSubscribe = false;
+			delete this._subscribeSID;
+		});
 	}
 
 	get HasEvent()
 	{
-		this._variables.forEach((item) =>
-		{
-			if (item.HasEvent)
-				return true;
-		}
-		);
+		for (var i = 0 ; i < this._variables.length ; i++)
+    {
+      if (this._variables[i].SendEvent) return true;
+    }
+    return false;
 	}
 
 	ToString()
 	{
 		var varString = "";
-		this._variables.forEach((item) =>
-		{
-			varString += item.ToString() + "\n";
-		}
-		);
+		this._variables.forEach((item) =>	{	varString += item.ToString() + "\n"; });
 		var actString = "";
-		this._actions.forEach((item) =>
-		{
-			actString += item.ToString() + "\n";
-		}
-		);
+		this._actions.forEach((item) =>	{	actString += item.ToString() + "\n"; });
 		return "Service Name : " + this._name + " => \n" + varString + "\n" + actString;
 	}
 
@@ -432,7 +438,7 @@ class UpnpAVTransportService extends UpnpBaseService
 	//Fonction call for specific fonction after all initialisation
 	_specializedInitialisation()
 	{
-		Logger.log("Specialisation for service AVTransport", LogType.DEBUG);
+		Logger.log("Specialisation for service AVTransport", LogType.Info);
 		var relativeTime = this.getVariableByName("RelativeTimePosition");
 		//Implémentation pour OpenHome
 		if (!relativeTime)
@@ -553,32 +559,22 @@ class UpnpAVTransportService extends UpnpBaseService
 
 		if (actionName == 'SetAVTransportURI')
 		{
-			this.getActionByName('Stop').execute(options, (err, stopMessage) =>
-			{
-				//if (err) callback(err, stopMessage);
-				//else
-				//{
-				this.getActionByName('SetAVTransportURI').execute(options, (err, SetAVTransportURIMessage) =>
-				{
+			this.getActionByName('Stop').execute(options, (err, stopMessage) => {
+				this.getActionByName('SetAVTransportURI').execute(options, (err, SetAVTransportURIMessage) => {
 					if (err)
 						callback(err, SetAVTransportURIMessage);
 					else
 					{
 						options.Speed = 1;
-						this.getActionByName('Play').execute(options, (err, PlayMessage) =>
-						{
+						this.getActionByName('Play').execute(options, (err, PlayMessage) =>	{
 							if (err)
 								callback(err, PlayMessage);
 							else
 								this.getActionByName('GetPositionInfo').execute(options, callback);
-						}
-						);
+						});
 					}
-				}
-				);
-				//}
-			}
-			);
+				});
+			});
 			return;
 		}
 
@@ -610,14 +606,12 @@ class UpnpAVTransportService extends UpnpBaseService
 				{
 					options.CurrentURI = CurrentTrackURI.Value;
 					options.CurrentURIMetaData = XmlEntities.encode(CurrentTrackMetaData.Value);
-					this.getActionByName('SetAVTransportURI').execute(options, (err, SetAVTransportURIMessage) =>
-					{
+					this.getActionByName('SetAVTransportURI').execute(options, (err, SetAVTransportURIMessage) =>	{
 						if (err)
 							callback(err, SetAVTransportURIMessage);
 						else
 							this.getActionByName('Play').execute(options, callback);
-					}
-					);
+					});
 				}
 				else
 					callback("You must select a media before start playing. No media actually available.", null);
@@ -676,7 +670,7 @@ class OpenHomeAVTransportService extends UpnpAVTransportService
   
   _specializedInitialisation()
 	{
-    Logger.log("Specialisation for OpenHome AVTransport", LogType.DEBUG);
+    Logger.log("Specialisation for OpenHome AVTransport", LogType.Info);
     super._specializedInitialisation();
   }
   
@@ -751,6 +745,136 @@ class OpenHomeAVTransportService extends UpnpAVTransportService
 	}
 }
 
+class WemoInsightBasicevent extends UpnpBaseService
+{
+  constructor(device, serviceData, eventServer)
+	{
+		super(device, serviceData, eventServer);
+	}
+  
+  _specializedInitialisation()
+	{
+    Logger.log("Specialisation for WemoInsight Basicevent", LogType.INFO);
+    //Création des infos spécifiques au Insigth decodable dans le BinaryState
+    //Process serviceTemplate to Add standard commande if not exist
+		var xmlTemplate = fs.readFileSync(__dirname+'/../../resources/ServicesTemplate.xml', 'utf8');
+		xml2js.parseString(xmlTemplate, (err, templatesData) => {
+      templatesData.servicesTemplate.serviceTemplate.forEach((serviceTemplate) => {
+        if ((serviceTemplate['$']['serviceType'] == this._type || !serviceTemplate['$']['serviceType']) && 
+          (serviceTemplate['$']['deviceType'] == this.Device.Type || !serviceTemplate['$']['deviceType']))
+        {
+          Logger.log("Processing scpd template", LogType.DEBUG);
+          this.processSCPD(serviceTemplate.scpd[0],false);
+          
+          //On s'abonne au evenement de la variable BinaryState pour en faire le decodage
+          var binaryState = this.getVariableByName('BinaryState');
+          if (!binaryState)
+          {
+            Logger.log("Unable to find BinaryState variable of the Wemo Insight " + this.Device.BaseAddress, LogType.ERROR);
+            return;
+          }
+          binaryState.on('updated', (varObj, newVal) =>	{
+						//On split la variable pour definir les valeurs des sous variable
+            var subVariables = newVal.split('|');      
+        
+            if (subVariables[0]) this.updateSubVariable('State',Number(subVariables[0]));
+            if (subVariables[0] == '0') this.updateSubVariable('HumanState','Off');
+            if (subVariables[0] == '1') this.updateSubVariable('HumanState','On');
+            if (subVariables[0] == '2') this.updateSubVariable('HumanState','OnWithoutLoad');
+            if (subVariables[1]) this.updateSubVariable('LastModify',Number(subVariables[1]));
+            if (subVariables[2]) this.updateSubVariable('OnFor',Number(subVariables[2]));
+            if (subVariables[3]) this.updateSubVariable('OnToday',Number(subVariables[3]));
+            if (subVariables[4]) this.updateSubVariable('OnTotal',Number(subVariables[4]));
+            if (subVariables[5]) this.updateSubVariable('TimePeriod',Number(subVariables[5]));
+            if (subVariables[6]) this.updateSubVariable('WifiStrength',Number(subVariables[6]));
+            if (subVariables[7]) this.updateSubVariable('Power',Number(subVariables[7])*0.001); //conversion mW en W
+            if (subVariables[8]) this.updateSubVariable('TodayComsuption',Number(subVariables[8])*0.001*(1/60)); //conversion mW*minutes en KWh
+            if (subVariables[9]) this.updateSubVariable('TotalComsuption',Number(subVariables[9])*0.001*(1/60)); //conversion mW*minutes en KWh
+            if (subVariables[10]) this.updateSubVariable('PowerThreshold',Number(subVariables[10])*0.001); //conversion mW en W??? 
+					});
+        }
+      });
+		});  
+  }
+  
+  updateSubVariable(name, value)
+  {
+    var variable = this.getVariableByName(name);
+    if (!variable)
+    {
+      Logger.log("Unable to find BinaryState variable of the Wemo Insight " + this.Device.BaseAddress, LogType.ERROR);
+      return;
+    }
+    variable.Value = value;
+  }
+}
+
+class WemoMakerDeviceevent extends UpnpBaseService
+{
+  constructor(device, serviceData, eventServer)
+	{
+		super(device, serviceData, eventServer);
+	}
+  
+  //On ne traite pas le xml du device mais un template car celui du device n'est pas correct
+  _processDeviceSCPD(callback)
+  {
+		Logger.log("Specialisation for WemoMaker Deviceevent", LogType.INFO);
+    //Création des infos spécifiques au Maker decodable dans le attributeList
+		var xmlTemplate = fs.readFileSync(__dirname+'/../../resources/ServicesTemplate.xml', 'utf8');
+		xml2js.parseString(xmlTemplate, (err, templatesData) => {
+      templatesData.servicesTemplate.serviceTemplate.forEach((serviceTemplate) => {
+        if ((serviceTemplate['$']['serviceType'] == this._type || !serviceTemplate['$']['serviceType']) && 
+          (serviceTemplate['$']['deviceType'] == this.Device.Type || !serviceTemplate['$']['deviceType']))
+        {
+          Logger.log("Processing scpd template", LogType.DEBUG);
+          this.processSCPD(serviceTemplate.scpd[0],false);
+          
+          //On s'abonne au evenement de la variable attributeList pour en faire le decodage
+          var attributeList = this.getVariableByName('attributeList');
+          if (!attributeList)
+          {
+            Logger.log("Unable to find attributeList variable of the Wemo Maker " + this.Device.BaseAddress, LogType.ERROR);
+            return;
+          }
+          attributeList.on('updated', (varObj, newVal) =>	{
+            xml2js.parseString("<AttributeList>"+XmlEntities.decode(newVal)+"</AttributeList>", (err, parsed) => {
+              if (err)
+              {
+                Logger.log("Unable to parse xml (bad format? : " + err, LogType.DEBUG);
+              }
+              else
+              {
+                parsed.AttributeList.attribute.forEach((attr) => {
+                  var variable = this.getVariableByName(attr.name[0]);
+                  if (variable)
+                  {
+                    variable.Value = attr.value[0];
+                    if (attr.name[0] == 'SwitchMode')
+                    {
+                      var humanVariable = this.getVariableByName('Human'+attr.name[0]);
+                      if (attr.value[0] == '0') humanVariable.Value = 'OnOff';
+                      else humanVariable.Value = 'Momentary';
+                    }
+                  }
+                  else
+                  {
+                    Logger.log("Unable to find " + attr.name[0] + " variable of the Wemo Maker " + this.Device.BaseAddress, LogType.ERROR);
+                  }
+                  
+                });
+              }
+            });
+					});
+        }
+      });
+      if (this._eventSubURL != '/') this.subscribe();	
+		});  
+  }
+}
+
 exports.BaseService = UpnpBaseService;
 exports.AVTransportService = UpnpAVTransportService;
 exports.OpenHomeAVTransportService = OpenHomeAVTransportService;
+exports.WemoInsightBasicevent = WemoInsightBasicevent;
+exports.WemoMakerDeviceevent = WemoMakerDeviceevent;

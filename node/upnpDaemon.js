@@ -4,6 +4,9 @@ var LogType = require('./logger/logger.js').logType;
 var Logger = require('./logger/logger.js').getInstance();
 var request = require('request');
 var net = require('net');
+var xml2js = require('xml2js');
+var XmlEntities = require('html-entities').XmlEntities;
+var fs = require('fs');
 
 Logger.setLogLevel(LogType.DEBUG);
 
@@ -11,11 +14,13 @@ Logger.setLogLevel(LogType.DEBUG);
 var urlJeedom = '';
 var logLevel = 'error';
 var serverPort = 5001;
+var includeState = false;
+var allowedList = {};
+var disallowedList = [];
 var actionTimeout = 5;
 
 // print process.argv
-process.argv.forEach(function (val, index, array)
-{
+process.argv.forEach(function (val, index, array){
 	switch (index)
 	{
 	case 2:
@@ -24,7 +29,18 @@ process.argv.forEach(function (val, index, array)
 	case 3:
 		serverPort = val;
 		break;
-	case 4:
+  case 4:
+		actionTimeout = val;
+		break;
+  case 5:
+		includeState = val==1?true:false;
+		break;
+  case 6:
+    allowedList = JSON.parse(fs.readFileSync(val, 'utf8'));
+		break;
+  case 7:
+    disallowedList = JSON.parse(fs.readFileSync(val, 'utf8'));
+	case 8:
 		logLevel = val;
 		if (logLevel == 'debug')
 			Logger.setLogLevel(LogType.DEBUG);
@@ -35,19 +51,18 @@ process.argv.forEach(function (val, index, array)
 		else
 			Logger.setLogLevel(LogType.ERROR);
 		break;
-
-	case 5:
-		actionTimeout = val;
-		break;
 	}
-}
-);
+});
 
-Logger.log("Démon version 1.0.1", LogType.INFO);
+Logger.log("Démon version 2.0.0", LogType.INFO);
 Logger.log("urlJeedom = " + urlJeedom, LogType.DEBUG);
 Logger.log("serverPort = " + serverPort, LogType.DEBUG);
 Logger.log("logLevel = " + logLevel, LogType.INFO);
 Logger.log("timeout = " + actionTimeout, LogType.INFO);
+Logger.log("includeState = " + includeState, LogType.INFO);
+Logger.log("allowedList = " + JSON.stringify(allowedList), LogType.INFO);
+Logger.log("disallowedList = " + JSON.stringify(disallowedList), LogType.INFO);
+
 
 var busy = false;
 var jeedomSendQueue = [];
@@ -66,6 +81,7 @@ var processJeedomSendQueue = function ()
 	request(
 	{
 		uri: nextMessage.url,
+    strictSSL: false,
 		qs:
 		{
 			type: nextMessage.type
@@ -83,7 +99,7 @@ var processJeedomSendQueue = function ()
 				jeedomSendQueue.unshift(nextMessage);
 			}
 			else
-				Logger.log("Unable to send to jeedom: " + JSON.stringify(nextMessage) + ", errror : " + JSON.stringify(err), LogType.ERROR);
+				Logger.log("Unable to send to jeedom: " + JSON.stringify(nextMessage) + ", error : " + JSON.stringify(err), LogType.ERROR);
 		}
 		//else Logger.log("Response from Jeedom: " + response.statusCode, LogType.DEBUG);
 		processJeedomSendQueue();
@@ -171,22 +187,13 @@ server.listen(
 {
 	Logger.log("Création du serveur sur le port " + serverPort, LogType.INFO);
 	Logger.log("Création du controlPoint");
-	cp = new controlPointAPI.ControlPoint(1900);
-	cp.search();
-	//cp.search('upnp:rootdevice');
-	cp.on('upnpError', function (err)
-	{
-		sendToJeedom(
-		{
-			eventType: 'error',
-			description: err
-		}
-		);
-	}
-	);
+	cp = new controlPointAPI.ControlPoint(1900, allowedList, disallowedList);
+	
+	cp.on('upnpError', function (err)	{
+		sendToJeedom({eventType: 'error',description: err	});
+	});
 
-	cp.on('actionDiscovered', function (action)
-	{
+	cp.on('actionDiscovered', function (action)	{
 		var data =
 		{
 			eventType: 'createAction',
@@ -196,31 +203,27 @@ server.listen(
 			fromDevice: action.IsFromDevice,
 			arguments: []
 		};
-		action.Arguments.forEach((item) =>
-		{
+		action.Arguments.forEach((item) =>{
 			if (item.Direction == 'in')
 			{
 				var argument =
 				{
 					name: item.Name,
-					type: item.RelatedStateVariable.Type
+					type: (item.RelatedStateVariable && item.RelatedStateVariable.Type) ? item.RelatedStateVariable.Type : 'Unknow'
 				};
 
-				if (item.RelatedStateVariable.AllowedValue)
+				if (item.RelatedStateVariable && item.RelatedStateVariable.AllowedValue)
 				{
 					argument.allowedValue = item.RelatedStateVariable.AllowedValue;
 				}
 
 				data.arguments.push(argument);
 			}
-		}
-		);
+		});
 		sendToJeedom(data);
-	}
-	);
+	});
 
-	cp.on('variableDiscovered', function (variable)
-	{
+	cp.on('variableDiscovered', function (variable){
 		var data =
 		{
 			eventType: 'createInfo',
@@ -232,11 +235,9 @@ server.listen(
 		};
 
 		sendToJeedom(data);
-	}
-	);
+	});
 
-	cp.on('variableUpdated', function (variable, newVal)
-	{
+	cp.on('variableUpdated', function (variable, newVal){
 		var data =
 		{
 			eventType: 'updateInfo',
@@ -249,15 +250,14 @@ server.listen(
 		};
 
 		sendToJeedom(data);
-	}
-	);
+	});
 
-	cp.on('serviceUpdated', function (service)
-	{
+	cp.on('serviceUpdated', function (service){
 		var data =
 		{
 			eventType: 'updateService',
 			deviceUDN: service.Device.UDN,
+      deviceType: service.Device.Type,
 			serviceId: service.ID,
 			friendlyName: service.Device.Name,
 			location: service.Device.BaseAddress,
@@ -269,11 +269,9 @@ server.listen(
 		};
 
 		sendToJeedom(data);
-	}
-	);
+	});
 
-	cp.on('serviceOffline', function (service)
-	{
+	cp.on('serviceOffline', function (service) {
 		var data =
 		{
 			eventType: 'updateService',
@@ -281,12 +279,17 @@ server.listen(
 			serviceId: service.ID,
 			isOnline: false
 		};
-
 		sendToJeedom(data);
-	}
-	);
-}
-);
+	});
+  
+  //Gestion de l'inclusion
+  cp.setIncludeState(includeState);
+  
+  //Search for all UPnP device
+  cp.search();
+  //For Wemo we need to perform a specific search because it doesn't respond to ssdp::all
+	cp.search('upnp:rootdevice');
+});
 
 var processJeedomMessage = function (payload, callback)
 {
@@ -371,6 +374,36 @@ var processJeedomMessage = function (payload, callback)
 		if (callback)
 			callback();
 	}
+  else if (data.command == 'controlPointAction')
+  {
+    if (data.subCommand == 'changeIncludeState') 
+    {
+      Logger.log("Changement d'état de l'inclusion "  + data.value, LogType.INFO);
+      cp.setIncludeState(data.value?true:false);
+    }
+    else if (data.subCommand == 'scan') 
+    {
+      Logger.log("Lancement d'un scan", LogType.INFO);
+      cp.search();
+      cp.search('upnp:rootdevice');
+    }
+    else if (data.subCommand == 'removeService') 
+    {
+      Logger.log("Suppression du service "  + data.UDN +"::"+ data.serviceId, LogType.INFO);
+      cp.removeAllowedService(data.UDN, data.serviceId);
+    }
+    else
+    {
+      var message =
+      {
+        eventType: 'error',
+        description: "Commande de controlPoint inconnu " + JSON.stringify(data)
+      };
+      sendToJeedom(message);
+    }
+    if (callback)
+			callback();
+  }
 	else
 	{
 		var message =
@@ -401,10 +434,8 @@ processJeedomMessage(JSON.stringify(data));
 }, 10000);
  */
 
-process.on('uncaughtException', function (err)
-{
+process.on('uncaughtException', function (err) {
 	console.error('An uncaughtException was found, the program will end : ' + err);
 	Logger.log('An uncaughtException was found, the program will end : ' + err, LogType.ERROR);
 	throw err;
-}
-);
+});

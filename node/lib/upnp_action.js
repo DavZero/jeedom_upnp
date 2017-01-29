@@ -20,13 +20,13 @@ class UpnpAction
 	{
 		this._name = actionData.name[0];
 		this._arguments = [];
-		if (actionData.argumentList)
+		if (actionData.argumentList && actionData.argumentList[0].argument)
 		{
-			actionData.argumentList[0].argument.forEach((item) =>
-			{
-				this._arguments.push(new UpnpActionArgument(item, this._service));
-			}
-			);
+			actionData.argumentList[0].argument.forEach((item) => {
+        if (!item.name) Logger.log("Unable to create argument without name for action : " + JSON.stringify(actionData), LogType.WARNING);
+				else if (!item.direction) Logger.log("Unable to create argument without direction for action : " + JSON.stringify(actionData), LogType.WARNING);
+        else this._arguments.push(new UpnpActionArgument(item, this._service));
+			});
 		}
 	}
 
@@ -64,7 +64,12 @@ class UpnpAction
 					}
 					else
 					{
-						returnData = data['s:Envelope']['s:Body'][0];
+						if (!data || !data['s:Envelope'] || !data['s:Envelope']['s:Body'])
+            {
+              Logger.log("Unable to process action " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " response : " + JSON.stringify(data), LogType.ERROR);
+              return;
+            }
+            returnData = data['s:Envelope']['s:Body'][0];
 						if (returnData['s:Fault'])
 							//returnData = data['Envelope']['Body'][0];
 							//if (returnData['Fault'])
@@ -86,18 +91,16 @@ class UpnpAction
 							continue;
 						Logger.log("Processing update action's output argument " + JSON.stringify(prop) + " with val " + JSON.stringify(outputsVariable[prop][0]), LogType.DEBUG);
 						var arg = this.getArgumentByName(prop);
-						if (arg)
+						if (arg && arg.RelatedStateVariable)
 						{
 							arg.RelatedStateVariable.Value = outputsVariable[prop][0];
 						}
 						else
 							Logger.log("Unable to process output argument " + prop + " of action " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options), LogType.WARNING);
 					}
-				}
-				);
+				});
 			}
-		}
-		);
+		});
 	}
 
 	get Service()
@@ -161,6 +164,7 @@ class UpnpActionArgument
 		this._name = variable.name[0];
 		this._direction = variable.direction[0];
 		this._relatedStateVariable = service.getVariableByName(variable.relatedStateVariable[0]);
+    if (!this._relatedStateVariable) Logger.log("Unable to map argument : " + variable.name[0] + " with corresponding variable of service " + service.ID, LogType.WARNING);
 	}
 
 	get Name()

@@ -4,6 +4,34 @@ if (!isConnect('admin')) {
 }
 sendVarToJS('eqType', 'upnp');
 $eqLogics = eqLogic::byType('upnp');
+
+/**
+ * Vérifie l'existance d'une URL
+ * @paramstring$url
+ * @returnboolean
+ */
+/*function url_exists($url){
+  if(!is_string($url) || strlen($url)==0)return false;
+  try {
+    //$essais = get_headers($url, 1);
+    //if(preg_match("#[^a-z0-9]2[0-9]{2}([^a-z0-9].*)$#i",$essais[0]))return true;
+  }catch(Exception $e){}
+  
+  return false;
+}*/
+function url_exists($url){
+  $curl = curl_init();
+  curl_setopt($curl, CURLOPT_URL, $url);
+  curl_setopt($curl, CURLOPT_HEADER, true);
+  curl_setopt($curl, CURLOPT_TIMEOUT_MS, 20);
+  //curl_setopt($curl, CURLOPT_TIMEOUT, 1);
+  curl_setopt($curl, CURLOPT_NOBODY, true);
+  curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+  $data = curl_exec($curl);
+  curl_close($curl);
+  preg_match("/HTTP\/1\.[1|0]\s(\d{3})/",$data,$matches);
+  return ($matches[1] == 200);
+}
 ?>
 
 <div class="row row-overflow">
@@ -22,6 +50,44 @@ $eqLogics = eqLogic::byType('upnp');
   </div>
 
   <div class="col-lg-10 col-md-9 col-sm-8 eqLogicThumbnailDisplay" style="border-left: solid 1px #EEE; padding-left: 25px;">
+    <legend><i class="fa fa-cog"></i>  {{Gestion}}</legend>
+    <div class="eqLogicThumbnailContainer">
+      <div class="cursor eqLogicAction" data-action="gotoPluginConf" style="background-color : #ffffff; height : 140px;margin-bottom : 10px;padding : 5px;border-radius: 2px;width : 160px;margin-left : 10px;">
+        <center>
+          <i class="fa fa-wrench" style="font-size : 5em;color:#767676;"></i>
+        </center>
+        <span style="font-size : 1.1em;position:relative; top : 23px;word-break: break-all;white-space: pre-wrap;word-wrap: break-word;color:#767676"><center>{{Configuration}}</center></span>
+      </div>
+      <!--<div class="cursor" id="bt_healthUpnp" style="background-color : #ffffff; height : 120px;margin-bottom : 10px;padding : 5px;border-radius: 2px;width : 160px;margin-left : 10px; display:none;" >
+        <center>
+          <i class="fa fa-medkit" style="font-size : 5em;color:#767676;"></i>
+        </center>
+        <span style="font-size : 1.1em;position:relative; top : 15px;word-break: break-all;white-space: pre-wrap;word-wrap: break-word;color:#767676"><center>{{Santé}}</center></span>
+      </div>-->
+      <?php
+      if (config::byKey('eqLogicIncludeState', 'upnp', 0) == 1) {
+        echo '<div class="cursor changeIncludeState expertModeVisible card" data-mode="1" data-state="0" style="background-color : #8000FF; height : 140px;margin-bottom : 10px;padding : 5px;border-radius: 2px;width : 160px;margin-left : 10px;" >';
+        echo '<center>';
+        echo '<i class="fa fa-sign-in fa-rotate-90" style="font-size : 5em;color:#94ca02;"></i>';
+        echo '</center>';
+        echo '<span style="font-size : 1.1em;position:relative; top : 15px;word-break: break-all;white-space: pre-wrap;word-wrap: break-word;color:#94ca02"><center>{{Arrêter inclusion}}</center></span>';
+        echo '</div>';
+      } else {
+        echo '<div class="cursor changeIncludeState expertModeVisible card" data-mode="1" data-state="1" style="background-color : #ffffff; height : 140px;margin-bottom : 10px;padding : 5px;border-radius: 2px;width : 160px;margin-left : 10px;" >';
+        echo '<center>';
+        echo '<i class="fa fa-sign-in fa-rotate-90" style="font-size : 5em;color:#94ca02;"></i>';
+        echo '</center>';
+        echo '<span style="font-size : 1.1em;position:relative; top : 15px;word-break: break-all;white-space: pre-wrap;word-wrap: break-word;color:#94ca02"><center>{{Mode inclusion}}</center></span>';
+        echo '</div>';
+      }
+      ?>
+      <div class="cursor expertModeVisible" id="bt_scanEqLogic" style="background-color : #ffffff; height : 140px;margin-bottom : 10px;padding : 5px;border-radius: 2px;width : 160px;margin-left : 10px;" >
+        <center>
+          <i class="fa fa-refresh" style="font-size : 5em;color:#767676;"></i>
+        </center>
+        <span style="font-size : 1.1em;position:relative; top : 23px;word-break: break-all;white-space: pre-wrap;word-wrap: break-word;color:#767676"><center>{{Rechercher}}</center></span>
+      </div>
+    </div>
     <legend><i class="fa fa-table"></i> {{Mes equipements}} <a class="btn btn-default btn-xs pull-right expertModeVisible" id="bt_removeAll"> {{Supprimer tous}}</a></legend>
     <div class="eqLogicThumbnailContainer">
       <?php
@@ -29,7 +95,7 @@ $eqLogics = eqLogic::byType('upnp');
         echo '<div class="eqLogicDisplayCard cursor" data-eqLogic_id="' . $eqLogic->getId() . '" style="background-color : #ffffff; height : 200px;margin-bottom : 10px;padding : 5px;border-radius: 2px;width : 160px;margin-left : 10px;" >';
         echo "<center>";
         $icon = $eqLogic->getConfiguration('icon');
-        if (!isset($icon) || $icon=='') echo '<img src="plugins/upnp/doc/images/upnp_icon.png" height="105" width="95" />';
+        if (!isset($icon) || $icon=='' || !url_exists($icon)) echo '<img src="plugins/upnp/doc/images/upnp_icon.png" height="105" width="95" />';
         else echo '<img src="'.$icon.'" height="100" width="100" />';
         echo "</center>";
         echo '<span style="font-size : 1.1em;position:relative; top : 15px;word-break: break-all;white-space: pre-wrap;word-wrap: break-word;"><center>' . $eqLogic->getHumanName(true, true) . '</center></span>';
@@ -42,6 +108,7 @@ $eqLogics = eqLogic::byType('upnp');
     <a class="btn btn-success eqLogicAction pull-right" data-action="save"><i class="fa fa-check-circle"></i> {{Sauvegarder}}</a>
     <a class="btn btn-danger eqLogicAction pull-right" data-action="remove"><i class="fa fa-minus-circle"></i> {{Supprimer}}</a>
     <a class="btn btn-default eqLogicAction pull-right" data-action="configure"><i class="fa fa-cogs"></i> {{Configuration avancée}}</a>
+    
 
     <ul class="nav nav-tabs" role="tablist">
       <li role="presentation"><a href="#" class="eqLogicAction" aria-controls="home" role="tab" data-toggle="tab" data-action="returnToThumbnailDisplay"><i class="fa fa-arrow-circle-left"></i></a></li>
@@ -104,15 +171,21 @@ $eqLogics = eqLogic::byType('upnp');
                   </div>
                 </div>
                 <div class="form-group">
+                  <label class="col-sm-3 control-label">{{Device Type}}</label>
+                  <div class="col-sm-8">
+                    <span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="deviceType" title="{{Device Type}}" style="font-size : 1em;cursor : default;"></span>
+                  </div>
+                </div>
+                <div class="form-group">
                   <label class="col-sm-3 control-label">{{UDN}}</label>
                   <div class="col-sm-8">
                     <span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="UDN" title="{{UDN}}" style="font-size : 1em;cursor : default;"></span>
                   </div>
                 </div>
-                <div class="form-group">
-                  <label class="col-sm-3 control-label">{{Service ID}}</label>
+                <div class="form-group expertModeVisible">
+                  <label class="col-sm-3 control-label">{{Device Description}}</label>
                   <div class="col-sm-8">
-                    <span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="serviceId" title="{{Service ID}}" style="font-size : 1em;cursor : default;"></span>
+                    <span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="description" title="{{Description}}" style="font-size : 1em;cursor : default;"></span>
                   </div>
                 </div>
                 <div class="form-group">
@@ -127,10 +200,10 @@ $eqLogics = eqLogic::byType('upnp');
                     <span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="location" title="{{Location}}" style="font-size : 1em;cursor : default;"></span>
                   </div>
                 </div>
-                <div class="form-group expertModeVisible">
-                  <label class="col-sm-3 control-label">{{Device Description}}</label>
+                <div class="form-group">
+                  <label class="col-sm-3 control-label">{{Service ID}}</label>
                   <div class="col-sm-8">
-                    <span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="description" title="{{Description}}" style="font-size : 1em;cursor : default;"></span>
+                    <span class="eqLogicAttr label label-default" data-l1key="configuration" data-l2key="serviceId" title="{{Service ID}}" style="font-size : 1em;cursor : default;"></span>
                   </div>
                 </div>
                 <div class="form-group expertModeVisible">
@@ -154,6 +227,7 @@ $eqLogics = eqLogic::byType('upnp');
       </div>
       <div role="tabpanel" class="tab-pane" id="commandtab">
         <br/>
+        <a class="btn btn-success btn-sm cmdAction pull-right" data-action="addUserCmd"><i class="fa fa-plus-circle"></i> Ajouter une commande</a><br/><br/>
         <table id="table_cmd" class="table table-bordered table-condensed">
           <thead>
             <tr>

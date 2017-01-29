@@ -1,3 +1,3 @@
-==== Présentation
+==== Introduction
 
-Ce plugin permet la gestion des periphériques Upnp
+This plugin is used to manage Upnp devices.

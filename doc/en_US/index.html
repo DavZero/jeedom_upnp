@@ -417,17 +417,19 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel1">
 <li><a href="#_description">1. Description</a>
 <ul class="sectlevel3">
-<li><a href="#_présentation">1.1. Présentation</a></li>
+<li><a href="#_introduction">1.1. Introduction</a></li>
 </ul>
 </li>
-<li><a href="#_configuration">2. Configuration</a>
+<li><a href="#_settings">2. Settings</a>
 <ul class="sectlevel3">
-<li><a href="#_configuration_du_plugin">2.1. Configuration du plugin</a></li>
+<li><a href="#_the_plugin_configuration">2.1. The plugin configuration</a></li>
 </ul>
 </li>
 <li><a href="#_paramétrage">3. Paramétrage</a>
 <ul class="sectlevel3">
-<li><a href="#_paramétrage_2">3.1. Paramétrage</a></li>
+<li><a href="#_recherche_d_équipement">3.1. Recherche d&#8217;équipement</a></li>
+<li><a href="#_equipment_setting">3.2. Equipment Setting</a></li>
+<li><a href="#_paramétrage_commandes">3.3. Paramétrage Commandes</a></li>
 </ul>
 </li>
 <li><a href="#_faq">4. FAQ</a></li>
@@ -445,21 +447,21 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_description">1. Description</h2>
 <div class="sectionbody">
 <div class="sect3">
-<h4 id="_présentation">1.1. Présentation</h4>
+<h4 id="_introduction">1.1. Introduction</h4>
 <div class="paragraph">
-<p>Ce plugin permet la gestion des periphériques Upnp</p>
+<p>This plugin is used to manage Upnp devices.</p>
 </div>
 <hr>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_configuration">2. Configuration</h2>
+<h2 id="_settings">2. Settings</h2>
 <div class="sectionbody">
 <div class="sect3">
-<h4 id="_configuration_du_plugin">2.1. Configuration du plugin</h4>
+<h4 id="_the_plugin_configuration">2.1. The plugin configuration</h4>
 <div class="paragraph">
-<p>Une fois le plugin activé, les dépendances doivent s’installer automatiquement.
+<p>Once the plugin is activated, dependencies must settle automatically.
 Si ce n’est pas le cas ou si elle ne sont pas OK, cliquer sur relancer.</p>
 </div>
 <div class="openblock">
@@ -470,7 +472,7 @@ Si ce n’est pas le cas ou si elle ne sont pas OK, cliquer sur relancer.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Enfin il est possible (en mode expert uniquement) de paramètré le timeout des commandes (par defaut le timeout est de 10 secondes)</p>
+<p>Enfin il est possible (en mode expert uniquement) de paramètrer le timeout des commandes (par défaut le timeout est de 10 secondes)</p>
 </div>
 <hr>
 </div>
@@ -480,9 +482,35 @@ Si ce n’est pas le cas ou si elle ne sont pas OK, cliquer sur relancer.</p>
 <h2 id="_paramétrage">3. Paramétrage</h2>
 <div class="sectionbody">
 <div class="sect3">
-<h4 id="_paramétrage_2">3.1. Paramétrage</h4>
+<h4 id="_recherche_d_équipement">3.1. Recherche d&#8217;équipement</h4>
 <div class="paragraph">
-<p>Pour les services disposant d&#8217;un widget spécifiques :</p>
+<p>Lors du démarrage du plugin, un scan des equipements upnp présent sur votre reseau est effectué.</p>
+</div>
+<div class="paragraph">
+<p>Si le plugin est en mode inclusion (voir page de configuration des équipements) alors des équipements vont se créer, sinon seul les équipements déjà présent dans votre Jeedom seront opérationnel.
+Si vous souhaiter ajouter des equipements, il faut que le plugin soit en mode inclusion (voir page de configuration des équipements) et lancer une recherche (voir page de configuration des équipements).
+Bien sur seul les équipements allumer et présent sur votre reseau local pourront être detecté.</p>
+</div>
+<div class="paragraph">
+<p>Une fois que les equipements requis ont été detecté, vous pouvez quitter le mode inclusion et supprimer ceux que vous considerer comme inutile.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Si vous supprimer des equipements mais que vous rester en mode inclusion, ceux ci risque de se recréer même sans faire de recherche.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_equipment_setting">3.2. Equipment Setting</h4>
+<div class="paragraph">
+<p>Having a widget-specific services:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -495,8 +523,9 @@ Si ce n’est pas le cas ou si elle ne sont pas OK, cliquer sur relancer.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>il est possible de choisir entre l&#8217;affichage "standard" des commandes et l&#8217;affichage spécifique aux service.
-En complément de l&#8217;affichage spécifique, il est possible d&#8217;afficher les commandes du service "non géré" par l&#8217;affichage spécifique et de forcer l&#8217;affichage des commandes en "standard" en plus de l&#8217;affichage spécifique</p>
+<p>Il est possible de choisir entre l&#8217;affichage "standard" des commandes et l&#8217;affichage spécifique aux services.
+En complément de l&#8217;affichage spécifique, il est possible d&#8217;afficher les commandes du service "non géré" par l&#8217;affichage spécifique et de forcer
+l&#8217;affichage des commandes en "standard" en plus de l&#8217;affichage spécifique</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -505,7 +534,63 @@ En complément de l&#8217;affichage spécifique, il est possible d&#8217;affiche
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-Que se soit pour les services disposant d&#8217;un widget spécifique ou pour les autres services, l&#8217;affichage en mode "standard" prend en compte les paramètrage des commandes (affichage On/Off).
+Que se soit pour les services disposant d&#8217;un widget spécifique ou pour les autres services, l&#8217;affichage en mode "standard" prend en compte les paramètrages des commandes (affichage On/Off).
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_paramétrage_commandes">3.3. Paramétrage Commandes</h4>
+<div class="paragraph">
+<p>Les actions mises a disposition par le plugin nécessitent la plupart du temps des paramètres.
+Il est possible via l&#8217;onglet "Commandes" de la page de configuration d&#8217;un equipement de définir des valeurs par defaut pour ces paramètres
+et de créer plusieur configuration de la même commande, ceci permet par exemples afin de créer les actions On et Off pour la commande UPnP "SetBinaryState"
+ou encore de créer un bouton permettant de charger ma chanson préféré ou encore de paramètré plusieur radio.
+Pour cela il faut créer une nouvelle commande d&#8217;action et dans le champs "Action" correspondant à la commande créer définir l&#8217;action UPnP qu&#8217;on souhaite paramètré.
+Ensuite, après enregistrement, les paramètre de la commande apparaissent dans le champ Option de la commande.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../images/upnp_customAction.png" alt="upnp customAction">
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Si vous n&#8217;avez pas besoin d&#8217;afficher les paramètres des commandes sur le dashboard (parce que par exemple la valeur par defaut que vous
+avez indiquer est la seul valeur qui vous interesse alors vous pouvez décocher la checbox "Afficher les options")
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+La valeur du champ information peut être renseigner afin de définir quel info est en relation avec cette action (a part pour la commande
+SetBinaryState je ne vois pas de cas d&#8217;usage mais on ne sais jamais soyez inventif)
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+L&#8217;option WaitResponse est utilise si vous souhaiter "enchainer" des commandes dans un sénario par exemple, le traitement ne passera à la commande
+suivante que lorsque la commande avec WaitResponse = 1 ou true sera fini alors que si WaitResponse = 0 ou false,
+alors la commande suivante sera executer sans attendre la fin de la première commande. Dans la plupart des cas, mettre 0 ou 1 ou rien n&#8217;a pas d&#8217;incidence.
 </td>
 </tr>
 </table>
@@ -517,10 +602,17 @@ Que se soit pour les services disposant d&#8217;un widget spécifique ou pour le
 <div class="sect1">
 <h2 id="_faq">4. FAQ</h2>
 <div class="sectionbody">
-<div class="openblock panel">
-<div class="title">Comment faire un appel aux commandes des equipements Upnp dans les scénarios ?</div><div class="content">
+<div class="olist panel">
+<ol class="panel">
+<li>
+<p>How to make a call to Upnp equipment commands in the scenarii?</p>
+</li>
+</ol>
+</div>
+<div class="openblock">
+<div class="content">
 <div class="paragraph">
-<p>Les commandes Upnp nécessitant des paramètres pour être executée, il est nécessaire de passer par un bloc code. Exemple :</p>
+<p>Les commandes Upnp nécessitent des paramètres pour être executées, il est nécessaire de passer par un bloc code. Exemple :</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -543,18 +635,27 @@ Que se soit pour les services disposant d&#8217;un widget spécifique ou pour le
 <div class="sect1">
 <h2 id="_troubleshoting">5. Troubleshoting</h2>
 <div class="sectionbody">
-<div class="openblock panel">
-<div class="title">Dans le log il y a parfois des messages : "Unable to find the service with SID XXX"</div><div class="content">
+<div class="olist panel">
+<ol class="panel">
+<li>
+<p>There are sometimes messages in the log: "Unable to find the service with SID XXX"</p>
+</li>
+</ol>
+</div>
+<div class="openblock">
+<div class="content">
 <div class="paragraph">
-<p>Ces messages n&#8217;ont pas d&#8217;incidence en fonctionnement normal et sont la uniquement pour du dépannage. Ce genre de message apparait notament lorsqu&#8217;on redémarre le service et sont liés a de précédant abonnement au messages des services UPnP</p>
+<p>Ces messages n&#8217;ont pas d&#8217;incidence en fonctionnement normal et sont la uniquement pour du dépannage.
+Ce genre de message apparaît notamment lorsqu’on redémarre le service et sont liés à de précédant abonnement au messages des services UPnP</p>
 </div>
 </div>
 </div>
 <div class="openblock">
 <div class="title">Lorsque j&#8217;execute certaines commandes, j&#8217;ai un message d&#8217;erreur indiquant que la commande n&#8217;a pas pu s&#8217;executer dans le délai imparti</div><div class="content">
 <div class="paragraph">
-<p>La configuration du plugin permet de definir le timeout de l&#8217;execution d&#8217;une commande (voir la rubrique configuration). Dans mon cas, lors du chargement d&#8217;un media sur ma television, la première fois, le délai de réponse de la television peut aller au dela de 5 secondes.
-Si ce problème vous arrive, il suffit de relancer l&#8217;action. Si ce problème arrive régulièrement, augmenter le delai du timeout.</p>
+<p>La configuration du plugin permet de définir le timeout de l’exécution d’une commande (voir la rubrique configuration).
+Dans mon cas, lors du chargement d’un media sur ma télévision, la première fois, le délai de réponse de la télévision peut aller au delà de 5 secondes.
+Si ce problème vous arrive, il suffit de relancer l’action. Si ce problème arrive régulièrement, augmenter le délai du timeout.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -579,7 +680,7 @@ La valeur par defaut est 10 secondes
 <div class="sect3">
 <h4 id="_version_1">6.1. Version 1</h4>
 <div class="paragraph">
-<p>Création du plugin</p>
+<p>Creation of the plugin</p>
 </div>
 </div>
 </div>

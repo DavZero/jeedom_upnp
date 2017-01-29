@@ -1,12 +1,12 @@
-== Description
+== Beschreibung
 include::presentation.asciidoc[]
 
 '''
-== Configuration
+== Konfiguration
 include::configuration.asciidoc[]
 
 '''
-== Paramétrage
+== Einrichtung
 include::parametrage.asciidoc[]
 
 '''
@@ -14,10 +14,10 @@ include::parametrage.asciidoc[]
 include::faq.asciidoc[]
 
 '''
-== Troubleshoting
+== Fehlersuche
 include::troubleshoting.asciidoc[]
 
 
 '''
-== Changelog
+== Änderungsprotokoll
 include::changelog.asciidoc[]

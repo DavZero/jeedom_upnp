@@ -30,9 +30,8 @@
       if ($data->eventType == 'error')
       {
         log::add('upnp', 'error', $data->description);
-        //throw new Exception('Plugwise event Error : ' . init('description'));
         return;
-      }
+        }
       
       if (!isset($data->deviceUDN))
       {
@@ -50,6 +49,8 @@
       $eqp = eqlogic::byLogicalId($data->deviceUDN.'_'.$data->serviceId,'upnp');
       
       if (!is_object($eqp)) {
+        //Si on n'est pas en mode inclusion, on quitte
+        if (config::byKey('eqLogicIncludeState', 'upnp', 0) != 1) return;
         log::add('upnp', 'info', 'création de l\'équipement ' . $data->deviceUDN.'_'.$data->serviceId);
         $eqp = new upnp();
         $eqp->setEqType_name('upnp');
@@ -61,10 +62,33 @@
         $eqp->setConfiguration('displayUnmanagedCommand', true);
         $eqp->setConfiguration('standardDisplayOfCustomizedCommand', false);
         $eqp->setIsEnable(1);
+        //Recuparation de l'objet parent par defaut et vérification qu'il existe
+        $objetParent = object::byId(config::byKey('defaultParentObject', 'upnp'));
+        if (is_object($objetParent)) 
+        {
+          log::add('upnp', 'debug', 'Obj parent existe');
+          $eqp->setObject_id($objetParent->getId());
+          }
         $eqp->save();
         event::add('upnp::includeDevice', $eqp->getId());
       }
       
+      //Ajout de l'information isOnline
+      $cmd = $eqp->getCmd('info','isOnline');
+      if (!is_object($cmd))
+      {
+        log::add('upnp', 'info', 'création de l\'info ' . 'isOnline' . ' pour l\'équipement ' . $data->deviceUDN.'_'.$data->serviceId);
+        $cmd = new upnpCmd();
+        $cmd->setName(__('isOnline', __FILE__));
+        $cmd->setLogicalId('isOnline');
+        $cmd->setEqLogic_id($eqp->getId());
+        $cmd->setType('info');
+        $cmd->setSubType('binary');
+        $cmd->setConfiguration('source','Plugin');
+        $cmd->save();
+        $cmd->event(1);
+      }
+          
       switch ($data->eventType)
       {
       case 'createAction':
@@ -118,7 +142,7 @@
           $cmd->setType('info');
           if ($data->type == 'boolean')
           $cmd->setSubType('binary');
-          else if ($data->type == 'ui1' || $data->type == 'ui2' || $data->type == 'ui4')
+          else if ($data->type == 'ui1' || $data->type == 'ui2' || $data->type == 'ui4' || $data->type == 'number')
           {
             $cmd->setSubType('numeric');
             $cmd->setTemplate('dashboard', 'badge');
@@ -166,12 +190,26 @@
         break;
         
       case 'updateService':
-        if (isset($data->friendlyName)) $eqp->setConfiguration('friendlyName', $data->friendlyName);
+        if (isset($data->friendlyName)) 
+        {
+          $eqp->setConfiguration('friendlyName', $data->friendlyName);
+          //On vérifie si le nom est celui par defaut, dans ce cas, on met a jour le nom sinon on laisse la valeur (cas du renommage manuel)
+          if ($eqp->getName() == $data->deviceUDN.'_'.$data->serviceId)
+          {
+            $eqp->setName($data->friendlyName.':'.array_reverse(explode(":", $data->serviceId))[0]);
+          }
+        }
         if (isset($data->location)) $eqp->setConfiguration('location', $data->location);
         if (isset($data->additionalData)) $eqp->setConfiguration('additionalData', $data->additionalData);
         if (isset($data->icon)) $eqp->setConfiguration('icon', $data->icon);
         if (isset($data->description)) $eqp->setConfiguration('description', $data->description);
-        if (isset($data->isOnline)) $eqp->setConfiguration('isOnline',$data->isOnline?true:false);
+        if (isset($data->deviceType)) $eqp->setConfiguration('deviceType', $data->deviceType);
+        if (isset($data->isOnline)) 
+        {
+          $eqp->setConfiguration('isOnline',$data->isOnline?true:false);
+          $cmd = $eqp->getCmd('info','isOnline');
+          $cmd->event($data->isOnline?1:0);
+        }
         if (isset($data->serviceDescription)) $eqp->setConfiguration('serviceDescription',$data->serviceDescription);
         $eqp->save();
         break;
@@ -185,6 +223,25 @@
         $eqp->setConfiguration('isOnline',false);
         $eqp->save();
       }
+    }
+    
+    public static function getAllowedList()
+    {
+      $list = array();
+      foreach (eqlogic::byType('upnp') as $eqp)
+      {
+        $eqpUDN = $eqp->getConfiguration('UDN');
+        $serviceID = $eqp->getConfiguration('serviceId');
+        if (!isset($list[$eqpUDN])) $list[$eqpUDN] = array();
+        $list[$eqpUDN][] = $serviceID;
+      }
+      return $list;
+    }
+    
+    public static function getDisallowedList()
+    {
+      $list = array();
+      return $list;
     }
     
     public static function health() {
@@ -256,16 +313,28 @@
       if ($servicePort == '') $servicePort = 5002;
       $cmdTimeout = config::byKey('cmdTimeout', 'upnp');
       if ($cmdTimeout < 5 || $cmdTimeout > 20) $cmdTimeout = 10;
-      $url  = network::getNetworkAccess().'/core/api/jeeApi.php?api='.config::byKey('api');
-      upnp::launch_svc($url, $servicePort, $cmdTimeout);
+      $url  = network::getNetworkAccess('internal').'/core/api/jeeApi.php?api='.config::byKey('api');
+      $includeState = config::byKey('eqLogicIncludeState', 'upnp', 0) == 1 ? 1 : 0;
+      
+      $allowedList = upnp::getAllowedList();
+      $allowedListFile = fopen('/tmp/allowedDevice.lst', 'w');
+      fputs($allowedListFile, json_encode($allowedList));
+      fclose($allowedListFile);
+      
+      $disallowedList = upnp::getDisallowedList();
+      $disallowedListFile = fopen('/tmp/disallowedDevice.lst', 'w');
+      fputs($disallowedListFile, json_encode($disallowedList));
+      fclose($disallowedListFile);
+      
+      upnp::launch_svc($url, $servicePort, $cmdTimeout, $includeState, '/tmp/allowedDevice.lst','/tmp/disallowedDevice.lst');
     }
     
-    public static function launch_svc($url, $servicePort, $cmdTimeout)
+    public static function launch_svc($url, $servicePort, $cmdTimeout, $includeState, $allowedListFile, $disallowedListFile)
     {
       $logLevel = log::convertLogLevel(log::getLogLevel('upnp'));
       //$logLevel = log::getLogLevel('upnp');
       $upnp_path = realpath(dirname(__FILE__) . '/../../node');
-      $cmd = 'nice -n 19 nodejs ' . $upnp_path . '/upnpDaemon.js ' . $url .' '. $servicePort . ' ' . $logLevel . ' ' . $cmdTimeout;
+      $cmd = 'nice -n 19 nodejs ' . $upnp_path . '/upnpDaemon.js ' . $url .' '. $servicePort . ' ' . $cmdTimeout. ' ' . $includeState. ' ' . $allowedListFile . ' ' . $disallowedListFile . ' ' . $logLevel;
       
       log::add('upnp', 'debug', 'Lancement démon upnp : ' . $cmd);
       
@@ -300,7 +369,7 @@
         $msg = array();
         $msg['command'] = 'stopDaemon';
         upnp::sendToDaemon(json_encode($msg));
-        sleep(1);
+        sleep(2);
       }
       $deamon_info = self::deamon_info();
       if ($deamon_info['state'] == 'ok') {
@@ -508,7 +577,7 @@
         
         $args = $cmd->getConfiguration('arguments');
         
-        if ($cmd->getType()=='action' && count($args) > 0)
+        if ($cmd->getType()=='action' && count($args) > 0 && $cmd->getConfiguration('isOptionsVisible'))
         {
           $cmdUID = 'cmd' . $cmd->getId() . eqLogic::UIDDELIMITER . mt_rand() . eqLogic::UIDDELIMITER;
           
@@ -521,20 +590,22 @@
             
             if (isset($option['allowedValue']) && count($option['allowedValue']) > 0)
             {
-              $cmd_html .= '<select class="form-control '. $option['name'] .'">';
+              $cmd_html .= '<select class="form-control '. $option['name'] .'" >';
               foreach($option['allowedValue'] as $val)
               {
-                $cmd_html .= '<option value="' .$val. '">' .$val. '</option>';
+                if ($val == $cmd->getConfiguration('ArgVal_'.$option['name']))
+                  $cmd_html .= '<option value="' .$val. '" selected >' .$val. '</option>';
+                else $cmd_html .= '<option value="' .$val. '">' .$val. '</option>';
               }
               $cmd_html .= '</select>';
             }
             else if ($option['type'] == 'ui1' || $option['type'] == 'ui2' || $option['type'] == 'ui4')
             {
-              $cmd_html .= '<input class="form-control input-sm '. $option['name'] .'" type="number" placeholder="'.__('Value', __FILE__).'" value=0 />';
+              $cmd_html .= '<input class="form-control input-sm '. $option['name'] .'" type="number" placeholder="'.__('Value', __FILE__).'" value='.$cmd->getConfiguration('ArgVal_'.$option['name']).' />';
             }
             else
             {
-              $cmd_html .= '<input class="form-control input-sm '. $option['name'] .'" type="string" placeholder="'.__('Value', __FILE__).'" />';
+              $cmd_html .= '<input class="form-control input-sm '. $option['name'] .'" type="string" placeholder="'.__('Value', __FILE__).'" value="'.$cmd->getConfiguration('ArgVal_'.$option['name']).'" />';
             }
             $cmd_html .= '</div>';
           }
@@ -567,15 +638,38 @@
       return $this->postToHtml($_version, template_replace($replace, getTemplate('core', $version, 'eqLogic')));
     }
     
-    /*     * *********************Méthodes d'instance************************* */
-    /*
-        * Non obligatoire mais permet de modifier l'affichage du widget si vous en avez besoin
-        public function toHtml($_version = 'dashboard') {
-        
-        }
-      */
     
-    /*     * **********************Getteur Setteur*************************** */
+    /*public function preInsert() {
+        
+    }
+    
+    public function postInsert() {
+        
+    }
+    public function preSave() {
+        
+    }
+    public function postSave() {
+        
+    }
+    public function preUpdate() {
+        
+    }
+    public function postUpdate() {
+        
+    }
+    public function preRemove() {
+        
+    }*/
+    public function postRemove() {
+      if (upnp::deamon_info()['state'] != 'ok') return;
+      $msg = array();
+      $msg['command'] = 'controlPointAction';
+      $msg['subCommand'] = 'removeService';
+      $msg['UDN'] = $this->getConfiguration('UDN');
+      $msg['serviceId'] = $this->getConfiguration('serviceId');
+      upnp::sendToDaemon(json_encode($msg));
+    }
   }
 
   class upnpCmd extends cmd {
@@ -600,6 +694,22 @@
       */
     
     public function execute($_options = array()) {
+      if ($this->getLogicalId() == 'UpnpUserAction')
+      {
+        $upnpAction = upnpCmd::byId($this->getConfiguration('upnpAction'));
+        if (is_object($upnpAction))
+        {
+          //Calcul des paramètres
+          $opt = $this->getParameters($upnpAction,$_options);
+          log::add('upnp', 'info', 'execute userAction '.$this->getName().' avec option : '.json_encode($opt));
+          return $upnpAction->execute($opt);
+        }
+        else
+        {
+          log::add('upnp', 'error', 'Unable to find UPnP action with logicalId '.$this->getConfiguration('upnpAction').' avec option : '.json_encode($opt));
+        }
+        return;
+      }
       log::add('upnp', 'info', 'execute '.$this->getLogicalId().' avec option : '.json_encode($_options));
       switch ($this->getType()) {
       case 'action':
@@ -609,20 +719,37 @@
         $msg['UDN'] = $this->getEqLogic()->getConfiguration('UDN');
         $msg['serviceID'] = $this->getEqLogic()->getConfiguration('serviceId');
         $msg['actionName'] = $this->getLogicalId();
-        $msg['options'] = array();
-        /*if (isset($_options['message'])) $param = $_options['message']; //Pour une gestion via les scenario
-            else $param = $_options;
-          log::add('upnp', 'info', 'params '.json_encode($param));*/
-        $param = $_options;
-        foreach($this->getConfiguration('arguments') as $option)
-        {
-          $msg['options'][$option['name']] = $param[$option['name']];
-        }
-        if (!isset($param['waitResponse'])) $param['waitResponse'] = false;
-        log::add('upnp', 'debug', 'waitReponse : '.($param['waitResponse']?'true':'false'));
-        return upnp::sendToDaemon(json_encode($msg),$param['waitResponse']?true:false);
+        $msg['options'] = $this->getParameters($this,$_options);
+        return upnp::sendToDaemon(json_encode($msg),$msg['options']['WaitResponse']);
         break;
       }
+    }
+    
+    private function getParameters($originalCmd,$_options = array())
+    {
+      //Calcul des paramètres
+      $opt = array();
+      foreach($originalCmd->getConfiguration('arguments') as $option)
+      {
+        log::add('upnp', 'debug', 'Traitement de l\'option '.$option['name']);
+        if (isset($_options[$option['name']]))
+        {
+          $opt[$option['name']] = $_options[$option['name']];
+        }
+        else
+        {
+          $optVal = $this->getConfiguration('ArgVal_'.$option['name']);
+          if ($optVal != null) $opt[$option['name']] = $optVal;
+        }
+      }
+      if (isset($_options['WaitResponse'])) $opt['WaitResponse'] = $_options['WaitResponse'];
+      else
+      {
+        $optVal = $this->getConfiguration('ArgVal_WaitResponse');
+        if ($optVal == 1) $opt['WaitResponse'] = true;
+        else $opt['WaitResponse'] = false;
+      }
+      return $opt;
     }
     /*     * **********************Getteur Setteur*************************** */
   }

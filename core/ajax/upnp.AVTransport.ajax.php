@@ -39,10 +39,41 @@
         'InstanceID' => '0',
         'CurrentURI' => init('uri'),
         'CurrentURIMetaData' => init('metadata'),
-        'waitResponse' => true
+        'WaitResponse' => true
       );
       
       $cmd->execute($option);
+      
+      ajax::success();
+    }
+    
+    if(init('action') == 'createAction')
+    {
+      $eqp = upnp::byId(init('eqLogicId'));
+      if (!is_object($eqp)) {
+        throw new Exception(__('Equipement', __FILE__).' '.init('eqLogicId').' '.__('non trouvée', __FILE__));
+      }
+      
+      //On recherche la commande de base
+      $upnpCmd = $eqp->getCmd('action',init('upnpAction'));
+      if (!is_object($upnpCmd)) {
+        throw new Exception(__('Commande ', __FILE__).init('upnpAction').__(' introuvable pour l\'équipement', __FILE__).' '.init('eqLogicId'));
+      }
+      
+      $cmd = new upnpCmd();
+
+      $cmd->setName(init('cmdName'));
+      $cmd->setLogicalId('UpnpUserAction');
+      $cmd->setEqLogic_id($eqp->getId());
+      $cmd->setType('action');
+      $cmd->setSubType('other');
+      $cmd->setConfiguration('source','Plugin');
+      $cmd->setConfiguration('upnpAction',$upnpCmd->getId());
+      foreach($upnpCmd->getConfiguration('arguments') as $option)
+      {
+        $cmd->setConfiguration('ArgVal_'.$option['name'],init($option['name']));
+      }
+      $cmd->save();
       
       ajax::success();
     }
