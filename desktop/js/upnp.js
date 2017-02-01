@@ -25,7 +25,7 @@ $('#bt_scanEqLogic').on('click', function () {
       type: "POST", // méthode de transmission des données au fichier php
       url: "plugins/upnp/core/ajax/upnp.ajax.php", // url du fichier php
       data: {
-          action: "scanUpnp",
+          action: "scanUpnp"
       },
       dataType: 'json',
       error: function (request, status, error) {
@@ -43,55 +43,62 @@ $('#bt_scanEqLogic').on('click', function () {
 });
 
 $('.changeIncludeState').on('click', function () {
-  var el = $(this);
-  $.ajax({// fonction permettant de faire de l'ajax
-    type: "POST", // methode de transmission des données au fichier php
-    url: "plugins/upnp/core/ajax/upnp.ajax.php", // url du fichier php
-    data: {
-      action: "changeIncludeState",
-      state: el.attr('data-state')
-    },
-    dataType: 'json',
-    error: function(request, status, error) {
-      handleAjaxError(request, status, error);
-    },
-    success: function(data) { // si l'appel a bien fonctionné
-      if (data.state != 'ok') {
-        $('#div_alert').showAlert({message:  data.result,level: 'danger'});
-          return;
-      }
-      else {
-        jeedom.config.save({
-          plugin : 'upnp',
-          configuration: {eqLogicIncludeState: el.attr('data-state')},
-          error: function (error) {
-            $('#div_alert').showAlert({message: error.message, level: 'danger'});
-          },
-          success: function () {
-            if (el.attr('data-state') == 1) {
-              $.hideAlert();
-              $('.changeIncludeState:not(.card)').removeClass('btn-default').addClass('btn-success');
-              $('.changeIncludeState').attr('data-state', 0);
-              $('.changeIncludeState.card').css('background-color','#8000FF');
-              $('.changeIncludeState.card span center').text('{{Arrêter l\'inclusion}}');
-              $('.changeIncludeState:not(.card)').html('<i class="fa fa-sign-in fa-rotate-90"></i> {{Arreter inclusion}}');
-              $('#div_inclusionAlert').showAlert({message: '{{Vous etes en mode inclusion. Recliquez sur le bouton d\'inclusion pour sortir de ce mode}}', level: 'warning'});
-            } else {
-              $.hideAlert();
-              $('.changeIncludeState:not(.card)').addClass('btn-default').removeClass('btn-success btn-danger');
-              $('.changeIncludeState').attr('data-state', 1);
-              $('.changeIncludeState:not(.card)').html('<i class="fa fa-sign-in fa-rotate-90"></i> {{Mode inclusion}}');
-              $('.changeIncludeState.card span center').text('{{Mode inclusion}}');
-              $('.changeIncludeState.card').css('background-color','#ffffff');
-              $('#div_inclusionAlert').hideAlert();
-            }
+	var newState = $(this).attr('data-state');
+	jeedom.config.save({
+		plugin: 'upnp',
+		configuration:{	eqLogicIncludeState: newState },
+		error: function (error)
+		{
+			$('#div_alert').showAlert({
+				message: error.message,
+				level: 'danger'
+			});
+		},
+		success: function ()
+		{
+			if (newState == 1)
+			{
+				$.hideAlert();
+				$('.changeIncludeState:not(.card)').removeClass('btn-default').addClass('btn-success');
+				$('.changeIncludeState').attr('data-state', 0);
+				$('.changeIncludeState.card').css('background-color', '#8000FF');
+				$('.changeIncludeState.card span center').text('{{Arrêter l\'inclusion}}');
+				$('.changeIncludeState:not(.card)').html('<i class="fa fa-sign-in fa-rotate-90"></i> {{Arreter inclusion}}');
+				$('#div_alert').showAlert({
+          message: '{{Vous etes en mode inclusion. Recliquez sur le bouton d\'inclusion pour sortir de ce mode}}',
+					level: 'warning'
+				});
+			}
+			else
+			{
+				$.hideAlert();
+				$('.changeIncludeState:not(.card)').addClass('btn-default').removeClass('btn-success btn-danger');
+				$('.changeIncludeState').attr('data-state', 1);
+				$('.changeIncludeState:not(.card)').html('<i class="fa fa-sign-in fa-rotate-90"></i> {{Mode inclusion}}');
+				$('.changeIncludeState.card span center').text('{{Mode inclusion}}');
+				$('.changeIncludeState.card').css('background-color', '#ffffff');
+			} 
+      $.ajax({// fonction permettant de faire de l'ajax
+        type: "POST", // methode de transmission des données au fichier php
+        url: "plugins/upnp/core/ajax/upnp.ajax.php", // url du fichier php
+        data: {
+          action: "changeIncludeState",
+          state: newState
+        },
+        dataType: 'json',
+        error: function(request, status, error) {
+          handleAjaxError(request, status, error);
+        },
+        success: function(data) { // si l'appel a bien fonctionné
+          if (data.state != 'ok') {
+            $('#div_alert').showAlert({message:  data.result,level: 'danger'});
           }
-        });
-      }
-      //window.location.reload();
+        }
+      });
     }
   });
 });
+  
 
 $("#table_cmd").sortable({
   axis: "y",
