@@ -5,6 +5,7 @@ var Logger = require('../logger/logger.js').getInstance();
 var SOAPBuilder = require('./SOAPBuilder.js').SOAPBuilder;
 //var XmlEntities = require('html-entities').XmlEntities;
 var xml2js = require('xml2js');
+var stripNS = require('xml2js').processors.stripPrefix;
 
 class UpnpAction
 {
@@ -53,7 +54,7 @@ class UpnpAction
 				//On decode le XML au cas ou pour qu'il soit également convertie en JSON
 				//responseBody = XmlEntities.decode(responseBody);
 				//On convertie en js Object en supprimant les namespaces pour traitement du json en php
-				xml2js.parseString(responseBody, (err, data) =>
+				xml2js.parseString(responseBody, { tagNameProcessors: [stripNS] }, (err, data) =>
 				{
 					//Manage error
 					var returnData = '';
@@ -64,13 +65,17 @@ class UpnpAction
 					}
 					else
 					{
-						if (!data || !data['s:Envelope'] || !data['s:Envelope']['s:Body'])
+						//if (!data || !data['s:Envelope'] || !data['s:Envelope']['s:Body']) namespace change depending of manufacturer
+              if (!data || !data['Envelope'] || !data['Envelope']['Body'])
             {
               Logger.log("Unable to process action " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " response : " + JSON.stringify(data), LogType.ERROR);
+              //Should return an error instead of just return.
               return;
             }
-            returnData = data['s:Envelope']['s:Body'][0];
-						if (returnData['s:Fault'])
+            //returnData = data['s:Envelope']['s:Body'][0]; namespace change depending of manufacturer
+            returnData = data['Envelope']['Body'][0]; 
+						//if (returnData['s:Fault']) namespace change depending of manufacturer
+            if (returnData['Fault'])
 							//returnData = data['Envelope']['Body'][0];
 							//if (returnData['Fault'])
 						{
@@ -84,7 +89,8 @@ class UpnpAction
 					if (callback)
 						callback(null, JSON.stringify(returnData));
 					//Todo Process response and update data if nacessary
-					var outputsVariable = returnData['u:' + this.Name + 'Response'][0];
+					//var outputsVariable = returnData['u:' + this.Name + 'Response'][0]; namespace change depending of manufacturer
+          var outputsVariable = returnData[this.Name + 'Response'][0];
 					for (var prop in outputsVariable)
 					{
 						if (prop == '$')
