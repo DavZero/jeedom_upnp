@@ -61,7 +61,7 @@
       {
         $didlXML = new DomDocument();
         $response = json_decode($browseCmd->execute($option));
-        $didlXML->loadXML($response->{'u:BrowseResponse'}[0]->{'Result'}[0]);
+        $didlXML->loadXML($response->{'BrowseResponse'}[0]->{'Result'}[0]);
         
         foreach($didlXML->documentElement->getElementsByTagName("container") as $container)
         {
