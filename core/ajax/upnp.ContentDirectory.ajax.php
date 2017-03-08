@@ -126,7 +126,7 @@
       );
       
       //Metadata au formatXML
-      $metadata = json_decode($browseCmd->execute($option))->{'u:BrowseResponse'}[0]->{'Result'}[0];
+      $metadata = json_decode($browseCmd->execute($option))->{'BrowseResponse'}[0]->{'Result'}[0];
       
       //echo htmlentities($metadata);
       //die();
