@@ -49,7 +49,7 @@
             jeedom.eqLogic.getSelectModal({eqLogic : {type: 'upnp'}}, function(result){
               $.ajax({
                 url: "plugins/upnp/core/ajax/upnp.AVTransport.ajax.php",
-                data: {"action": "setAVTransportURI","eqLogicId" : result.id ,"uri" :node.data.uri, "metadata":$('<div/>').text(node.data.metadata).html()},
+                data: {"action": "setAVTransportURI","eqLogicId" : result.id ,"uri" :node.data.uri, "metadata":node.data.metadata},
                 dataType: "json",
                 success: function (data) {
         					if (data.state != 'ok') {

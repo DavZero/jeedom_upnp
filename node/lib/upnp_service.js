@@ -153,7 +153,8 @@ class UpnpBaseService
 				variable.Value = properties[prop][key][0];
 				if (variable.Name == 'LastChange')
 				{
-					this.processLastChangeEvent(properties[prop][key][0]);
+					if (properties[prop][key][0]["_"]) this.processLastChangeEvent(properties[prop][key][0]["_"]);
+          else this.processLastChangeEvent(properties[prop][key][0]);
 				}
 			}
 			else
