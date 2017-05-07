@@ -82,7 +82,7 @@ class ControlPoint extends EventEmitter
 					var service = this.getServiceBySID(headers.sid);
 					if (service)
 					{
-						Logger.log("Service " + service.Device.UDN + '::' + service.ID + "found.", LogType.DEBUG);
+						Logger.log("Service " + service.Device.UDN + '::' + service.ID + " found.", LogType.DEBUG);
             //Traitement pour corriger certain xml mal formatter uniquement si le xml ne contient pas de CDATA
             if (body.indexOf("<![CDATA[") === -1) body = body.replace(/&(?!amp;|gt;|lt;|apos;|quot;|#\d+;)/gi, "&amp;");
 						xml2js.parseString(body, (err, data) =>

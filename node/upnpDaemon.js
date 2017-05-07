@@ -185,7 +185,12 @@ server.listen(
 	port: serverPort
 }, (e) =>
 {
-	Logger.log("Création du serveur sur le port " + serverPort, LogType.INFO);
+	if (e != null)
+  {
+    Logger.log("Unable to start server to listen on " + serverPort + ". " + JSON.stringify(e), LogType.ERROR);
+    throw e;
+  }
+  Logger.log("Création du serveur sur le port " + serverPort, LogType.INFO);
 	Logger.log("Création du controlPoint");
 	cp = new controlPointAPI.ControlPoint(1900, allowedList, disallowedList);
 	

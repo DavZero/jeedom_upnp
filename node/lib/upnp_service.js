@@ -165,7 +165,13 @@ class UpnpBaseService
 	//Body could be an xml or directly a json object
 	processLastChangeEvent(body)
 	{
-		//Si c'est déjà un objet, on le traite, sinon on le parse puis on le traite
+		//Si le body est null on ne fait rien
+    if (body == null)
+    {
+      Logger.log("Empty body in processLastChangeEvent. Do nothing...", LogType.DEBUG);
+      return;
+    }
+    //Si c'est déjà un objet, on le traite, sinon on le parse puis on le traite
 		//Il faut gérer plusieur cas, test OK sur TV LG et Freeplayer
 		if (body.Event)
 		{
@@ -606,7 +612,7 @@ class UpnpAVTransportService extends UpnpBaseService
 				if (CurrentTrackURI.Value != null && CurrentTrackURI.Value != '')
 				{
 					options.CurrentURI = CurrentTrackURI.Value;
-					options.CurrentURIMetaData = XmlEntities.encode(CurrentTrackMetaData.Value);
+					options.CurrentURIMetaData = CurrentTrackMetaData.Value;
 					this.getActionByName('SetAVTransportURI').execute(options, (err, SetAVTransportURIMessage) =>	{
 						if (err)
 							callback(err, SetAVTransportURIMessage);
