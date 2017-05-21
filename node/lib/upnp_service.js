@@ -477,20 +477,11 @@ class UpnpAVTransportService extends UpnpBaseService
 						clearInterval(this._intervalUpdateRelativeTime);
 					if (newVal == "PLAYING" || newVal == "RECORDING")
 					{
-						actPosInfo.execute(
-						{
-							InstanceID: 0
-						}
-						);
+						actPosInfo.execute(	{	InstanceID: 0	} );
 						//Déclenche la maj toutes les 4 secondes
-						this._intervalUpdateRelativeTime = setInterval(() =>
-							{
+						this._intervalUpdateRelativeTime = setInterval(() =>{
 								//Logger.log("On autoUpdate", LogType.DEBUG);
-								actPosInfo.execute(
-								{
-									InstanceID: 0
-								}
-								);
+								actPosInfo.execute(	{	InstanceID: 0	}	);
 							}, 4000);
 					}
 				}
@@ -502,33 +493,17 @@ class UpnpAVTransportService extends UpnpBaseService
 				if (newVal == "TRANSITIONING")
 				{
 					if (actPosInfo)
-						actPosInfo.execute(
-						{
-							InstanceID: 0
-						}
-						);
+						actPosInfo.execute(	{InstanceID: 0}	);
 					if (actMediaInfo)
-						actMediaInfo.execute(
-						{
-							InstanceID: 0
-						}
-						);
+						actMediaInfo.execute(	{InstanceID: 0} );
 				}
 
 				if (newVal == "STOPPED")
 				{
 					if (actPosInfo)
-						actPosInfo.execute(
-						{
-							InstanceID: 0
-						}
-						);
+						actPosInfo.execute(	{	InstanceID: 0	});
 					if (actMediaInfo)
-						actMediaInfo.execute(
-						{
-							InstanceID: 0
-						}
-						);
+						actMediaInfo.execute(	{	InstanceID: 0 });
 				}
 			}
 			);

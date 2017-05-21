@@ -60,13 +60,15 @@ class UpnpAction
 					var returnData = '';
 					if (err)
 					{
-						//this._service.Device.emit('error',"Error parsing response XML for action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify (options) + ", err : " + err + ", XML : " + responseBody);
+						Logger.log("Unable to process action " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " err : " + JSON.stringify(err), LogType.ERROR);
+            //this._service.Device.emit('error',"Error parsing response XML for action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify (options) + ", err : " + err + ", XML : " + responseBody);
 						callback("Error parsing response XML for action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options) + ", err : " + err + ", XML : " + responseBody, null);
 					}
 					else
 					{
 						//if (!data || !data['s:Envelope'] || !data['s:Envelope']['s:Body']) namespace change depending of manufacturer
-              if (!data || !data['Envelope'] || !data['Envelope']['Body'])
+            Logger.log("Action response " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " response : " + JSON.stringify(data), LogType.DEBUG);
+            if (!data || !data['Envelope'] || !data['Envelope']['Body'])
             {
               Logger.log("Unable to process action " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " response : " + JSON.stringify(data), LogType.ERROR);
               //Should return an error instead of just return.
