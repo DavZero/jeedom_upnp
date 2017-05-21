@@ -392,7 +392,7 @@
     
     public static function sendToDaemon( $msg, $waitResponse = false ) {
       $response = '';
-      $urlService = '127.0.0.1';
+      $urlService = 'localhost';
       $servicePort = config::byKey('servicePort', 'upnp');
       if ($servicePort == '') $servicePort = 5002;
       $response = '';

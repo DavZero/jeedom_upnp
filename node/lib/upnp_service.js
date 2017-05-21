@@ -787,17 +787,17 @@ class WemoInsightBasicevent extends UpnpBaseService
             if (subVariables[0]) this.updateSubVariable('State',Number(subVariables[0]));
             if (subVariables[0] == '0') this.updateSubVariable('HumanState','Off');
             if (subVariables[0] == '1') this.updateSubVariable('HumanState','On');
-            if (subVariables[0] == '2') this.updateSubVariable('HumanState','OnWithoutLoad');
-            if (subVariables[1]) this.updateSubVariable('LastModify',Number(subVariables[1]));
-            if (subVariables[2]) this.updateSubVariable('OnFor',Number(subVariables[2]));
-            if (subVariables[3]) this.updateSubVariable('OnToday',Number(subVariables[3]));
-            if (subVariables[4]) this.updateSubVariable('OnTotal',Number(subVariables[4]));
-            if (subVariables[5]) this.updateSubVariable('TimePeriod',Number(subVariables[5]));
-            if (subVariables[6]) this.updateSubVariable('WifiStrength',Number(subVariables[6]));
-            if (subVariables[7]) this.updateSubVariable('Power',Number(subVariables[7])*0.001); //conversion mW en W
-            if (subVariables[8]) this.updateSubVariable('TodayComsuption',Number(subVariables[8])*0.001*(1/60)); //conversion mW*minutes en KWh
-            if (subVariables[9]) this.updateSubVariable('TotalComsuption',Number(subVariables[9])*0.001*(1/60)); //conversion mW*minutes en KWh
-            if (subVariables[10]) this.updateSubVariable('PowerThreshold',Number(subVariables[10])*0.001); //conversion mW en W??? 
+            if (subVariables[0] == '8') this.updateSubVariable('HumanState','OnWithoutLoad');
+            //if (subVariables[1]) this.updateSubVariable('LastModify',Number(subVariables[1]));
+            //if (subVariables[2]) this.updateSubVariable('OnFor',Number(subVariables[2]));
+            //if (subVariables[3]) this.updateSubVariable('OnToday',Number(subVariables[3]));
+            //if (subVariables[4]) this.updateSubVariable('OnTotal',Number(subVariables[4]));
+            //if (subVariables[5]) this.updateSubVariable('TimePeriod',Number(subVariables[5]));
+            //if (subVariables[6]) this.updateSubVariable('WifiStrength',Number(subVariables[6]));
+            //if (subVariables[7]) this.updateSubVariable('Power',Number(subVariables[7])*0.001); //conversion mW en W
+            //if (subVariables[8]) this.updateSubVariable('TodayComsuption',Number(subVariables[8])*0.001*(1/60)); //conversion mW*minutes en KWh
+            //if (subVariables[9]) this.updateSubVariable('TotalComsuption',Number(subVariables[9])*0.001*(1/60)); //conversion mW*minutes en KWh
+            //if (subVariables[10]) this.updateSubVariable('PowerThreshold',Number(subVariables[10])*0.001); //conversion mW en W??? 
 					});
         }
       });
@@ -810,6 +810,70 @@ class WemoInsightBasicevent extends UpnpBaseService
     if (!variable)
     {
       Logger.log("Unable to find BinaryState variable of the Wemo Insight " + this.Device.BaseAddress, LogType.ERROR);
+      return;
+    }
+    variable.Value = value;
+  }
+}
+
+class WemoInsightService extends UpnpBaseService
+{
+  constructor(device, serviceData, eventServer)
+	{
+		super(device, serviceData, eventServer);
+	}
+  
+  _specializedInitialisation()
+	{
+    Logger.log("Specialisation for WemoInsight Basicevent", LogType.INFO);
+    //Création des infos spécifiques au Insigth decodable dans le BinaryState
+    //Process serviceTemplate to Add standard commande if not exist
+		var xmlTemplate = fs.readFileSync(__dirname+'/../../resources/ServicesTemplate.xml', 'utf8');
+		xml2js.parseString(xmlTemplate, (err, templatesData) => {
+      templatesData.servicesTemplate.serviceTemplate.forEach((serviceTemplate) => {
+        if ((serviceTemplate['$']['serviceType'] == this._type || !serviceTemplate['$']['serviceType']) && 
+          (serviceTemplate['$']['deviceType'] == this.Device.Type || !serviceTemplate['$']['deviceType']))
+        {
+          Logger.log("Processing scpd template", LogType.DEBUG);
+          this.processSCPD(serviceTemplate.scpd[0],false);
+          
+          //On s'abonne au evenement de la variable BinaryState pour en faire le decodage
+          var binaryState = this.getVariableByName('BinaryState');
+          if (!binaryState)
+          {
+            Logger.log("Unable to find BinaryState variable of the Wemo Insight " + this.Device.BaseAddress, LogType.ERROR);
+            return;
+          }
+          binaryState.on('updated', (varObj, newVal) =>	{
+						//On split la variable pour definir les valeurs des sous variable
+            var subVariables = newVal.split('|');      
+        
+            if (subVariables[0]) this.updateSubVariable('State',Number(subVariables[0]));
+            if (subVariables[0] == '0') this.updateSubVariable('HumanState','Off');
+            if (subVariables[0] == '1') this.updateSubVariable('HumanState','On');
+            if (subVariables[0] == '8') this.updateSubVariable('HumanState','OnWithoutLoad');
+            if (subVariables[1]) this.updateSubVariable('LastModify',Number(subVariables[1]));
+            if (subVariables[2]) this.updateSubVariable('ONFor',Number(subVariables[2]));
+            if (subVariables[3]) this.updateSubVariable('TodayONTime',Number(subVariables[3]));
+            if (subVariables[4]) this.updateSubVariable('TotalTimePeriodON',Number(subVariables[4]));
+            if (subVariables[5]) this.updateSubVariable('TimePeriod',Number(subVariables[5]));
+            //if (subVariables[6]) this.updateSubVariable('WifiStrength',Number(subVariables[6]));
+            if (subVariables[7]) this.updateSubVariable('InstantPower',Number(subVariables[7])*0.001); //conversion mW en W
+            if (subVariables[8]) this.updateSubVariable('TodayKWH',Number(subVariables[8])*0.001*(1/60)); //conversion mW*minutes en KWh
+            if (subVariables[9]) this.updateSubVariable('TotalTimePeriodKWH',Number(subVariables[9])*0.001*(1/60)); //conversion mW*minutes en KWh
+            if (subVariables[10]) this.updateSubVariable('PowerThreshold',Number(subVariables[10])*0.001); //conversion mW en W??? 
+					});
+        }
+      });
+		});  
+  }
+  
+  updateSubVariable(name, value)
+  {
+    var variable = this.getVariableByName(name);
+    if (!variable)
+    {
+      Logger.log("Unable to find " + name + " variable of the Wemo Insight " + this.Device.BaseAddress, LogType.ERROR);
       return;
     }
     variable.Value = value;
