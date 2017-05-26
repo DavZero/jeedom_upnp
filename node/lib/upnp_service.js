@@ -150,11 +150,12 @@ class UpnpBaseService
 			var variable = this.getVariableByName(key);
 			if (variable)
 			{
-				variable.Value = properties[prop][key][0];
+				var value = properties[prop][key][0];
+        if (value.hasOwnProperty('_')) value = value['_'];
+        variable.Value = value;
 				if (variable.Name == 'LastChange')
 				{
-					if (properties[prop][key][0]["_"]) this.processLastChangeEvent(properties[prop][key][0]["_"]);
-          else this.processLastChangeEvent(properties[prop][key][0]);
+          this.processLastChangeEvent(value);
 				}
 			}
 			else
@@ -528,9 +529,10 @@ class UpnpAVTransportService extends UpnpBaseService
 			{
 				var transportStateAction = this.getActionByName("GetTransportInfo");
 				if (transportStateAction)
-					callback = function ()
+					callback = function (err, response)
 					{
-						//On laisse le temps a l'action de s'executer complètement puis on lance la maj
+            if (err) _callback(err, response);
+            //On laisse le temps a l'action de s'executer complètement puis on lance la maj
 						setTimeout(() =>
 						{
 							transportStateAction.execute(options, _callback)
@@ -543,16 +545,13 @@ class UpnpAVTransportService extends UpnpBaseService
 		{
 			this.getActionByName('Stop').execute(options, (err, stopMessage) => {
 				this.getActionByName('SetAVTransportURI').execute(options, (err, SetAVTransportURIMessage) => {
-					if (err)
-						callback(err, SetAVTransportURIMessage);
+					if (err) callback(err, SetAVTransportURIMessage);
 					else
 					{
 						options.Speed = 1;
 						this.getActionByName('Play').execute(options, (err, PlayMessage) =>	{
-							if (err)
-								callback(err, PlayMessage);
-							else
-								this.getActionByName('GetPositionInfo').execute(options, callback);
+							if (err) callback(err, PlayMessage);
+							else this.getActionByName('GetPositionInfo').execute(options, callback);
 						});
 					}
 				});
@@ -570,7 +569,7 @@ class UpnpAVTransportService extends UpnpBaseService
 			if (!transportState)
 			{
 				callback("Enable to get the TransportStatus.", null);
-				retun;
+				return;
 			}
 			if (transportState.Value != 'PAUSED_PLAYBACK' && transportState.Value != 'PLAYING')
 			{

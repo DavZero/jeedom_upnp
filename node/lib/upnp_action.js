@@ -68,7 +68,7 @@ class UpnpAction
 					{
 						//if (!data || !data['s:Envelope'] || !data['s:Envelope']['s:Body']) namespace change depending of manufacturer
             Logger.log("Action response " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " response : " + JSON.stringify(data), LogType.DEBUG);
-            if (!data || !data['Envelope'] || !data['Envelope']['Body'])
+            if (!data || !data.hasOwnProperty('Envelope') || !data['Envelope'].hasOwnProperty('Body'))
             {
               Logger.log("Unable to process action " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " response : " + JSON.stringify(data), LogType.ERROR);
               //Should return an error instead of just return.
@@ -77,11 +77,12 @@ class UpnpAction
             //returnData = data['s:Envelope']['s:Body'][0]; namespace change depending of manufacturer
             returnData = data['Envelope']['Body'][0]; 
 						//if (returnData['s:Fault']) namespace change depending of manufacturer
-            if (returnData['Fault'])
+            if (returnData.hasOwnProperty('Fault'))
 							//returnData = data['Envelope']['Body'][0];
 							//if (returnData['Fault'])
 						{
 							//Gestion de l'Erreur
+              Logger.log("Action Fault " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " response : " + JSON.stringify(returnData['Fault']), LogType.ERROR);
 							//this._service.Device.emit('error',"Upnp action error for : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify (options) + ", err : " + JSON.stringify(returnData));
 							if (callback)
 								callback("Upnp action error for : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options) + ", err : " + JSON.stringify(returnData), JSON.stringify(returnData));
@@ -101,7 +102,9 @@ class UpnpAction
 						var arg = this.getArgumentByName(prop);
 						if (arg && arg.RelatedStateVariable)
 						{
-							arg.RelatedStateVariable.Value = outputsVariable[prop][0];
+							var value = outputsVariable[prop][0];
+              if (value.hasOwnProperty('_')) value = value['_'];
+              arg.RelatedStateVariable.Value = value;
 						}
 						else
 							Logger.log("Unable to process output argument " + prop + " of action " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options), LogType.WARNING);

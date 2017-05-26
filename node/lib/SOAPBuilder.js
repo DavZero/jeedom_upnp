@@ -34,7 +34,8 @@ _getBody()
 					output += '<' + item.Name + '>';
           try
           {
-            output += XmlEntities.encode(this._options[item.Name]);
+            if (typeof this._options[item.Name]== 'string') output += XmlEntities.encode(this._options[item.Name]);
+            else output += this._options[item.Name];
           }
           catch (e)
           {
