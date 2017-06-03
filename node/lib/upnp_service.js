@@ -922,4 +922,7 @@ exports.BaseService = UpnpBaseService;
 exports.AVTransportService = UpnpAVTransportService;
 exports.OpenHomeAVTransportService = OpenHomeAVTransportService;
 exports.WemoInsightBasicevent = WemoInsightBasicevent;
+exports.WemoInsightService = WemoInsightService;
 exports.WemoMakerDeviceevent = WemoMakerDeviceevent;
+
+
