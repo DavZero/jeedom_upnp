@@ -800,7 +800,7 @@ class WemoInsightService extends UpnpBaseService
   _specializedInitialisation()
 	{
     Logger.log("Specialisation for WemoInsight Basicevent", LogType.INFO);
-    //Création des infos spécifiques au Insigth decodable dans le BinaryState
+    //Création des infos spécifiques au Insigth decodable dans le InsightParams
     //Process serviceTemplate to Add standard commande if not exist
 		var xmlTemplate = fs.readFileSync(__dirname+'/../../resources/ServicesTemplate.xml', 'utf8');
 		xml2js.parseString(xmlTemplate, (err, templatesData) => {
@@ -811,14 +811,14 @@ class WemoInsightService extends UpnpBaseService
           Logger.log("Processing scpd template", LogType.DEBUG);
           this.processSCPD(serviceTemplate.scpd[0],false);
           
-          //On s'abonne au evenement de la variable BinaryState pour en faire le decodage
-          var binaryState = this.getVariableByName('BinaryState');
-          if (!binaryState)
+          //On s'abonne au evenement de la variable InsightParams pour en faire le decodage
+          var insightParams = this.getVariableByName('InsightParams');
+          if (!insightParams)
           {
-            Logger.log("Unable to find BinaryState variable of the Wemo Insight " + this.Device.BaseAddress, LogType.ERROR);
+            Logger.log("Unable to find insightParams variable of the Wemo Insight " + this.Device.BaseAddress, LogType.ERROR);
             return;
           }
-          binaryState.on('updated', (varObj, newVal) =>	{
+          insightParams.on('updated', (varObj, newVal) =>	{
 						//On split la variable pour definir les valeurs des sous variable
             var subVariables = newVal.split('|');      
         
