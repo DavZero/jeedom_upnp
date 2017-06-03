@@ -119,6 +119,11 @@ class UpnpDevice extends EventEmitter
       //Création d'un service spécial pour le WEMO Insight
       service = new UpnpService.WemoInsightBasicevent(this, serviceDescription, eventServer);
     }
+    else if (this._type == 'urn:Belkin:device:insight:1' && serviceDescription.serviceType[0] == 'urn:Belkin:service:insight:1')
+    {
+      //Création d'un service spécial pour le WEMO Insight
+      service = new UpnpService.WemoInsightService(this, serviceDescription, eventServer);
+    }
     else if (this._type == 'urn:Belkin:device:Maker:1' && serviceDescription.serviceType[0] == 'urn:Belkin:service:deviceevent:1')
     {
       //Création d'un service spécial pour le WEMO Maker
