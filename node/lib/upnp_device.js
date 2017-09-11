@@ -142,6 +142,7 @@ class UpnpDevice extends EventEmitter
   {
     if (this._checkAlive) clearTimeout(this._checkAlive);
     this._checkAlive = setTimeout((device) => {
+      Logger.log("Device doesn't renew alive check " + this._UDN + " adresse : " + this._location.href, LogType.INFO);
       device.prepareForRemove();
       device.emit('deviceOffline', device);
     },timeout*1100,this);
