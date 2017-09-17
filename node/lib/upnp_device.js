@@ -71,6 +71,7 @@ class UpnpDevice extends EventEmitter
 		this._name = deviceDescription.friendlyName[0];
 		this._iconUrl = '';
 		this._additionalInfo = {};
+    this._isAlive = true;
     
     //Manage additional properties
 		for (var prop in deviceDescription)
@@ -142,9 +143,9 @@ class UpnpDevice extends EventEmitter
   {
     if (this._checkAlive) clearTimeout(this._checkAlive);
     this._checkAlive = setTimeout((device) => {
-      Logger.log("Device doesn't renew alive check " + this._UDN + " adresse : " + this._location.href, LogType.INFO);
-      device.prepareForRemove();
-      device.emit('deviceOffline', device);
+      Logger.log("Device " + this._UDN + " adresse : " + this._location.href + " alive timeout reach", LogType.DEBUG);
+      device.emit('deviceAliveTimeout',device);
+      this._isAlive = false;
     },timeout*1100,this);
   }
 
@@ -156,6 +157,11 @@ class UpnpDevice extends EventEmitter
 	get IconUrl()
 	{
 		return this._iconUrl;
+	}
+  
+  get IsAlive()
+	{
+		return this._isAvailable;
 	}
 
 	prepareForRemove()

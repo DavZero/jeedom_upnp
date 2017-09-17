@@ -156,6 +156,7 @@ class ControlPoint extends EventEmitter
           break;
         case 'DeviceUnavailable':
           //On cherche le device qui a le bon usn et on le supprimer
+          Logger.log("Device " + getUUID(headers.USN) + " send ssdp:byebye message", LogType.DEBUG);
           this._removeDevice(getUUID(headers.USN));
           break;
 			}
@@ -252,7 +253,18 @@ class ControlPoint extends EventEmitter
                 this._devices[uuid].on('variableCreated', (variable) => { this.emit('variableDiscovered', variable); });
                 this._devices[uuid].on('variableUpdated', (variable, newVal) => { this.emit('variableUpdated', variable, newVal); });
                 this._devices[uuid].on('serviceOffline', (service) => { this.emit('serviceOffline', service); });
-                this._devices[uuid].on('deviceOffline', (device) => { delete this._devices[device.UDN] });
+                this._devices[uuid].on('deviceAliveTimeout', (device) => { 
+                  //Check if device is alive or not and remove it if not
+                  this._SSDPserver.sendMSearch('uuid:'+device.UDN, (msg, rinfo) =>	{	this._onMSearchMessage(msg, rinfo);	});
+                  //On laisse le temps au device de répondre et sinon on le supprime
+                  setTimeout((device) => { 
+                    if (!device.IsAlive) 
+                    {
+                      Logger.log("Device " + device.UDN + " was not alive anymore", LogType.DEBUG);
+                      this._removeDevice(device.UDN);
+                    }
+                  },5000,device);)
+                });
                 this._devices[uuid].on('error', (error) => { this.emit('upnpError', error); });
               }
               //On l'ajoute a la liste des autorisés
