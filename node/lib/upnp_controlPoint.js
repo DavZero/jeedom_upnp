@@ -263,7 +263,7 @@ class ControlPoint extends EventEmitter
                       Logger.log("Device " + device.UDN + " was not alive anymore", LogType.DEBUG);
                       this._removeDevice(device.UDN);
                     }
-                  },5000,device);)
+                  },5000,device);
                 });
                 this._devices[uuid].on('error', (error) => { this.emit('upnpError', error); });
               }
