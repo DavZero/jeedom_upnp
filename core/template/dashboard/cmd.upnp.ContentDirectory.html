@@ -183,7 +183,7 @@
       var detailedObject = $xml.find("container");
       if (!detailedObject.length) detailedObject = $xml.find("item");
 
-      title = detailedObject.find("title").text();
+      title = detailedObject.find("dc\\:title").text();
 
       detailedObject.find("res").each( function() {
         if (!url) url = $(this).text();
@@ -196,7 +196,7 @@
         }
       });
 
-      detailedObject.find("albumArtURI").each ( function() {
+      detailedObject.find("upnp\\:albumArtURI").each ( function() {
         thumbnail = $(this).text();
       });
 
