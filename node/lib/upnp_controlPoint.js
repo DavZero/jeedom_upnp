@@ -198,7 +198,9 @@ class ControlPoint extends EventEmitter
 
 	_addDevice(headers)
 	{
+    if (headers === undefined || headers.USN === undefined) 
     {
+      Logger.log("Unable to add device : " + JSON.stringify(headers), LogType.ERROR);
       return;
     }
     Logger.log("Process usn : " + headers.USN, LogType.DEBUG);
