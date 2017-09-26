@@ -198,7 +198,11 @@ class ControlPoint extends EventEmitter
 
 	_addDevice(headers)
 	{
+    {
+      return;
+    }
     Logger.log("Process usn : " + headers.USN, LogType.DEBUG);
+    
     var uuid = getUUID(headers.USN);
     //Si le device n'est pas autorisés
     if (this._isDisallowed(uuid)) return;
