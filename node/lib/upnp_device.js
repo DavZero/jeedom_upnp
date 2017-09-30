@@ -144,8 +144,8 @@ class UpnpDevice extends EventEmitter
     if (this._checkAlive) clearTimeout(this._checkAlive);
     this._checkAlive = setTimeout((device) => {
       Logger.log("Device " + this._UDN + " adresse : " + this._location.href + " alive timeout reach", LogType.DEBUG);
+      device._isAlive = false;
       device.emit('deviceAliveTimeout',device);
-      this._isAlive = false;
     },timeout*1100,this);
   }
 
@@ -161,7 +161,7 @@ class UpnpDevice extends EventEmitter
   
   get IsAlive()
 	{
-		return this._isAvailable;
+		return this._isAlive;
 	}
 
 	prepareForRemove()
