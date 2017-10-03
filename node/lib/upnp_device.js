@@ -71,6 +71,7 @@ class UpnpDevice extends EventEmitter
 		this._name = deviceDescription.friendlyName[0];
 		this._iconUrl = '';
 		this._additionalInfo = {};
+    this._isAlive = true;
     
     //Manage additional properties
 		for (var prop in deviceDescription)
@@ -119,6 +120,11 @@ class UpnpDevice extends EventEmitter
       //Création d'un service spécial pour le WEMO Insight
       service = new UpnpService.WemoInsightBasicevent(this, serviceDescription, eventServer);
     }
+    else if (this._type == 'urn:Belkin:device:insight:1' && serviceDescription.serviceType[0] == 'urn:Belkin:service:insight:1')
+    {
+      //Création d'un service spécial pour le WEMO Insight
+      service = new UpnpService.WemoInsightService(this, serviceDescription, eventServer);
+    }
     else if (this._type == 'urn:Belkin:device:Maker:1' && serviceDescription.serviceType[0] == 'urn:Belkin:service:deviceevent:1')
     {
       //Création d'un service spécial pour le WEMO Maker
@@ -137,8 +143,9 @@ class UpnpDevice extends EventEmitter
   {
     if (this._checkAlive) clearTimeout(this._checkAlive);
     this._checkAlive = setTimeout((device) => {
-      device.prepareForRemove();
-      device.emit('deviceOffline', device);
+      Logger.log("Device " + this._UDN + " adresse : " + this._location.href + " alive timeout reach", LogType.DEBUG);
+      device._isAlive = false;
+      device.emit('deviceAliveTimeout',device);
     },timeout*1100,this);
   }
 
@@ -150,6 +157,11 @@ class UpnpDevice extends EventEmitter
 	get IconUrl()
 	{
 		return this._iconUrl;
+	}
+  
+  get IsAlive()
+	{
+		return this._isAlive;
 	}
 
 	prepareForRemove()

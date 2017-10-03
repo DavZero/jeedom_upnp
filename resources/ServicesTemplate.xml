@@ -1004,23 +1004,34 @@
           <dataType>string</dataType>
           <defaultValue>0</defaultValue>
         </stateVariable>
+      </serviceStateTable>
+    </scpd>
+  </serviceTemplate>
+  <serviceTemplate deviceType="urn:Belkin:device:insight:1" serviceType="urn:Belkin:service:insight:1">
+    <scpd xmlns="urn:Belkin:service-1-0">
+      <specVersion>
+        <major>1</major>
+        <minor>0</minor>
+      </specVersion>
+      <actionList/>
+      <serviceStateTable>
+        <stateVariable sendEvents="yes">
+          <name>State</name>
+          <dataType>number</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
+        <stateVariable sendEvents="yes">
+          <name>HumanState</name>
+          <dataType>string</dataType>
+          <defaultValue>0</defaultValue>
+        </stateVariable>
         <stateVariable sendEvents="yes">
           <name>LastModify</name>
           <dataType>number</dataType>
           <defaultValue>0</defaultValue>
         </stateVariable>
         <stateVariable sendEvents="yes">
-          <name>OnFor</name>
-          <dataType>number</dataType>
-          <defaultValue>0</defaultValue>
-        </stateVariable>
-        <stateVariable sendEvents="yes">
-          <name>OnToday</name>
-          <dataType>number</dataType>
-          <defaultValue>0</defaultValue>
-        </stateVariable>
-        <stateVariable sendEvents="yes">
-          <name>OnTotal</name>
+          <name>TotalTimePeriodON</name>
           <dataType>number</dataType>
           <defaultValue>0</defaultValue>
         </stateVariable>
@@ -1030,27 +1041,7 @@
           <defaultValue>0</defaultValue>
         </stateVariable>
         <stateVariable sendEvents="yes">
-          <name>WifiStrength</name>
-          <dataType>number</dataType>
-          <defaultValue>0</defaultValue>
-        </stateVariable>
-        <stateVariable sendEvents="yes">
-          <name>Power</name>
-          <dataType>number</dataType>
-          <defaultValue>0</defaultValue>
-        </stateVariable>
-        <stateVariable sendEvents="yes">
-          <name>TodayComsuption</name>
-          <dataType>number</dataType>
-          <defaultValue>0</defaultValue>
-        </stateVariable>
-        <stateVariable sendEvents="yes">
-          <name>TotalComsuption</name>
-          <dataType>number</dataType>
-          <defaultValue>0</defaultValue>
-        </stateVariable>
-        <stateVariable sendEvents="yes">
-          <name>PowerThreshold</name>
+          <name>TotalTimePeriodKWH</name>
           <dataType>number</dataType>
           <defaultValue>0</defaultValue>
         </stateVariable>

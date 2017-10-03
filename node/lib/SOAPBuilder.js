@@ -2,7 +2,9 @@
 
 var util = require('util');
 var request = require('request');
-var http = require("http");
+var Logger = require('../logger/logger.js').getInstance();
+var LogType = require('../logger/logger.js').logType;
+var XmlEntities = require('html-entities').XmlEntities;
 
 var SAOP_Header = [
 	'<?xml version="1.0" encoding="utf-8"?>',
@@ -30,7 +32,16 @@ _getBody()
 				if (item.Name in this._options)
 				{
 					output += '<' + item.Name + '>';
-					output += this._options[item.Name];
+          try
+          {
+            if (typeof this._options[item.Name]== 'string') output += XmlEntities.encode(this._options[item.Name]);
+            else output += this._options[item.Name];
+          }
+          catch (e)
+          {
+            Logger.log("Unable to xml encode : " + this._options[item.Name] + ", use value as is", LogType.WARNING);
+            output += this._options[item.Name];
+          }
 					output += '</' + item.Name + '>';
 				}
 				else
@@ -59,18 +70,18 @@ _getBody()
 				body: this._getBody()
 			};
 
-			request.post(options, function (err, response, body)
-			{
+			request.post(options, function (err, response, body){
 				if (err)
-					console.log('err : ' + err);
+        {
+          console.log('err : ' + err);
+        }
 				if (callback)
 					callback(err, body);
-			}
-			);
+			});
 		}
 		catch (e)
 		{
-			if (callback)
+      if (callback)
 				callback(e, null);
 		}
 	}

@@ -42,13 +42,14 @@ try {
     }
     
     if (init('action') == 'changeIncludeState') {
-      if (!upnp::deamon_info()['state'] == 'ok') throw new Exception(__('Le service doit être démarré avant de lancer l\'action : ', __FILE__) . init('action'));
-      $msg = array(
-        'command' => 'controlPointAction',
-        'subCommand' => 'changeIncludeState',
-        'value' => init('state')
-      );
-      upnp::sendToDaemon(json_encode($msg)) ;
+      if (upnp::deamon_info()['state'] == 'ok') {//throw new Exception(__('Le service doit être démarré avant de lancer l\'action : ', __FILE__) . init('action'));
+        $msg = array(
+          'command' => 'controlPointAction',
+          'subCommand' => 'changeIncludeState',
+          'value' => init('state')
+        );
+        upnp::sendToDaemon(json_encode($msg)) ;
+      }
       ajax::success();
     }
     

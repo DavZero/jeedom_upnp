@@ -5,4 +5,6 @@ Si ce n’est pas le cas ou si elle ne sont pas OK, cliquer sur relancer.
 --
 Ensuite il faut définir le port utilisé par le démon (si vous ne mettez rien, le port utilisé sera 5002)
 --
+Il est également possible de définir un objet parent par defaut (lors de leur création, les équipements sont directment associés a ce parent)
+--
 Enfin il est possible (en mode expert uniquement) de paramètrer le timeout des commandes (par défaut le timeout est de 10 secondes)

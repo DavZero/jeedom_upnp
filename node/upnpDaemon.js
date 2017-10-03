@@ -54,7 +54,7 @@ process.argv.forEach(function (val, index, array){
 	}
 });
 
-Logger.log("Démon version 2.0.0", LogType.INFO);
+Logger.log("Démon version 2.0.2", LogType.INFO);
 Logger.log("urlJeedom = " + urlJeedom, LogType.DEBUG);
 Logger.log("serverPort = " + serverPort, LogType.DEBUG);
 Logger.log("logLevel = " + logLevel, LogType.INFO);
@@ -185,7 +185,12 @@ server.listen(
 	port: serverPort
 }, (e) =>
 {
-	Logger.log("Création du serveur sur le port " + serverPort, LogType.INFO);
+	if (e != null)
+  {
+    Logger.log("Unable to start server to listen on " + serverPort + ". " + JSON.stringify(e), LogType.ERROR);
+    throw e;
+  }
+  Logger.log("Création du serveur sur le port " + serverPort, LogType.INFO);
 	Logger.log("Création du controlPoint");
 	cp = new controlPointAPI.ControlPoint(1900, allowedList, disallowedList);
 	

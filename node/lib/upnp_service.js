@@ -150,10 +150,12 @@ class UpnpBaseService
 			var variable = this.getVariableByName(key);
 			if (variable)
 			{
-				variable.Value = properties[prop][key][0];
+				var value = properties[prop][key][0];
+        if (value.hasOwnProperty('_')) value = value['_'];
+        variable.Value = value;
 				if (variable.Name == 'LastChange')
 				{
-					this.processLastChangeEvent(properties[prop][key][0]);
+          this.processLastChangeEvent(value);
 				}
 			}
 			else
@@ -164,7 +166,13 @@ class UpnpBaseService
 	//Body could be an xml or directly a json object
 	processLastChangeEvent(body)
 	{
-		//Si c'est déjà un objet, on le traite, sinon on le parse puis on le traite
+		//Si le body est null on ne fait rien
+    if (body == null)
+    {
+      Logger.log("Empty body in processLastChangeEvent. Do nothing...", LogType.DEBUG);
+      return;
+    }
+    //Si c'est déjà un objet, on le traite, sinon on le parse puis on le traite
 		//Il faut gérer plusieur cas, test OK sur TV LG et Freeplayer
 		if (body.Event)
 		{
@@ -470,20 +478,11 @@ class UpnpAVTransportService extends UpnpBaseService
 						clearInterval(this._intervalUpdateRelativeTime);
 					if (newVal == "PLAYING" || newVal == "RECORDING")
 					{
-						actPosInfo.execute(
-						{
-							InstanceID: 0
-						}
-						);
+						actPosInfo.execute(	{	InstanceID: 0	} );
 						//Déclenche la maj toutes les 4 secondes
-						this._intervalUpdateRelativeTime = setInterval(() =>
-							{
+						this._intervalUpdateRelativeTime = setInterval(() =>{
 								//Logger.log("On autoUpdate", LogType.DEBUG);
-								actPosInfo.execute(
-								{
-									InstanceID: 0
-								}
-								);
+								actPosInfo.execute(	{	InstanceID: 0	}	);
 							}, 4000);
 					}
 				}
@@ -495,33 +494,17 @@ class UpnpAVTransportService extends UpnpBaseService
 				if (newVal == "TRANSITIONING")
 				{
 					if (actPosInfo)
-						actPosInfo.execute(
-						{
-							InstanceID: 0
-						}
-						);
+						actPosInfo.execute(	{InstanceID: 0}	);
 					if (actMediaInfo)
-						actMediaInfo.execute(
-						{
-							InstanceID: 0
-						}
-						);
+						actMediaInfo.execute(	{InstanceID: 0} );
 				}
 
 				if (newVal == "STOPPED")
 				{
 					if (actPosInfo)
-						actPosInfo.execute(
-						{
-							InstanceID: 0
-						}
-						);
+						actPosInfo.execute(	{	InstanceID: 0	});
 					if (actMediaInfo)
-						actMediaInfo.execute(
-						{
-							InstanceID: 0
-						}
-						);
+						actMediaInfo.execute(	{	InstanceID: 0 });
 				}
 			}
 			);
@@ -546,9 +529,10 @@ class UpnpAVTransportService extends UpnpBaseService
 			{
 				var transportStateAction = this.getActionByName("GetTransportInfo");
 				if (transportStateAction)
-					callback = function ()
+					callback = function (err, response)
 					{
-						//On laisse le temps a l'action de s'executer complètement puis on lance la maj
+            if (err) _callback(err, response);
+            //On laisse le temps a l'action de s'executer complètement puis on lance la maj
 						setTimeout(() =>
 						{
 							transportStateAction.execute(options, _callback)
@@ -561,16 +545,13 @@ class UpnpAVTransportService extends UpnpBaseService
 		{
 			this.getActionByName('Stop').execute(options, (err, stopMessage) => {
 				this.getActionByName('SetAVTransportURI').execute(options, (err, SetAVTransportURIMessage) => {
-					if (err)
-						callback(err, SetAVTransportURIMessage);
+					if (err) callback(err, SetAVTransportURIMessage);
 					else
 					{
 						options.Speed = 1;
 						this.getActionByName('Play').execute(options, (err, PlayMessage) =>	{
-							if (err)
-								callback(err, PlayMessage);
-							else
-								this.getActionByName('GetPositionInfo').execute(options, callback);
+							if (err) callback(err, PlayMessage);
+							else this.getActionByName('GetPositionInfo').execute(options, callback);
 						});
 					}
 				});
@@ -588,7 +569,7 @@ class UpnpAVTransportService extends UpnpBaseService
 			if (!transportState)
 			{
 				callback("Enable to get the TransportStatus.", null);
-				retun;
+				return;
 			}
 			if (transportState.Value != 'PAUSED_PLAYBACK' && transportState.Value != 'PLAYING')
 			{
@@ -605,7 +586,7 @@ class UpnpAVTransportService extends UpnpBaseService
 				if (CurrentTrackURI.Value != null && CurrentTrackURI.Value != '')
 				{
 					options.CurrentURI = CurrentTrackURI.Value;
-					options.CurrentURIMetaData = XmlEntities.encode(CurrentTrackMetaData.Value);
+					options.CurrentURIMetaData = CurrentTrackMetaData.Value;
 					this.getActionByName('SetAVTransportURI').execute(options, (err, SetAVTransportURIMessage) =>	{
 						if (err)
 							callback(err, SetAVTransportURIMessage);
@@ -780,17 +761,17 @@ class WemoInsightBasicevent extends UpnpBaseService
             if (subVariables[0]) this.updateSubVariable('State',Number(subVariables[0]));
             if (subVariables[0] == '0') this.updateSubVariable('HumanState','Off');
             if (subVariables[0] == '1') this.updateSubVariable('HumanState','On');
-            if (subVariables[0] == '2') this.updateSubVariable('HumanState','OnWithoutLoad');
-            if (subVariables[1]) this.updateSubVariable('LastModify',Number(subVariables[1]));
-            if (subVariables[2]) this.updateSubVariable('OnFor',Number(subVariables[2]));
-            if (subVariables[3]) this.updateSubVariable('OnToday',Number(subVariables[3]));
-            if (subVariables[4]) this.updateSubVariable('OnTotal',Number(subVariables[4]));
-            if (subVariables[5]) this.updateSubVariable('TimePeriod',Number(subVariables[5]));
-            if (subVariables[6]) this.updateSubVariable('WifiStrength',Number(subVariables[6]));
-            if (subVariables[7]) this.updateSubVariable('Power',Number(subVariables[7])*0.001); //conversion mW en W
-            if (subVariables[8]) this.updateSubVariable('TodayComsuption',Number(subVariables[8])*0.001*(1/60)); //conversion mW*minutes en KWh
-            if (subVariables[9]) this.updateSubVariable('TotalComsuption',Number(subVariables[9])*0.001*(1/60)); //conversion mW*minutes en KWh
-            if (subVariables[10]) this.updateSubVariable('PowerThreshold',Number(subVariables[10])*0.001); //conversion mW en W??? 
+            if (subVariables[0] == '8') this.updateSubVariable('HumanState','OnWithoutLoad');
+            //if (subVariables[1]) this.updateSubVariable('LastModify',Number(subVariables[1]));
+            //if (subVariables[2]) this.updateSubVariable('OnFor',Number(subVariables[2]));
+            //if (subVariables[3]) this.updateSubVariable('OnToday',Number(subVariables[3]));
+            //if (subVariables[4]) this.updateSubVariable('OnTotal',Number(subVariables[4]));
+            //if (subVariables[5]) this.updateSubVariable('TimePeriod',Number(subVariables[5]));
+            //if (subVariables[6]) this.updateSubVariable('WifiStrength',Number(subVariables[6]));
+            //if (subVariables[7]) this.updateSubVariable('Power',Number(subVariables[7])*0.001); //conversion mW en W
+            //if (subVariables[8]) this.updateSubVariable('TodayComsuption',Number(subVariables[8])*0.001*(1/60)); //conversion mW*minutes en KWh
+            //if (subVariables[9]) this.updateSubVariable('TotalComsuption',Number(subVariables[9])*0.001*(1/60)); //conversion mW*minutes en KWh
+            //if (subVariables[10]) this.updateSubVariable('PowerThreshold',Number(subVariables[10])*0.001); //conversion mW en W??? 
 					});
         }
       });
@@ -803,6 +784,70 @@ class WemoInsightBasicevent extends UpnpBaseService
     if (!variable)
     {
       Logger.log("Unable to find BinaryState variable of the Wemo Insight " + this.Device.BaseAddress, LogType.ERROR);
+      return;
+    }
+    variable.Value = value;
+  }
+}
+
+class WemoInsightService extends UpnpBaseService
+{
+  constructor(device, serviceData, eventServer)
+	{
+		super(device, serviceData, eventServer);
+	}
+  
+  _specializedInitialisation()
+	{
+    Logger.log("Specialisation for WemoInsight Basicevent", LogType.INFO);
+    //Création des infos spécifiques au Insigth decodable dans le InsightParams
+    //Process serviceTemplate to Add standard commande if not exist
+		var xmlTemplate = fs.readFileSync(__dirname+'/../../resources/ServicesTemplate.xml', 'utf8');
+		xml2js.parseString(xmlTemplate, (err, templatesData) => {
+      templatesData.servicesTemplate.serviceTemplate.forEach((serviceTemplate) => {
+        if ((serviceTemplate['$']['serviceType'] == this._type || !serviceTemplate['$']['serviceType']) && 
+          (serviceTemplate['$']['deviceType'] == this.Device.Type || !serviceTemplate['$']['deviceType']))
+        {
+          Logger.log("Processing scpd template", LogType.DEBUG);
+          this.processSCPD(serviceTemplate.scpd[0],false);
+          
+          //On s'abonne au evenement de la variable InsightParams pour en faire le decodage
+          var insightParams = this.getVariableByName('InsightParams');
+          if (!insightParams)
+          {
+            Logger.log("Unable to find insightParams variable of the Wemo Insight " + this.Device.BaseAddress, LogType.ERROR);
+            return;
+          }
+          insightParams.on('updated', (varObj, newVal) =>	{
+						//On split la variable pour definir les valeurs des sous variable
+            var subVariables = newVal.split('|');      
+        
+            if (subVariables[0]) this.updateSubVariable('State',Number(subVariables[0]));
+            if (subVariables[0] == '0') this.updateSubVariable('HumanState','Off');
+            if (subVariables[0] == '1') this.updateSubVariable('HumanState','On');
+            if (subVariables[0] == '8') this.updateSubVariable('HumanState','OnWithoutLoad');
+            if (subVariables[1]) this.updateSubVariable('LastModify',Number(subVariables[1]));
+            if (subVariables[2]) this.updateSubVariable('ONFor',Number(subVariables[2]));
+            if (subVariables[3]) this.updateSubVariable('TodayONTime',Number(subVariables[3]));
+            if (subVariables[4]) this.updateSubVariable('TotalTimePeriodON',Number(subVariables[4]));
+            if (subVariables[5]) this.updateSubVariable('TimePeriod',Number(subVariables[5]));
+            //if (subVariables[6]) this.updateSubVariable('WifiStrength',Number(subVariables[6]));
+            if (subVariables[7]) this.updateSubVariable('InstantPower',Number(subVariables[7])*0.001); //conversion mW en W
+            if (subVariables[8]) this.updateSubVariable('TodayKWH',Number(subVariables[8])*0.001*(1/60)); //conversion mW*minutes en KWh
+            if (subVariables[9]) this.updateSubVariable('TotalTimePeriodKWH',Number(subVariables[9])*0.001*(1/60)); //conversion mW*minutes en KWh
+            if (subVariables[10]) this.updateSubVariable('PowerThreshold',Number(subVariables[10])*0.001); //conversion mW en W??? 
+					});
+        }
+      });
+		});  
+  }
+  
+  updateSubVariable(name, value)
+  {
+    var variable = this.getVariableByName(name);
+    if (!variable)
+    {
+      Logger.log("Unable to find " + name + " variable of the Wemo Insight " + this.Device.BaseAddress, LogType.ERROR);
       return;
     }
     variable.Value = value;
@@ -877,4 +922,7 @@ exports.BaseService = UpnpBaseService;
 exports.AVTransportService = UpnpAVTransportService;
 exports.OpenHomeAVTransportService = OpenHomeAVTransportService;
 exports.WemoInsightBasicevent = WemoInsightBasicevent;
+exports.WemoInsightService = WemoInsightService;
 exports.WemoMakerDeviceevent = WemoMakerDeviceevent;
+
+
