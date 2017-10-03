@@ -1,15 +1,15 @@
 ==== Recherche d'équipement
-Lors du démarrage du plugin, un scan des équipements upnp présent sur votre reseau est effectué.
+Lors du démarrage du plugin, un scan des équipements upnp présent sur votre réseau est effectué.
 
 Si le plugin est en mode inclusion (voir page de configuration des équipements) alors des équipements vont se créer, sinon seuls les équipements déjà présents dans votre Jeedom seront opérationnels.
 Si vous souhaitez ajouter des équipements, il faut que le plugin soit en mode inclusion (voir page de configuration des équipements) et lancer une recherche (voir page de configuration des équipements).
-Bien sûr seuls les équipements allumés et présents sur votre reseau local pourront être detectés.
+Bien sûr seuls les équipements allumés et présents sur votre réseau local pourront être détectés.
 
-Une fois que les équipements requis ont été detectés, vous pouvez quitter le mode inclusion et supprimer ceux que vous considerez comme inutiles.
+Une fois que les équipements requis ont été détectés, vous pouvez quitter le mode inclusion et supprimer ceux que vous considérez comme inutiles.
 
 TIP: Si vous supprimez des équipements mais que vous restez en mode inclusion, ceux-ci risquent de se recréer même sans faire de recherche.
 
-==== Paramétrage Equipement
+==== Paramétrage Équipement
 
 Pour les services disposant d'un widget spécifiques :
 
@@ -20,13 +20,13 @@ Pour les services disposant d'un widget spécifiques :
 Il est possible de choisir entre l'affichage "standard" des commandes et l'affichage spécifique aux services.
 En complément de l'affichage spécifique, il est possible d'afficher les commandes du service "non gérées" par l'affichage spécifique et de forcer l'affichage des commandes en "standard" en plus de l'affichage spécifique.
 
-TIP: Que se soit pour les services disposant d'un widget spécifique ou pour les autres services, l'affichage en mode "standard" prend en compte les paramètrages des commandes (affichage On/Off).
+TIP: Que se soit pour les services disposant d'un widget spécifique ou pour les autres services, l'affichage en mode "standard" prend en compte les paramétrages des commandes (affichage On/Off).
 
 ==== Paramétrage Commandes
 
 Les actions mises à disposition par le plugin nécessitent la plupart du temps des paramètres. 
 Il est possible via l'onglet "Commandes" de la page de configuration d'un équipement de définir des valeurs par défaut pour ces paramètres et de créer plusieurs configurations de la même commande, ceci permet par exemple de créer les actions On et Off pour la commande UPnP "SetBinaryState" ou encore de créer un bouton permettant de charger sa chanson préférée ou même de paramétrer plusieurs radios.
-Pour cela il faut créer une nouvelle commande d'action et dans le champs "Action" correspondant à la commande créée, de définir l'action UPnP que l'on souhaite paramétrer. 
+Pour cela il faut créer une nouvelle commande d'action et dans le champ "Action" correspondant à la commande créée, de définir l'action UPnP que l'on souhaite paramétrer. 
 Ensuite, après enregistrement, les paramètres de la commande apparaissent dans le champ "Option" de la commande.
 
 image::../images/upnp_customAction.png[]
@@ -36,6 +36,6 @@ TIP: Si vous n'avez pas besoin d'afficher les paramètres des commandes sur le d
 
 TIP: La valeur du champ "Information" peut être renseigné afin de définir quelle information est en relation avec cette action (à part pour la commande SetBinaryState, je ne vois pas de cas d'usage mais sait-on jamais, soyez inventif).
 
-TIP: L'option WaitResponse est utilisé si vous souhaitez "enchainer" des commandes dans un sénario par exemple, le traitement ne passera à la commande suivante que lorsque la commande avec WaitResponse = 1 ou true sera finie. Si WaitResponse = 0 ou false, alors la commande suivante sera executée sans attendre la fin de la première commande. Dans la plupart des cas, mettre 0 ou 1 ou rien n'a pas d'incidence.
+TIP: L'option WaitResponse est utilisé si vous souhaitez "enchainer" des commandes dans un scénario par exemple, le traitement ne passera à la commande suivante que lorsque la commande avec WaitResponse = 1 ou true sera finie. Si WaitResponse = 0 ou false, alors la commande suivante sera exécutée sans attendre la fin de la première commande. Dans la plupart des cas, mettre 0 ou 1 ou rien n'a pas d'incidence.
 
 
