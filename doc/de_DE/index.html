@@ -435,7 +435,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect3">
 <h4 id="_präsentation">1.1. Präsentation</h4>
 <div class="paragraph">
-<p>Ce plugin permet la gestion des periphériques Upnp</p>
+<p>Ce plugin permet la gestion des périphériques Upnp.</p>
 </div>
 <hr>
 </div>
@@ -448,12 +448,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="_plugin_konfiguration">2.1. Plugin Konfiguration</h4>
 <div class="paragraph">
 <p>Une fois le plugin activé, les dépendances doivent s’installer automatiquement.
-Si ce n’est pas le cas ou si elle ne sont pas OK, cliquer sur relancer.</p>
+Si ce n’est pas le cas ou si elles ne sont pas OK, cliquer sur relancer.</p>
 </div>
 <div class="openblock">
 <div class="content">
 <div class="paragraph">
-<p>Ensuite il faut définir le port utilisé par le démon (si vous ne mettez rien, le port utilisé sera 5002)</p>
+<p>Ensuite il faut définir le port utilisé par le démon (si vous ne mettez rien, le port utilisé sera 5002).</p>
 </div>
 </div>
 </div>
@@ -469,15 +469,15 @@ Si ce n’est pas le cas ou si elle ne sont pas OK, cliquer sur relancer.</p>
 <div class="paragraph">
 <p>== Einrichtung
 ==== Recherche d&#8217;équipement
-Lors du démarrage du plugin, un scan des equipements upnp présent sur votre reseau est effectué.</p>
+Lors du démarrage du plugin, un scan des équipements upnp présent sur votre réseau est effectué.</p>
 </div>
 <div class="paragraph">
-<p>Si le plugin est en mode inclusion (voir page de configuration des équipements) alors des équipements vont se créer, sinon seul les équipements déjà présent dans votre Jeedom seront opérationnel.
-Si vous souhaiter ajouter des equipements, il faut que le plugin soit en mode inclusion (voir page de configuration des équipements) et lancer une recherche (voir page de configuration des équipements).
-Bien sur seul les équipements allumer et présent sur votre reseau local pourront être detecté.</p>
+<p>Si le plugin est en mode inclusion (voir page de configuration des équipements) alors des équipements vont se créer, sinon seuls les équipements déjà présents dans votre Jeedom seront opérationnels.
+Si vous souhaitez ajouter des équipements, il faut que le plugin soit en mode inclusion (voir page de configuration des équipements) et lancer une recherche (voir page de configuration des équipements).
+Bien sûr seuls les équipements allumés et présents sur votre réseau local pourront être détectés.</p>
 </div>
 <div class="paragraph">
-<p>Une fois que les equipements requis ont été detecté, vous pouvez quitter le mode inclusion et supprimer ceux que vous considerer comme inutile.</p>
+<p>Une fois que les équipements requis ont été détectés, vous pouvez quitter le mode inclusion et supprimer ceux que vous considérez comme inutiles.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -486,13 +486,13 @@ Bien sur seul les équipements allumer et présent sur votre reseau local pourro
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-Si vous supprimer des equipements mais que vous rester en mode inclusion, ceux ci risque de se recréer même sans faire de recherche.
+Si vous supprimez des équipements mais que vous restez en mode inclusion, ceux-ci risquent de se recréer même sans faire de recherche.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>==== Geräte Einrichtung</p>
+<p>==== Paramétrage Équipement</p>
 </div>
 <div class="paragraph">
 <p>Pour les services disposant d&#8217;un widget spécifiques :</p>
@@ -509,8 +509,7 @@ Si vous supprimer des equipements mais que vous rester en mode inclusion, ceux c
 </div>
 <div class="paragraph">
 <p>Il est possible de choisir entre l&#8217;affichage "standard" des commandes et l&#8217;affichage spécifique aux services.
-En complément de l&#8217;affichage spécifique, il est possible d&#8217;afficher les commandes du service "non géré" par l&#8217;affichage spécifique et de forcer
-l&#8217;affichage des commandes en "standard" en plus de l&#8217;affichage spécifique</p>
+En complément de l&#8217;affichage spécifique, il est possible d&#8217;afficher les commandes du service "non gérées" par l&#8217;affichage spécifique et de forcer l&#8217;affichage des commandes en "standard" en plus de l&#8217;affichage spécifique.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -519,7 +518,7 @@ l&#8217;affichage des commandes en "standard" en plus de l&#8217;affichage spéc
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-Que se soit pour les services disposant d&#8217;un widget spécifique ou pour les autres services, l&#8217;affichage en mode "standard" prend en compte les paramètrages des commandes (affichage On/Off).
+Que se soit pour les services disposant d&#8217;un widget spécifique ou pour les autres services, l&#8217;affichage en mode "standard" prend en compte les paramétrages des commandes (affichage On/Off).
 </td>
 </tr>
 </table>
@@ -528,12 +527,10 @@ Que se soit pour les services disposant d&#8217;un widget spécifique ou pour le
 <p>==== Befehls Einrichtung</p>
 </div>
 <div class="paragraph">
-<p>Les actions mises a disposition par le plugin nécessitent la plupart du temps des paramètres.
-Il est possible via l&#8217;onglet "Commandes" de la page de configuration d&#8217;un equipement de définir des valeurs par defaut pour ces paramètres
-et de créer plusieur configuration de la même commande, ceci permet par exemples afin de créer les actions On et Off pour la commande UPnP "SetBinaryState"
-ou encore de créer un bouton permettant de charger ma chanson préféré ou encore de paramètré plusieur radio.
-Pour cela il faut créer une nouvelle commande d&#8217;action et dans le champs "Action" correspondant à la commande créer définir l&#8217;action UPnP qu&#8217;on souhaite paramètré.
-Ensuite, après enregistrement, les paramètre de la commande apparaissent dans le champ Option de la commande.</p>
+<p>Les actions mises à disposition par le plugin nécessitent la plupart du temps des paramètres.
+Il est possible via l&#8217;onglet "Commandes" de la page de configuration d&#8217;un équipement de définir des valeurs par défaut pour ces paramètres et de créer plusieurs configurations de la même commande, ceci permet par exemple de créer les actions On et Off pour la commande UPnP "SetBinaryState" ou encore de créer un bouton permettant de charger sa chanson préférée ou même de paramétrer plusieurs radios.
+Pour cela il faut créer une nouvelle commande d&#8217;action et dans le champ "Action" correspondant à la commande créée, de définir l&#8217;action UPnP que l&#8217;on souhaite paramétrer.
+Ensuite, après enregistrement, les paramètres de la commande apparaissent dans le champ "Option" de la commande.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -547,8 +544,7 @@ Ensuite, après enregistrement, les paramètre de la commande apparaissent dans 
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-Si vous n&#8217;avez pas besoin d&#8217;afficher les paramètres des commandes sur le dashboard (parce que par exemple la valeur par defaut que vous
-avez indiquer est la seul valeur qui vous interesse alors vous pouvez décocher la checbox "Afficher les options")
+Si vous n&#8217;avez pas besoin d&#8217;afficher les paramètres des commandes sur le dashboard (parce que, par exemple, la valeur par défaut que vous avez indiquée est la seule qui vous intéresse alors vous pouvez décocher la checkbox "Afficher les options").
 </td>
 </tr>
 </table>
@@ -560,8 +556,7 @@ avez indiquer est la seul valeur qui vous interesse alors vous pouvez décocher 
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-La valeur du champ information peut être renseigner afin de définir quel info est en relation avec cette action (a part pour la commande
-SetBinaryState je ne vois pas de cas d&#8217;usage mais on ne sais jamais soyez inventif)
+La valeur du champ "Information" peut être renseigné afin de définir quelle information est en relation avec cette action (à part pour la commande SetBinaryState, je ne vois pas de cas d&#8217;usage mais sait-on jamais, soyez inventif).
 </td>
 </tr>
 </table>
@@ -573,9 +568,7 @@ SetBinaryState je ne vois pas de cas d&#8217;usage mais on ne sais jamais soyez 
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-L&#8217;option WaitResponse est utilise si vous souhaiter "enchainer" des commandes dans un sénario par exemple, le traitement ne passera à la commande
-suivante que lorsque la commande avec WaitResponse = 1 ou true sera fini alors que si WaitResponse = 0 ou false,
-alors la commande suivante sera executer sans attendre la fin de la première commande. Dans la plupart des cas, mettre 0 ou 1 ou rien n&#8217;a pas d&#8217;incidence.
+L&#8217;option WaitResponse est utilisée si vous souhaitez "enchainer" des commandes dans un scénario par exemple, le traitement ne passera à la commande suivante que lorsque la commande avec WaitResponse = 1 ou true sera finie. Si WaitResponse = 0 ou false, alors la commande suivante sera exécutée sans attendre la fin de la première commande. Dans la plupart des cas, mettre 0 ou 1 ou rien n&#8217;a pas d&#8217;incidence.
 </td>
 </tr>
 </table>
@@ -587,7 +580,7 @@ alors la commande suivante sera executer sans attendre la fin de la première co
 </div>
 </div>
 <div class="paragraph">
-<p>Les commandes Upnp nécessitent des paramètres pour être executées, il est nécessaire de passer par un bloc code. Exemple :</p>
+<p>Les commandes Upnp nécessitent des paramètres pour être exécutées, il est nécessaire de passer par un bloc code. Exemple :</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -595,7 +588,7 @@ alors la commande suivante sera executer sans attendre la fin de la première co
 </div>
 </div>
 <div class="paragraph">
-<p>Pour connaitre les paramètres de chaque commande, il faut regarder le paramétrage des commandes sur l&#8217;equipement (attention pour les listes de valeur, il faut saisir une valeur autorisée)</p>
+<p>Pour connaitre les paramètres de chaque commande, il faut regarder le paramétrage des commandes sur l&#8217;équipement (attention pour les listes de valeur, il faut saisir une valeur autorisée).</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -611,8 +604,8 @@ alors la commande suivante sera executer sans attendre la fin de la première co
 </div>
 </div>
 <div class="paragraph">
-<p>Ces messages n&#8217;ont pas d&#8217;incidence en fonctionnement normal et sont la uniquement pour du dépannage.
-Ce genre de message apparaît notamment lorsqu’on redémarre le service et sont liés à de précédant abonnement au messages des services UPnP</p>
+<p>Ces messages n&#8217;ont pas d&#8217;incidence en fonctionnement normal et sont là uniquement pour du dépannage.
+Ce genre de message apparaît notamment lorsque l’on redémarre le service et sont liés à de précédents abonnements aux messages des services UPnP.</p>
 </div>
 <div class="openblock">
 <div class="content">
@@ -621,8 +614,8 @@ Ce genre de message apparaît notamment lorsqu’on redémarre le service et son
 </div>
 <div class="paragraph">
 <p>La configuration du plugin permet de définir le timeout de l’exécution d’une commande (voir la rubrique configuration).
-Dans mon cas, lors du chargement d’un media sur ma télévision, la première fois, le délai de réponse de la télévision peut aller au delà de 5 secondes.
-Si ce problème vous arrive, il suffit de relancer l’action. Si ce problème arrive régulièrement, augmenter le délai du timeout.</p>
+Dans mon cas, lors du chargement d’un média sur ma télévision, la première fois, le délai de réponse de la télévision a pu dépasser les 5 secondes.
+Si ce problème vous arrive, il suffit de relancer l’action. Si ce problème arrive régulièrement, augmentez le délai du timeout.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -631,7 +624,7 @@ Si ce problème vous arrive, il suffit de relancer l’action. Si ce problème a
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-La valeur par defaut est 10 secondes
+La valeur par défaut est 10 secondes.
 </td>
 </tr>
 </table>
