@@ -54,7 +54,7 @@ process.argv.forEach(function (val, index, array){
 	}
 });
 
-Logger.log("Démon version 2.0.2", LogType.INFO);
+Logger.log("Démon version 2.1.0", LogType.INFO);
 Logger.log("urlJeedom = " + urlJeedom, LogType.DEBUG);
 Logger.log("serverPort = " + serverPort, LogType.DEBUG);
 Logger.log("logLevel = " + logLevel, LogType.INFO);
@@ -391,6 +391,14 @@ var processJeedomMessage = function (payload, callback)
       Logger.log("Lancement d'un scan", LogType.INFO);
       cp.search();
       cp.search('upnp:rootdevice');
+    }
+    else if (data.subCommand == 'UpdateOnlineStatus') 
+    {
+      Logger.log("Lancement de la recherche de " + data.UDN, LogType.INFO);
+      cp.checkDeviceStatus(data.UDN,(response) => {
+        if (callback) callback(response);
+      });
+			return;
     }
     else if (data.subCommand == 'removeService') 
     {

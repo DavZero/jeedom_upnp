@@ -251,7 +251,7 @@ class ControlPoint extends EventEmitter
               {
                 this._devices[uuid] = new upnpDeviceAPI.UpnpDevice(uuid, this._includeState, this._allowedDevice[uuid], timeout, location, deviceDescription, 'http://' + ip.address() + ':' + this._eventPort);
                 this._devices[uuid].on('serviceUpdated', (service) => { 
-                  this.emit('serviceUpdated', service); 
+                  this.emit('serviceUpdated', service);
                   //On ajoute le service a la liste des services autorisés
                   this._addAllowedService(service.Device.UDN,service.ID);
                 });
@@ -259,18 +259,7 @@ class ControlPoint extends EventEmitter
                 this._devices[uuid].on('variableCreated', (variable) => { this.emit('variableDiscovered', variable); });
                 this._devices[uuid].on('variableUpdated', (variable, newVal) => { this.emit('variableUpdated', variable, newVal); });
                 this._devices[uuid].on('serviceOffline', (service) => { this.emit('serviceOffline', service); });
-                this._devices[uuid].on('deviceAliveTimeout', (device) => { 
-                  //Check if device is alive or not and remove it if not
-                  this._SSDPserver.sendMSearch('uuid:'+device.UDN, (msg, rinfo) =>	{	this._onMSearchMessage(msg, rinfo);	});
-                  //On laisse le temps au device de répondre et sinon on le supprime
-                  setTimeout((device) => { 
-                    if (!device.IsAlive) 
-                    {
-                      Logger.log("Device " + device.UDN + " was not alive anymore", LogType.DEBUG);
-                      this._removeDevice(device.UDN);
-                    }
-                  },5000,device);
-                });
+                this._devices[uuid].on('deviceAliveTimeout', (device) => { this.checkDeviceStatus(device.UDN); });
                 this._devices[uuid].on('error', (error) => { this.emit('upnpError', error); });
               }
               //On l'ajoute a la liste des autorisés
@@ -291,6 +280,28 @@ class ControlPoint extends EventEmitter
       setTimeout(() => { delete this._requestedDeviceQueue[uuid]; },5000);
 		});
 	}
+  
+  checkDeviceStatus(udn,callback)
+  {
+    //On vérifie si le device existe dejà
+    var device = this.getDevice(udn);
+    //On laisse le temps au device de répondre et sinon on le supprime
+    var onlineTimeout = setTimeout((device) => {
+      if (device)
+      {
+        Logger.log("Device " + device.UDN + " was not alive", LogType.DEBUG);
+        this._removeDevice(device.UDN);
+      }
+      if (callback) callback('Offline');
+    },5000,device);
+
+    this._SSDPserver.sendMSearch('uuid:'+udn, (msg, rinfo) =>	
+    {	
+      clearTimeout(onlineTimeout);
+      this._onMSearchMessage(msg, rinfo);	
+      if (callback) callback('Online');
+    });
+  }
 
 	_removeDevice(uuid)
 	{

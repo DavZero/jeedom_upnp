@@ -20,9 +20,10 @@ class UpnpDevice extends EventEmitter
     this._allowedServices = [];
     if (allowedServices) this._allowedServices = allowedServices;
     //On créer les services mais il faut laisser le temps au controlPoint de s'inscrire au evenement
-    setTimeout(() => {
-      this._updateServices(deviceDescription,eventServer);
-    },1000);
+    //setTimeout(() => {
+    //  this._updateServices(deviceDescription,eventServer);
+    //},1000);
+    process.nextTick(() => { this._updateServices(deviceDescription,eventServer); });
 	}
   
   _updateServices(deviceDescription, eventServer)
@@ -71,7 +72,6 @@ class UpnpDevice extends EventEmitter
 		this._name = deviceDescription.friendlyName[0];
 		this._iconUrl = '';
 		this._additionalInfo = {};
-    this._isAlive = true;
     
     //Manage additional properties
 		for (var prop in deviceDescription)
@@ -100,10 +100,11 @@ class UpnpDevice extends EventEmitter
     Logger.log("Mise a jour du device " + deviceDescription.deviceType[0] + " " + this._UDN + " / timeout : " + timeout, LogType.DEBUG);
     this._setDeviceTimeout(timeout);
     this._updateDeviceProperties(location, deviceDescription);
-    setTimeout(() => {
-      this._updateServices(deviceDescription,eventServer);
-    },1000);
-    //this._updateServices(deviceDescription, eventServer);
+    //process.nextTick(() => { this._updateServices(deviceDescription,eventServer); });
+    //setTimeout(() => {
+    //  this._updateServices(deviceDescription,eventServer);
+  //},1000);
+    this._updateServices(deviceDescription, eventServer);
   }
   
   setAllowedService(allowedServices)
@@ -144,7 +145,6 @@ class UpnpDevice extends EventEmitter
     if (this._checkAlive) clearTimeout(this._checkAlive);
     this._checkAlive = setTimeout((device) => {
       Logger.log("Device " + this._UDN + " adresse : " + this._location.href + " alive timeout reach", LogType.DEBUG);
-      device._isAlive = false;
       device.emit('deviceAliveTimeout',device);
     },timeout*1100,this);
   }
@@ -157,11 +157,6 @@ class UpnpDevice extends EventEmitter
 	get IconUrl()
 	{
 		return this._iconUrl;
-	}
-  
-  get IsAlive()
-	{
-		return this._isAlive;
 	}
 
 	prepareForRemove()

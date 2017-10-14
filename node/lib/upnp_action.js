@@ -45,7 +45,7 @@ class UpnpAction
 			{
 				Logger.log("Error executiong action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options) + ", err : " + err, LogType.ERROR);
 				//this._service.Device.emit('error',"Error executiong action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify (options) + ", err : " + err);
-				callback("Error executiong action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options) + ", err : " + err, null);
+				if (callback) callback("Error executiong action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options) + ", err : " + err, null);
 			}
 			else
 			{
@@ -62,7 +62,7 @@ class UpnpAction
 					{
 						Logger.log("Unable to process action " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " err : " + JSON.stringify(err), LogType.ERROR);
             //this._service.Device.emit('error',"Error parsing response XML for action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify (options) + ", err : " + err + ", XML : " + responseBody);
-						callback("Error parsing response XML for action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options) + ", err : " + err + ", XML : " + responseBody, null);
+						if (callback) callback("Error parsing response XML for action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options) + ", err : " + err + ", XML : " + responseBody, null);
 					}
 					else
 					{

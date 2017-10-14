@@ -88,6 +88,21 @@
         $cmd->save();
         $cmd->event(1);
       }
+      
+      //Ajout de l'action UpdateOnlineStatus
+      $cmd = $eqp->getCmd('action','UpdateOnlineStatus');
+      if (!is_object($cmd))
+      {
+        log::add('upnp', 'info', 'création de l\'action ' . 'UpdateOnlineStatus' . ' pour l\'équipement ' . $data->deviceUDN.'_'.$data->serviceId);
+        $cmd = new upnpCmd();
+        $cmd->setName(__('UpdateOnlineStatus', __FILE__));
+        $cmd->setLogicalId('UpdateOnlineStatus');
+        $cmd->setEqLogic_id($eqp->getId());
+        $cmd->setType('action');
+        $cmd->setSubType('other');
+        $cmd->setConfiguration('source','Plugin');
+        $cmd->save();
+      }
           
       switch ($data->eventType)
       {
@@ -187,6 +202,7 @@
         log::add('upnp', 'debug', 'Event cmd '.$cmd->getHumanName().' with value '.$data->value);
         //$cmd->event($data->value);
         $cmd->event(htmlentities($data->value));
+        //$eqp->checkAndUpdateCmd($cmd,htmlentities($data->value));
         break;
         
       case 'updateService':
@@ -209,6 +225,7 @@
           $eqp->setConfiguration('isOnline',$data->isOnline?true:false);
           $cmd = $eqp->getCmd('info','isOnline');
           $cmd->event($data->isOnline?1:0);
+          //$eqp->checkAndUpdateCmd($cmd,$data->isOnline?1:0);
         }
         if (isset($data->serviceDescription)) $eqp->setConfiguration('serviceDescription',$data->serviceDescription);
         $eqp->save();
@@ -222,6 +239,8 @@
       {
         $eqp->setConfiguration('isOnline',false);
         $eqp->save();
+        $eqp->getCmd('info','isOnline').event(1)
+        //$eqp->checkAndUpdateCmd('isOnline',0);
       }
     }
     
@@ -713,14 +732,32 @@
       log::add('upnp', 'info', 'execute '.$this->getLogicalId().' avec option : '.json_encode($_options));
       switch ($this->getType()) {
       case 'action':
-        if ($this->getEqLogic()->getConfiguration('isOnline') == false) throw new Exception("Error Processing Request, equipment is offline", 1);
         $msg = array();
-        $msg['command'] = 'executeAction';
-        $msg['UDN'] = $this->getEqLogic()->getConfiguration('UDN');
-        $msg['serviceID'] = $this->getEqLogic()->getConfiguration('serviceId');
-        $msg['actionName'] = $this->getLogicalId();
-        $msg['options'] = $this->getParameters($this,$_options);
-        return upnp::sendToDaemon(json_encode($msg),$msg['options']['WaitResponse']);
+        $response = '';
+        if ($this->getLogicalId() == 'UpdateOnlineStatus')
+        {
+          $msg['command'] = 'controlPointAction';
+          $msg['subCommand'] = $this->getLogicalId();
+          $msg['UDN'] = $this->getEqLogic()->getConfiguration('UDN');
+          $msg['options'] = $this->getParameters($this,$_options);
+          $reponse = upnp::sendToDaemon(json_encode($msg),$msg['options']['WaitResponse']);
+          if ($msg['options']['WaitResponse'])
+          {
+            if ($response == 'Online') $this->getEqLogic()->getCmd('info','isOnline').event(1);//$this->getEqLogic()->checkAndUpdateCmd('isOnline',1);
+            else if ($response == 'Offline') $this->getEqLogic()->getCmd('info','isOnline').event(0); //$this->getEqLogic()->checkAndUpdateCmd('isOnline',0);
+          }
+        }
+        else
+        {
+          if ($this->getEqLogic()->getConfiguration('isOnline') == false) throw new Exception("Error Processing Request, equipment is offline", 1);
+          $msg['command'] = 'executeAction';
+          $msg['UDN'] = $this->getEqLogic()->getConfiguration('UDN');
+          $msg['serviceID'] = $this->getEqLogic()->getConfiguration('serviceId');
+          $msg['actionName'] = $this->getLogicalId();
+          $msg['options'] = $this->getParameters($this,$_options);
+          $response = upnp::sendToDaemon(json_encode($msg),$msg['options']['WaitResponse']);
+        }
+        return $response;
         break;
       }
     }

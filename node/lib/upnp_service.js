@@ -442,6 +442,12 @@ class UpnpAVTransportService extends UpnpBaseService
 	{
 		super(device, serviceData, eventServer);
 	}
+  
+  prepareForRemove()
+	{
+		if (this._intervalUpdateRelativeTime) clearInterval(this._intervalUpdateRelativeTime);
+    super.prepareForRemove();
+	}
 
 	//Fonction call for specific fonction after all initialisation
 	_specializedInitialisation()
