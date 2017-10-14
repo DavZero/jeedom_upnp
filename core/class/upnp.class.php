@@ -239,8 +239,8 @@
       {
         $eqp->setConfiguration('isOnline',false);
         $eqp->save();
-        $cmd = $eqp->getCmd('info','isOnline')
-        if (is_object($cmd)) $cmd.event(1);
+        $cmd = $eqp->getCmd('info','isOnline');
+        if (is_object($cmd)) $cmd->event(0);
         //$eqp->checkAndUpdateCmd('isOnline',0);
       }
     }
@@ -744,8 +744,8 @@
           $reponse = upnp::sendToDaemon(json_encode($msg),$msg['options']['WaitResponse']);
           if ($msg['options']['WaitResponse'])
           {
-            if ($response == 'Online') $this->getEqLogic()->getCmd('info','isOnline').event(1);//$this->getEqLogic()->checkAndUpdateCmd('isOnline',1);
-            else if ($response == 'Offline') $this->getEqLogic()->getCmd('info','isOnline').event(0); //$this->getEqLogic()->checkAndUpdateCmd('isOnline',0);
+            if ($response == 'Online') $this->getEqLogic()->getCmd('info','isOnline')->event(1);//$this->getEqLogic()->checkAndUpdateCmd('isOnline',1);
+            else if ($response == 'Offline') $this->getEqLogic()->getCmd('info','isOnline')->event(0); //$this->getEqLogic()->checkAndUpdateCmd('isOnline',0);
           }
         }
         else
