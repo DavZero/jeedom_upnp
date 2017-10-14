@@ -239,7 +239,8 @@
       {
         $eqp->setConfiguration('isOnline',false);
         $eqp->save();
-        $eqp->getCmd('info','isOnline').event(1);
+        $cmd = $eqp->getCmd('info','isOnline')
+        if (is_object($cmd)) $cmd.event(1);
         //$eqp->checkAndUpdateCmd('isOnline',0);
       }
     }
