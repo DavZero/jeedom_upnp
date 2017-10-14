@@ -3,6 +3,7 @@
 Ce plugin permet la gestion des périphériques Upnp.
 --
 Chaque equipement généré par le plugin propose en plus des commandes Upnp fourni par le service, deux commandes spécifique pour Jeedom :
+
 * Une commande info "IsOnline" qui permet de savoir si un equipement est disponible ou non
 * Une commande action "UpdateOnlineStatus" qui permet au besoin de controler si un equipement est bien en ligne ou non. 
 -- 
