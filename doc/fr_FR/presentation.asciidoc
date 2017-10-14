@@ -11,4 +11,5 @@ TIP: Normalement, les equipement Upnp doivent se signaler lorsqu'il se coupe, ce
 TIP: La commande UpdateOnlineStatus ne prend qu'un seul paramètre "WaitResponse". Si WaitResponse = 1 alors commande est "bloquante" jusqu'a la réponse de l'appareil, si celui ci est allumé, la réponse intervient en moins d'une seconde mais si il est éteint, le temps d'attente de la réponse est d'environ 5 secondes. Je préconise de n'utiliser le mode WaitResponse=1 que dans le cas d'un enchainement d'autre commande dans un scénario. Dans le cadre du rafraichissement de la valeur de "IsOnline" toutes les 5 minutes par exemple, il n'y a pas d'interet a metre WaitResponse=1
 --
 Exemple d'utilisation de la commande dans un scénario:
+
 image::../images/upnp_customAction_UpdateOnlineStatus.png[]
