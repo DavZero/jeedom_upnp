@@ -437,6 +437,59 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>Ce plugin permet la gestion des périphériques Upnp.</p>
 </div>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>Chaque equipement généré par le plugin propose en plus des commandes Upnp fourni par le service, deux commandes spécifique pour Jeedom :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Une commande info "IsOnline" qui permet de savoir si un equipement est disponible ou non</p>
+</li>
+<li>
+<p>Une commande action "UpdateOnlineStatus" qui permet au besoin de controler si un equipement est bien en ligne ou non.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Normalement, les equipement Upnp doivent se signaler lorsqu&#8217;il se coupe, ce qui est géré par le plugin mais si par exemple on coupe la prise d&#8217;un ecran de television, alors celui ci ne peut pas prévenir qu&#8217;il n&#8217;est plus disponible. Dans ce cas le plugin ne se rendra alors compte que l&#8217;equipement n&#8217;est ligne que lors du "heartbeat" qui se produit en général toutes les 30 minutes (c&#8217;est l&#8217;appareil qui defini cette valeur). La commande "UpdateOnlineStatus" peut donc permettre de résoudre ce problème. Suivant les appareils et ce qu&#8217;on souhaite en faire, elle peut être executer via script toutes les 5 minutes par exemple pour controler l&#8217;état d&#8217;un périphérique ou alors elle peut être utiliser dans un scénario pour rafraichir l&#8217;etat de "IsOnline" afin de décider de l&#8217;action a faire (par exemple éteindre ou allumer l&#8217;appareil)
+</td>
+</tr>
+</table>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+La commande UpdateOnlineStatus ne prend qu&#8217;un seul paramètre "WaitResponse". Si WaitResponse = 1 alors commande est "bloquante" jusqu&#8217;a la réponse de l&#8217;appareil, si celui ci est allumé, la réponse intervient en moins d&#8217;une seconde mais si il est éteint, le temps d&#8217;attente de la réponse est d&#8217;environ 5 secondes. Je préconise de n&#8217;utiliser le mode WaitResponse=1 que dans le cas d&#8217;un enchainement d&#8217;autre commande dans un scénario. Dans le cadre du rafraichissement de la valeur de "IsOnline" toutes les 5 minutes par exemple, il n&#8217;y a pas d&#8217;interet a metre WaitResponse=1
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>Exemple d&#8217;utilisation de la commande dans un scénario:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../images/upnp_customAction_UpdateOnlineStatus.png" alt="upnp customAction UpdateOnlineStatus">
+</div>
+</div>
 <hr>
 </div>
 </div>
@@ -634,10 +687,30 @@ La valeur par défaut est 10 secondes.
 <hr>
 <div class="paragraph">
 <p>== Changelog
-==== Version 1</p>
+==== 14/10/2017
+ * Ajout de l&#8217;action UpdateOnlineStatus
+ * Amélioration de la detection des appareils offline lors du démarrage du plugin</p>
 </div>
 <div class="paragraph">
-<p>Création du plugin</p>
+<p>==== 03/06/2017
+ * Prise en charge spécfique pour Wemo Insight</p>
+</div>
+<div class="paragraph">
+<p>==== 09/03/2017
+ * Prise en charge Windows Media Player
+ * Amélioration de la gestion de l&#8217;encodage des xml pour DLNA</p>
+</div>
+<div class="paragraph">
+<p>==== 01/02/2017
+ * Mise en place de la gestion de l&#8217;inclusion / exclusion
+ * Ajout de la possibilité de créer des commandes avec des options sauvegarder</p>
+</div>
+<div class="paragraph">
+<p>==== 19/11/2017
+ * Création du plugin
+ * Prise en compte des services Upnp de facon dynamique
+ * Prise en compte spécifique de OpenHome
+ * Prise en compte spécifique de Wemo</p>
 </div>
 </div>
 </div>
