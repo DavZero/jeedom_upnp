@@ -6,7 +6,7 @@ Ce genre de message apparaît notamment lorsque l’on redémarre le service et 
 --
 .Lorsque j'exécute certaines commandes, j'ai un message d'erreur indiquant que la commande n'a pas pu s'exécuter dans le délai imparti.
 --
-La configuration du plugin permet de définir le timeout de l’exécution d’une commande (voir la rubrique configuration). 
+Die Konfiguration des Plugins ermöglicht es, das Zeitlimit für die Ausführung eines Befehls zu definieren (siehe Abschnitt Konfiguration). 
 Dans mon cas, lors du chargement d’un média sur ma télévision, la première fois, le délai de réponse de la télévision a pu dépasser les 5 secondes. 
 Si ce problème vous arrive, il suffit de relancer l’action. Si ce problème arrive régulièrement, augmentez le délai du timeout.
 
