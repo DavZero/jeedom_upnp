@@ -9,7 +9,7 @@ Une fois que les équipements requis ont été détectés, vous pouvez quitter l
 
 TIP: Si vous supprimez des équipements mais que vous restez en mode inclusion, ceux-ci risquent de se recréer même sans faire de recherche.
 
-==== Paramétrage Équipement
+==== Geräte Einrichtung
 
 Pour les services disposant d'un widget spécifiques :
 
