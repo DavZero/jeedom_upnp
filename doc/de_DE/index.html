@@ -425,6 +425,24 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_plugin_konfiguration">2.1. Plugin Konfiguration</a></li>
 </ul>
 </li>
+<li><a href="#_einrichtung">3. Einrichtung</a>
+<ul class="sectlevel3">
+<li><a href="#_recherche_d_équipement">3.1. Recherche d&#8217;équipement</a></li>
+<li><a href="#_geräte_einrichtung">3.2. Geräte Einrichtung</a></li>
+<li><a href="#_befehls_einrichtung">3.3. Befehls Einrichtung</a></li>
+</ul>
+</li>
+<li><a href="#_faq">4. FAQ</a></li>
+<li><a href="#_fehlersuche">5. Fehlersuche</a></li>
+<li><a href="#_Änderungsprotokoll">6. Änderungsprotokoll</a>
+<ul class="sectlevel3">
+<li><a href="#_14_10_2017">6.1. 14/10/2017</a></li>
+<li><a href="#_03_06_2017">6.2. 03/06/2017</a></li>
+<li><a href="#_09_03_2017">6.3. 09/03/2017</a></li>
+<li><a href="#_01_02_2017">6.4. 01/02/2017</a></li>
+<li><a href="#_19_11_2017">6.5. 19/11/2017</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -516,13 +534,21 @@ Si ce n’est pas le cas ou si elles ne sont pas OK, cliquer sur relancer.</p>
 <div class="openblock">
 <div class="content">
 <div class="paragraph">
-<p>Enfin il est possible (en mode expert uniquement) de paramètrer le timeout des commandes (par défaut le timeout est de 10 secondes)</p>
+<p>Enfin il est possible (en mode expert uniquement) de paramètrer le timeout des commandes (par défaut le timeout est de 10 secondes).</p>
+</div>
+</div>
 </div>
 <hr>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_einrichtung">3. Einrichtung</h2>
+<div class="sectionbody">
+<div class="sect3">
+<h4 id="_recherche_d_équipement">3.1. Recherche d&#8217;équipement</h4>
 <div class="paragraph">
-<p>== Einrichtung
-==== Recherche d&#8217;équipement
-Lors du démarrage du plugin, un scan des équipements upnp présent sur votre réseau est effectué.</p>
+<p>Lors du démarrage du plugin, un scan des équipements upnp présent sur votre réseau est effectué.</p>
 </div>
 <div class="paragraph">
 <p>Si le plugin est en mode inclusion (voir page de configuration des équipements) alors des équipements vont se créer, sinon seuls les équipements déjà présents dans votre Jeedom seront opérationnels.
@@ -544,9 +570,9 @@ Si vous supprimez des équipements mais que vous restez en mode inclusion, ceux-
 </tr>
 </table>
 </div>
-<div class="paragraph">
-<p>==== Geräte Einrichtung</p>
 </div>
+<div class="sect3">
+<h4 id="_geräte_einrichtung">3.2. Geräte Einrichtung</h4>
 <div class="paragraph">
 <p>Pour les services disposant d&#8217;un widget spécifiques :</p>
 </div>
@@ -576,9 +602,9 @@ Que se soit pour les services disposant d&#8217;un widget spécifique ou pour le
 </tr>
 </table>
 </div>
-<div class="paragraph">
-<p>==== Befehls Einrichtung</p>
 </div>
+<div class="sect3">
+<h4 id="_befehls_einrichtung">3.3. Befehls Einrichtung</h4>
 <div class="paragraph">
 <p>Les actions mises à disposition par le plugin nécessitent la plupart du temps des paramètres.
 Il est possible via l&#8217;onglet "Commandes" de la page de configuration d&#8217;un équipement de définir des valeurs par défaut pour ces paramètres et de créer plusieurs configurations de la même commande, ceci permet par exemple de créer les actions On et Off pour la commande UPnP "SetBinaryState" ou encore de créer un bouton permettant de charger sa chanson préférée ou même de paramétrer plusieurs radios.
@@ -627,11 +653,14 @@ L&#8217;option WaitResponse est utilisée si vous souhaitez "enchainer" des comm
 </table>
 </div>
 <hr>
-<div class="paragraph">
-<p>== FAQ</p>
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_faq">4. FAQ</h2>
+<div class="sectionbody">
+<div class="openblock panel">
+<div class="title">Comment faire un appel aux commandes des équipements Upnp dans les scénarios ?</div><div class="content">
 <div class="paragraph">
 <p>Les commandes Upnp nécessitent des paramètres pour être exécutées, il est nécessaire de passer par un bloc code. Exemple :</p>
 </div>
@@ -648,23 +677,24 @@ L&#8217;option WaitResponse est utilisée si vous souhaitez "enchainer" des comm
 <img src="../images/upnp_commandes.png" alt="upnp commandes">
 </div>
 </div>
-<div class="openblock">
-<div class="content">
+</div>
+</div>
 <hr>
-<div class="paragraph">
-<p>== Fehlersuche</p>
 </div>
 </div>
-</div>
+<div class="sect1">
+<h2 id="_fehlersuche">5. Fehlersuche</h2>
+<div class="sectionbody">
+<div class="openblock panel">
+<div class="title">Dans le log il y a parfois des messages : "Unable to find the service with SID XXX".</div><div class="content">
 <div class="paragraph">
 <p>Ces messages n&#8217;ont pas d&#8217;incidence en fonctionnement normal et sont là uniquement pour du dépannage.
 Ce genre de message apparaît notamment lorsque l’on redémarre le service et sont liés à de précédents abonnements aux messages des services UPnP.</p>
 </div>
+</div>
+</div>
 <div class="openblock">
-<div class="content">
-
-</div>
-</div>
+<div class="title">Lorsque j&#8217;exécute certaines commandes, j&#8217;ai un message d&#8217;erreur indiquant que la commande n&#8217;a pas pu s&#8217;exécuter dans le délai imparti.</div><div class="content">
 <div class="paragraph">
 <p>Die Konfiguration des Plugins ermöglicht es, das Zeitlimit für die Ausführung eines Befehls zu definieren (siehe Abschnitt Konfiguration).
 Dans mon cas, lors du chargement d’un média sur ma télévision, la première fois, le délai de réponse de la télévision a pu dépasser les 5 secondes.
@@ -682,37 +712,80 @@ La valeur par défaut est 10 secondes.
 </tr>
 </table>
 </div>
-<div class="openblock">
-<div class="content">
+</div>
+</div>
 <hr>
-<div class="paragraph">
-<p>== Änderungsprotokoll
-==== 14/10/2017
- * Ajout de l&#8217;action UpdateOnlineStatus
- * Amélioration de la detection des appareils offline lors du démarrage du plugin</p>
-</div>
-<div class="paragraph">
-<p>==== 03/06/2017
- * Prise en charge spécfique pour Wemo Insight</p>
-</div>
-<div class="paragraph">
-<p>==== 09/03/2017
- * Prise en charge Windows Media Player
- * Amélioration de la gestion de l&#8217;encodage des xml pour DLNA</p>
-</div>
-<div class="paragraph">
-<p>==== 01/02/2017
- * Mise en place de la gestion de l&#8217;inclusion / exclusion
- * Ajout de la possibilité de créer des commandes avec des options sauvegarder</p>
-</div>
-<div class="paragraph">
-<p>==== 19/11/2017
- * Création du plugin
- * Prise en compte des services Upnp de facon dynamique
- * Prise en compte spécifique de OpenHome
- * Prise en compte spécifique de Wemo</p>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_Änderungsprotokoll">6. Änderungsprotokoll</h2>
+<div class="sectionbody">
+<div class="sect3">
+<h4 id="_14_10_2017">6.1. 14/10/2017</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Ajout de l&#8217;action UpdateOnlineStatus</p>
+</li>
+<li>
+<p>Amélioration de la detection des appareils offline lors du démarrage du plugin</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_03_06_2017">6.2. 03/06/2017</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Prise en charge spécfique pour Wemo Insight</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_09_03_2017">6.3. 09/03/2017</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Prise en charge Windows Media Player</p>
+</li>
+<li>
+<p>Amélioration de la gestion de l&#8217;encodage des xml pour DLNA</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_01_02_2017">6.4. 01/02/2017</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Mise en place de la gestion de l&#8217;inclusion / exclusion</p>
+</li>
+<li>
+<p>Ajout de la possibilité de créer des commandes avec des options sauvegarder</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_19_11_2017">6.5. 19/11/2017</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Création du plugin</p>
+</li>
+<li>
+<p>Prise en compte des services Upnp de facon dynamique</p>
+</li>
+<li>
+<p>Prise en compte spécifique de OpenHome</p>
+</li>
+<li>
+<p>Prise en compte spécifique de Wemo</p>
+</li>
+</ul>
 </div>
 </div>
 </div>
