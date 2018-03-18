@@ -201,47 +201,68 @@
         }
         log::add('upnp', 'debug', 'Event cmd '.$cmd->getHumanName().' with value '.$data->value);
         //$cmd->event($data->value);
-        $cmd->event(htmlentities($data->value));
-        //$eqp->checkAndUpdateCmd($cmd,htmlentities($data->value));
+        //$cmd->event(htmlentities($data->value));
+        $eqp->checkAndUpdateCmd($cmd,htmlentities($data->value));
         break;
         
       case 'updateService':
-        if (isset($data->friendlyName)) 
+        $needSave = false;
+        if (isset($data->friendlyName))
         {
-          $eqp->setConfiguration('friendlyName', $data->friendlyName);
+          $needSave |= $eqp->CheckAndUpdateConfiguration('friendlyName', $data->friendlyName);
+          //$eqp->setConfiguration('friendlyName', $data->friendlyName);
           //On vérifie si le nom est celui par defaut, dans ce cas, on met a jour le nom sinon on laisse la valeur (cas du renommage manuel)
           if ($eqp->getName() == $data->deviceUDN.'_'.$data->serviceId)
           {
+            log::add('upnp', 'debug', 'Mise a jour du nom???');
             $eqp->setName($data->friendlyName.':'.array_reverse(explode(":", $data->serviceId))[0]);
+            $needSave = true;
           }
         }
-        if (isset($data->location)) $eqp->setConfiguration('location', $data->location);
-        if (isset($data->additionalData)) $eqp->setConfiguration('additionalData', $data->additionalData);
-        if (isset($data->icon)) $eqp->setConfiguration('icon', $data->icon);
-        if (isset($data->description)) $eqp->setConfiguration('description', $data->description);
-        if (isset($data->deviceType)) $eqp->setConfiguration('deviceType', $data->deviceType);
-        if (isset($data->isOnline)) 
+        if (isset($data->location)) $needSave |= $eqp->CheckAndUpdateConfiguration('location', $data->location);//$eqp->setConfiguration('location', $data->location);
+        if (isset($data->additionalData)) $needSave |= $eqp->CheckAndUpdateConfiguration('additionalData', $data->additionalData);//$eqp->setConfiguration('additionalData', $data->additionalData);
+        if (isset($data->icon)) $needSave |= $eqp->CheckAndUpdateConfiguration('icon', $data->icon);//$eqp->setConfiguration('icon', $data->icon);
+        if (isset($data->description)) $needSave |= $eqp->CheckAndUpdateConfiguration('description', $data->description);//$eqp->setConfiguration('description', $data->description);
+        if (isset($data->deviceType)) $needSave |= $eqp->CheckAndUpdateConfiguration('deviceType', $data->deviceType);//$eqp->setConfiguration('deviceType', $data->deviceType);
+        if (isset($data->isOnline))
         {
-          $eqp->setConfiguration('isOnline',$data->isOnline?true:false);
-          $cmd = $eqp->getCmd('info','isOnline');
-          $cmd->event($data->isOnline?1:0);
-          //$eqp->checkAndUpdateCmd($cmd,$data->isOnline?1:0);
+          $needSave |= $eqp->CheckAndUpdateConfiguration('isOnline', $data->isOnline?true:false);//$eqp->setConfiguration('isOnline',$data->isOnline?true:false);
+          //$cmd = $eqp->getCmd('info','isOnline');
+          //$cmd->event($data->isOnline?1:0);
+          $eqp->checkAndUpdateCmd('isOnline',$data->isOnline?1:0);
         }
-        if (isset($data->serviceDescription)) $eqp->setConfiguration('serviceDescription',$data->serviceDescription);
-        $eqp->save();
+        if (isset($data->serviceDescription)) $needSave |= $eqp->CheckAndUpdateConfiguration('serviceDescription', $data->serviceDescription);//$eqp->setConfiguration('serviceDescription',$data->serviceDescription);
+        if ($needSave)
+        {
+          $eqp->save();
+          log::add('upnp', 'debug', 'Sauvegarde de equipement ????');
+        }
         break;
       }
     }
-    
+
+    public function CheckAndUpdateConfiguration($configName,$newVal)
+    {
+      log::add('upnp', 'debug', 'Traitement de la configuration '.$configName);
+      $oldVal = $this->getConfiguration($configName);
+      if (json_encode($oldVal) != json_encode($newVal))
+      {
+        log::add('upnp', 'debug', 'Ancienne valeur '.json_encode($oldVal).' nouvelle valeur '.json_encode($newVal));
+        $this->setConfiguration($configName,$newVal);
+        return true;
+      }
+      log::add('upnp', 'debug', 'OK pas de maj');
+      return false;
+    }
+
     public static function offlineAll()
     {
       foreach (eqlogic::byType('upnp') as $eqp)
       {
-        $eqp->setConfiguration('isOnline',false);
-        $eqp->save();
-        $cmd = $eqp->getCmd('info','isOnline');
-        if (is_object($cmd)) $cmd->event(0);
-        //$eqp->checkAndUpdateCmd('isOnline',0);
+        if ($eqp->CheckAndUpdateConfiguration('isOnline',false)) $eqp->save();
+        //$cmd = $eqp->getCmd('info','isOnline');
+        //if (is_object($cmd)) $cmd->event(0);
+        $eqp->checkAndUpdateCmd('isOnline',0);
       }
     }
     
@@ -488,7 +509,7 @@
       //On traite le service ContentDirectory
       if ($_version == 'dashboard' && strpos($this->getConfiguration('serviceId'),'ContentDirectory') !== false && $this->getConfiguration('customDisplay'))
       {
-        $cmdReplace = array();
+        $cmdReplace = $replace;//array();
         $browseCMD = $this->getCmd('action','Browse');
         if (is_object($browseCMD))
         {
@@ -744,8 +765,8 @@
           $reponse = upnp::sendToDaemon(json_encode($msg),$msg['options']['WaitResponse']);
           if ($msg['options']['WaitResponse'])
           {
-            if ($response == 'Online') $this->getEqLogic()->getCmd('info','isOnline')->event(1);//$this->getEqLogic()->checkAndUpdateCmd('isOnline',1);
-            else if ($response == 'Offline') $this->getEqLogic()->getCmd('info','isOnline')->event(0); //$this->getEqLogic()->checkAndUpdateCmd('isOnline',0);
+            if ($response == 'Online') $this->getEqLogic()->checkAndUpdateCmd('isOnline',1);//$this->getEqLogic()->getCmd('info','isOnline')->event(1);
+            else if ($response == 'Offline') $this->getEqLogic()->checkAndUpdateCmd('isOnline',0);//$this->getEqLogic()->getCmd('info','isOnline')->event(0);
           }
         }
         else
