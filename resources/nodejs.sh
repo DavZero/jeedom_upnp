@@ -14,7 +14,7 @@ echo 10 > /tmp/upnp_dep
 actual=`nodejs -v`;
 echo "Version actuelle : ${actual}"
 
-if [[ $actual == *"4."* || $actual == *"5."* || $actual == *"6."* || $actual == *"7."* ]]
+if [[ $actual == *"4."* || $actual == *"5."* || $actual == *"6."* || $actual == *"7."* || $actual == *"8."* ]]
 then
   echo "Ok, version suffisante";
 else

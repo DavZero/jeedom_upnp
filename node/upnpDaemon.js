@@ -54,7 +54,7 @@ process.argv.forEach(function (val, index, array){
 	}
 });
 
-Logger.log("Démon version 2.1.0", LogType.INFO);
+Logger.log("Démon version 2.1.1", LogType.INFO);
 Logger.log("urlJeedom = " + urlJeedom, LogType.DEBUG);
 Logger.log("serverPort = " + serverPort, LogType.DEBUG);
 Logger.log("logLevel = " + logLevel, LogType.INFO);
@@ -63,6 +63,17 @@ Logger.log("includeState = " + includeState, LogType.INFO);
 Logger.log("allowedList = " + JSON.stringify(allowedList), LogType.INFO);
 Logger.log("disallowedList = " + JSON.stringify(disallowedList), LogType.INFO);
 
+/*
+if (logLevel == 'debug')
+{
+  setInterval(function(){
+    const used = process.memoryUsage().heapUsed / 1024 / 1024;
+    const total = process.memoryUsage().heapTotal / 1024 / 1024;
+    const rss = process.memoryUsage().rss / 1024 / 1024;
+    Logger.log(`The script uses approximately (in MB) heapUsed : ${used}, heapTotal : ${total}, rss : ${rss}`, LogType.DEBUG);
+  }, 10000);
+}
+*/
 
 var busy = false;
 var jeedomSendQueue = [];
@@ -193,7 +204,7 @@ server.listen(
   Logger.log("Création du serveur sur le port " + serverPort, LogType.INFO);
 	Logger.log("Création du controlPoint");
 	cp = new controlPointAPI.ControlPoint(1900, allowedList, disallowedList);
-	
+
 	cp.on('upnpError', function (err)	{
 		sendToJeedom({eventType: 'error',description: err	});
 	});
@@ -286,10 +297,10 @@ server.listen(
 		};
 		sendToJeedom(data);
 	});
-  
+
   //Gestion de l'inclusion
   cp.setIncludeState(includeState);
-  
+
   //Search for all UPnP device
   cp.search();
   //For Wemo we need to perform a specific search because it doesn't respond to ssdp::all
@@ -381,18 +392,18 @@ var processJeedomMessage = function (payload, callback)
 	}
   else if (data.command == 'controlPointAction')
   {
-    if (data.subCommand == 'changeIncludeState') 
+    if (data.subCommand == 'changeIncludeState')
     {
       Logger.log("Changement d'état de l'inclusion "  + data.value, LogType.INFO);
       cp.setIncludeState(data.value?true:false);
     }
-    else if (data.subCommand == 'scan') 
+    else if (data.subCommand == 'scan')
     {
       Logger.log("Lancement d'un scan", LogType.INFO);
       cp.search();
       cp.search('upnp:rootdevice');
     }
-    else if (data.subCommand == 'UpdateOnlineStatus') 
+    else if (data.subCommand == 'UpdateOnlineStatus')
     {
       Logger.log("Lancement de la recherche de " + data.UDN, LogType.INFO);
       cp.checkDeviceStatus(data.UDN,(response) => {
@@ -400,7 +411,7 @@ var processJeedomMessage = function (payload, callback)
       });
 			return;
     }
-    else if (data.subCommand == 'removeService') 
+    else if (data.subCommand == 'removeService')
     {
       Logger.log("Suppression du service "  + data.UDN +"::"+ data.serviceId, LogType.INFO);
       cp.removeAllowedService(data.UDN, data.serviceId);
