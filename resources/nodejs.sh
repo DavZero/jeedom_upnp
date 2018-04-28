@@ -11,10 +11,17 @@ if [ ! -d "$DIRECTORY" ]; then
   sudo chown -R www-data $DIRECTORY
 fi
 echo 10 > /tmp/upnp_dep
-actual=`nodejs -v`;
-echo "Version actuelle : ${actual}"
+#actual=`nodejs -v`;
+#echo "Version actuelle : ${actual}"
+if [ -x /usr/bin/nodejs ]; then
+  actual=`nodejs -v | awk -F v '{ print $2 }' | awk -F . '{ print $1 }'`;
+  echo "Version actuelle : ${actual}"
+else
+  actual=0;
+  echo "Nodejs non installé"
+fi
 
-if [[ $actual == *"4."* || $actual == *"5."* || $actual == *"6."* || $actual == *"7."* || $actual == *"8."* ]]
+if [ $actual -ge 5 ]
 then
   echo "Ok, version suffisante";
 else
@@ -45,7 +52,7 @@ else
   if [[ $arch != "aarch64" && $arch != "armv6l" ]]
   then
     echo "Utilisation du dépot officiel"
-    curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -
+    curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
     sudo apt-get install -y nodejs
   fi
   new=`nodejs -v`;
