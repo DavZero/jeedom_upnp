@@ -13,8 +13,9 @@ fi
 echo 10 > /tmp/upnp_dep
 #actual=`nodejs -v`;
 #echo "Version actuelle : ${actual}"
-if [ -x /usr/bin/nodejs ]; then
-  actual=`nodejs -v | awk -F v '{ print $2 }' | awk -F . '{ print $1 }'`;
+if [ -x /usr/bin/nodejs ]
+then
+  actual=`nodejs -v | awk -F v '{ print $2 }' | awk -F . '{ print $1 }'`
   echo "Version actuelle : ${actual}"
 else
   actual=0;
@@ -23,9 +24,9 @@ fi
 
 if [ $actual -ge 5 ]
 then
-  echo "Ok, version suffisante";
+  echo "Ok, version suffisante"
 else
-  echo "KO, version obsolète à upgrader";
+  echo "KO, version obsolète à upgrader"
   echo "Suppression du Nodejs existant et installation du paquet recommandé"
   sudo apt-get -y --purge autoremove nodejs npm
   arch=`arch`;
