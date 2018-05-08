@@ -22,16 +22,16 @@ else
   echo "Nodejs non installé"
 fi
 
-if [ $actual -ge 5 ]
+if [ $actual -ge 8 ]
 then
-  echo "Ok, version suffisante"
+  echo "Ok, version suffisante";
 else
-  echo "KO, version obsolète à upgrader"
+  echo "KO, version obsolète à upgrader";
   echo "Suppression du Nodejs existant et installation du paquet recommandé"
   sudo apt-get -y --purge autoremove nodejs npm
   arch=`arch`;
   echo 30 > /tmp/upnp_dep
-  if [[ $arch == "armv6l" ]]
+  if [ $arch == "armv6l" ]
   then
     echo "Raspberry 1 détecté, utilisation du paquet pour armv6"
     sudo rm /etc/apt/sources.list.d/nodesource.list
@@ -39,19 +39,7 @@ else
     sudo dpkg -i node_latest_armhf.deb
     sudo ln -s /usr/local/bin/node /usr/local/bin/nodejs
     rm node_latest_armhf.deb
-  fi
-
-  if [[ $arch == "aarch64" ]]
-  then
-    wget http://dietpi.com/downloads/binaries/c2/nodejs_5-1_arm64.deb
-    sudo dpkg -i nodejs_5-1_arm64.deb
-    sudo ln -s /usr/local/bin/node /usr/local/bin/nodejs
-    #sudo ln -s /usr/local/bin/node /usr/bin/nodejs
-    rm nodejs_5-1_arm64.deb
-  fi
-
-  if [[ $arch != "aarch64" && $arch != "armv6l" ]]
-  then
+  else
     echo "Utilisation du dépot officiel"
     curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
     sudo apt-get install -y nodejs
