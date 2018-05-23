@@ -20,11 +20,11 @@ class UpnpBaseService
 		this._subscriptionTimeout = 600;
 		this._variables = [];
 		this._actions = [];
-    
+
 		this._initialize(serviceData);
     this._processDeviceSCPD(callback);
 	}
-  
+
   update(serviceData)
   {
     Logger.log("Mise a jour du service : " + JSON.stringify(serviceData), LogType.INFO);
@@ -39,7 +39,7 @@ class UpnpBaseService
     this._eventSubURL = this._updateServiceURL(serviceData.eventSubURL[0]);
     this._SCPDURL = this._updateServiceURL(serviceData.SCPDURL[0]);
   }
-  
+
   _updateServiceURL(path)
   {
     if (!path) return;
@@ -47,7 +47,7 @@ class UpnpBaseService
     if (path.charAt(0) != '/') return this._device.BaseAddress + "/" + path;
     return this._device.BaseAddress + path;
   }
-  
+
   _processDeviceSCPD(callback)
   {
 		//On récupère le xml listant les actions et les variables
@@ -67,7 +67,7 @@ class UpnpBaseService
           }
 					else
           {
-            this.processSCPD(data.scpd, true);   
+            this.processSCPD(data.scpd, true);
             if (callback) callback();
             this._specializedInitialisation();
             if (this.HasEvent) this.subscribe();
@@ -81,14 +81,14 @@ class UpnpBaseService
 			}
 		});
 	}
-  
+
   _specializedInitialisation()
   { }
 
 	//fromDevice == true if from device, false if from template
 	processSCPD(scpd, fromDevice)
 	{
-    if (!scpd) 
+    if (!scpd)
     {
       Logger.log("SCPD is null for " + this.Device.UDN + "::" + this.ID + ", source " + fromDevice?"device":"template", LogType.DEBUG);
       return;
@@ -141,6 +141,12 @@ class UpnpBaseService
 	processEvent(data)
 	{
 		Logger.log("Event Processing " + JSON.stringify(data), LogType.DEBUG);
+
+    if (data == null || data['e:propertyset'] == null)
+    {
+      Logger.log("Event Processing, unable to process data " + JSON.stringify(data) + " data should contains property data['e:propertyset']['e:property']", LogType.WARNING);
+      return;
+    }
 
 		var properties = data['e:propertyset']['e:property'];
 
@@ -240,7 +246,7 @@ class UpnpBaseService
 		}
 		);
 	}
-  
+
   get DescriptionURL()
   {
     return this._SCPDURL;
@@ -282,15 +288,15 @@ class UpnpBaseService
 
 	subscribe(tryCount)
 	{
-    if (!tryCount) tryCount = 1; 
-    else if (tryCount>5) 
+    if (!tryCount) tryCount = 1;
+    else if (tryCount>5)
     {
       Logger.log("Erreur d'inscription aux evenements après 5 tentatives, annulation de l'inscription aux evenement du service, url : " + this._eventSubURL + " pour le service " + this._ID, LogType.ERROR);
       //Le service est probablement éteint, on coupe le service ou pas ?
       //this.prepareForRemove();
       return;
     }
-    
+
     request(
 		{
 			//host: this._device.Location.hostname,
@@ -307,8 +313,8 @@ class UpnpBaseService
 		{
       if (error || response.statusCode != 200)
 			{
-				Logger.log("Erreur d'inscription au evenement, url : " + this._eventSubURL + " pour le service " + this._ID + 
-          ", reste " + (5-tryCount) + " tentative(s)" + 
+				Logger.log("Erreur d'inscription au evenement, url : " + this._eventSubURL + " pour le service " + this._ID +
+          ", reste " + (5-tryCount) + " tentative(s)" +
           ", response : " + JSON.stringify(response) + ", err : " + error, LogType.WARNING);
 				//Gestion du code d'erreur pour detecté les services deconnecté??
         this._resubscribe = setTimeout((service,tries) =>
@@ -442,7 +448,7 @@ class UpnpAVTransportService extends UpnpBaseService
 	{
 		super(device, serviceData, eventServer);
 	}
-  
+
   prepareForRemove()
 	{
 		if (this._intervalUpdateRelativeTime) clearInterval(this._intervalUpdateRelativeTime);
@@ -609,16 +615,16 @@ class UpnpAVTransportService extends UpnpBaseService
 		//Si pas de traitment spécifique, on lance la commande normalement
 		return super.executeAction(actionName, options, callback);
 	}
-  
+
 }
 
 class OpenHomeAVTransportService extends UpnpAVTransportService
-{        
+{
   constructor(device, serviceData, eventServer)
 	{
 		super(device, serviceData, eventServer);
 	}
-  
+
   _initOpenHomeMap()
   {
     if (this.OpenHomePropertiesMap) return;
@@ -654,13 +660,13 @@ class OpenHomeAVTransportService extends UpnpAVTransportService
         'A_ARG_TYPE_Seek_Target':'A_ARG_TYPE_SeekTarget',
         };
   }
-  
+
   _specializedInitialisation()
 	{
     Logger.log("Specialisation for OpenHome AVTransport", LogType.Info);
     super._specializedInitialisation();
   }
-  
+
   getVariableByName(name)
 	{
     this._initOpenHomeMap();
@@ -677,7 +683,7 @@ class OpenHomeAVTransportService extends UpnpAVTransportService
 		Logger.log("Unable to find the variable with name " + name, LogType.DEBUG);
 		return null;
 	}
-  
+
   //fromDevice == true if from device, false if from template
 	processSCPD(scpd, fromDevice)
 	{
@@ -738,7 +744,7 @@ class WemoInsightBasicevent extends UpnpBaseService
 	{
 		super(device, serviceData, eventServer);
 	}
-  
+
   _specializedInitialisation()
 	{
     Logger.log("Specialisation for WemoInsight Basicevent", LogType.INFO);
@@ -747,12 +753,12 @@ class WemoInsightBasicevent extends UpnpBaseService
 		var xmlTemplate = fs.readFileSync(__dirname+'/../../resources/ServicesTemplate.xml', 'utf8');
 		xml2js.parseString(xmlTemplate, (err, templatesData) => {
       templatesData.servicesTemplate.serviceTemplate.forEach((serviceTemplate) => {
-        if ((serviceTemplate['$']['serviceType'] == this._type || !serviceTemplate['$']['serviceType']) && 
+        if ((serviceTemplate['$']['serviceType'] == this._type || !serviceTemplate['$']['serviceType']) &&
           (serviceTemplate['$']['deviceType'] == this.Device.Type || !serviceTemplate['$']['deviceType']))
         {
           Logger.log("Processing scpd template", LogType.DEBUG);
           this.processSCPD(serviceTemplate.scpd[0],false);
-          
+
           //On s'abonne au evenement de la variable BinaryState pour en faire le decodage
           var binaryState = this.getVariableByName('BinaryState');
           if (!binaryState)
@@ -762,8 +768,8 @@ class WemoInsightBasicevent extends UpnpBaseService
           }
           binaryState.on('updated', (varObj, newVal) =>	{
 						//On split la variable pour definir les valeurs des sous variable
-            var subVariables = newVal.split('|');      
-        
+            var subVariables = newVal.split('|');
+
             if (subVariables[0]) this.updateSubVariable('State',Number(subVariables[0]));
             if (subVariables[0] == '0') this.updateSubVariable('HumanState','Off');
             if (subVariables[0] == '1') this.updateSubVariable('HumanState','On');
@@ -777,13 +783,13 @@ class WemoInsightBasicevent extends UpnpBaseService
             //if (subVariables[7]) this.updateSubVariable('Power',Number(subVariables[7])*0.001); //conversion mW en W
             //if (subVariables[8]) this.updateSubVariable('TodayComsuption',Number(subVariables[8])*0.001*(1/60)); //conversion mW*minutes en KWh
             //if (subVariables[9]) this.updateSubVariable('TotalComsuption',Number(subVariables[9])*0.001*(1/60)); //conversion mW*minutes en KWh
-            //if (subVariables[10]) this.updateSubVariable('PowerThreshold',Number(subVariables[10])*0.001); //conversion mW en W??? 
+            //if (subVariables[10]) this.updateSubVariable('PowerThreshold',Number(subVariables[10])*0.001); //conversion mW en W???
 					});
         }
       });
-		});  
+		});
   }
-  
+
   updateSubVariable(name, value)
   {
     var variable = this.getVariableByName(name);
@@ -802,7 +808,7 @@ class WemoInsightService extends UpnpBaseService
 	{
 		super(device, serviceData, eventServer);
 	}
-  
+
   _specializedInitialisation()
 	{
     Logger.log("Specialisation for WemoInsight Basicevent", LogType.INFO);
@@ -811,12 +817,12 @@ class WemoInsightService extends UpnpBaseService
 		var xmlTemplate = fs.readFileSync(__dirname+'/../../resources/ServicesTemplate.xml', 'utf8');
 		xml2js.parseString(xmlTemplate, (err, templatesData) => {
       templatesData.servicesTemplate.serviceTemplate.forEach((serviceTemplate) => {
-        if ((serviceTemplate['$']['serviceType'] == this._type || !serviceTemplate['$']['serviceType']) && 
+        if ((serviceTemplate['$']['serviceType'] == this._type || !serviceTemplate['$']['serviceType']) &&
           (serviceTemplate['$']['deviceType'] == this.Device.Type || !serviceTemplate['$']['deviceType']))
         {
           Logger.log("Processing scpd template", LogType.DEBUG);
           this.processSCPD(serviceTemplate.scpd[0],false);
-          
+
           //On s'abonne au evenement de la variable InsightParams pour en faire le decodage
           var insightParams = this.getVariableByName('InsightParams');
           if (!insightParams)
@@ -826,8 +832,8 @@ class WemoInsightService extends UpnpBaseService
           }
           insightParams.on('updated', (varObj, newVal) =>	{
 						//On split la variable pour definir les valeurs des sous variable
-            var subVariables = newVal.split('|');      
-        
+            var subVariables = newVal.split('|');
+
             if (subVariables[0]) this.updateSubVariable('State',Number(subVariables[0]));
             if (subVariables[0] == '0') this.updateSubVariable('HumanState','Off');
             if (subVariables[0] == '1') this.updateSubVariable('HumanState','On');
@@ -841,13 +847,13 @@ class WemoInsightService extends UpnpBaseService
             if (subVariables[7]) this.updateSubVariable('InstantPower',Number(subVariables[7])*0.001); //conversion mW en W
             if (subVariables[8]) this.updateSubVariable('TodayKWH',Number(subVariables[8])*0.001*(1/60)); //conversion mW*minutes en KWh
             if (subVariables[9]) this.updateSubVariable('TotalTimePeriodKWH',Number(subVariables[9])*0.001*(1/60)); //conversion mW*minutes en KWh
-            if (subVariables[10]) this.updateSubVariable('PowerThreshold',Number(subVariables[10])*0.001); //conversion mW en W??? 
+            if (subVariables[10]) this.updateSubVariable('PowerThreshold',Number(subVariables[10])*0.001); //conversion mW en W???
 					});
         }
       });
-		});  
+		});
   }
-  
+
   updateSubVariable(name, value)
   {
     var variable = this.getVariableByName(name);
@@ -866,7 +872,7 @@ class WemoMakerDeviceevent extends UpnpBaseService
 	{
 		super(device, serviceData, eventServer);
 	}
-  
+
   //On ne traite pas le xml du device mais un template car celui du device n'est pas correct
   _processDeviceSCPD(callback)
   {
@@ -875,12 +881,12 @@ class WemoMakerDeviceevent extends UpnpBaseService
 		var xmlTemplate = fs.readFileSync(__dirname+'/../../resources/ServicesTemplate.xml', 'utf8');
 		xml2js.parseString(xmlTemplate, (err, templatesData) => {
       templatesData.servicesTemplate.serviceTemplate.forEach((serviceTemplate) => {
-        if ((serviceTemplate['$']['serviceType'] == this._type || !serviceTemplate['$']['serviceType']) && 
+        if ((serviceTemplate['$']['serviceType'] == this._type || !serviceTemplate['$']['serviceType']) &&
           (serviceTemplate['$']['deviceType'] == this.Device.Type || !serviceTemplate['$']['deviceType']))
         {
           Logger.log("Processing scpd template", LogType.DEBUG);
           this.processSCPD(serviceTemplate.scpd[0],false);
-          
+
           //On s'abonne au evenement de la variable attributeList pour en faire le decodage
           var attributeList = this.getVariableByName('attributeList');
           if (!attributeList)
@@ -912,15 +918,15 @@ class WemoMakerDeviceevent extends UpnpBaseService
                   {
                     Logger.log("Unable to find " + attr.name[0] + " variable of the Wemo Maker " + this.Device.BaseAddress, LogType.ERROR);
                   }
-                  
+
                 });
               }
             });
 					});
         }
       });
-      if (this._eventSubURL != '/') this.subscribe();	
-		});  
+      if (this._eventSubURL != '/') this.subscribe();
+		});
   }
 }
 
@@ -930,5 +936,3 @@ exports.OpenHomeAVTransportService = OpenHomeAVTransportService;
 exports.WemoInsightBasicevent = WemoInsightBasicevent;
 exports.WemoInsightService = WemoInsightService;
 exports.WemoMakerDeviceevent = WemoMakerDeviceevent;
-
-
