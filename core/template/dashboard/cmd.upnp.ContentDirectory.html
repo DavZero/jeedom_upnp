@@ -167,6 +167,60 @@
       });
     });
 
+    var xhrImgToDataURL#cmd_browse_id# = null;
+
+    function displayImageAsDataURL#cmd_browse_id#(url,imgDiv)
+    {
+      //console.log ('url '+ url + ' is not accessible, try to convert to DataURL from the server');
+      if(xhrImgToDataURL#cmd_browse_id# && xhrImgToDataURL#cmd_browse_id#.readyState != 4)
+      {
+        xhrImgToDataURL#cmd_browse_id#.abort();
+      }
+
+      xhrImgToDataURL#cmd_browse_id# = $.ajax({
+        url: "plugins/upnp/core/ajax/upnp.ajax.php",
+        data: {"action": "convertImgToDataURL","imagePath" : url },
+        async: true,
+        global: false,
+        dataType: "json",
+        success: function(data) {
+          if (data.state != 'ok') {
+            $('#div_alert').showAlert({message: data.result, level: 'danger'});
+          }
+          else {
+            imgDiv.html("<img style=\"max-width:100%\" src="+data.result+">");
+          }
+        },
+        error: function (request, status, error) {
+          handleAjaxError(request, status, error);
+        }
+      });
+    }
+
+    function displayImage#cmd_browse_id#(url,imgDiv) {
+      var timeout = 1000;
+      var timedOut = false, timer;
+      var img = new Image();
+      img.onerror = img.onabort = function() {
+        if (!timedOut) {
+          clearTimeout(timer);
+          displayImageAsDataURL#cmd_browse_id#(url, imgDiv);
+        }
+      };
+      img.onload = function() {
+        if (!timedOut) {
+          clearTimeout(timer);
+          //console.log ('url '+ url + ' is accessible, display it directly');
+          imgDiv.html("<img style=\"max-width:100%\" src="+url+">");
+        }
+      };
+      img.src = url;
+      timer = setTimeout(function() {
+        timedOut = true;
+        displayImageAsDataURL#cmd_browse_id#(url, imgDiv);
+      }, timeout);
+    }
+
     function BrowserXMLToHtml#cmd_browse_id# (xmlString)
     {
       var $xml;
@@ -216,8 +270,9 @@
       if (url) $('.cmd[data-cmd_id=#cmd_browse_id#] .upnpDetail .title').html("<a href="+url+">"+title+"</a>");
       else $('.cmd[data-cmd_id=#cmd_browse_id#] .upnpDetail .title').html(title);
 
-      if (thumbnail) $('.cmd[data-cmd_id=#cmd_browse_id#] .upnpDetail .upnpThumbnail').html("<img style=\"max-width:100%\" src="+thumbnail+">");
-      else $('.cmd[data-cmd_id=#cmd_browse_id#] .upnpDetail .upnpThumbnail').html("");
+      $('.cmd[data-cmd_id=#cmd_browse_id#] .upnpDetail .upnpThumbnail').html("");
+      if (thumbnail) displayImage#cmd_browse_id#(thumbnail,$('.cmd[data-cmd_id=#cmd_browse_id#] .upnpDetail .upnpThumbnail'));
+      //else $('.cmd[data-cmd_id=#cmd_browse_id#] .upnpDetail .upnpThumbnail').html("");
 
       var details="";
 
