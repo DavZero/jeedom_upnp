@@ -54,7 +54,7 @@ process.argv.forEach(function (val, index, array){
 	}
 });
 
-Logger.log("Démon version 2.1.1", LogType.INFO);
+Logger.log("Démon version 2.2.0", LogType.INFO);
 Logger.log("urlJeedom = " + urlJeedom, LogType.DEBUG);
 Logger.log("serverPort = " + serverPort, LogType.DEBUG);
 Logger.log("logLevel = " + logLevel, LogType.INFO);
@@ -95,7 +95,8 @@ var processJeedomSendQueue = function ()
     strictSSL: false,
 		qs:
 		{
-			type: nextMessage.type
+			type: nextMessage.type,
+      plugin: nextMessage.plugin
 		},
 		method: nextMessage.method,
 		json: nextMessage.data
@@ -124,6 +125,7 @@ var sendToJeedom = function (data, callback)
 	message.url = urlJeedom;
 	message.data = data;
 	message.type = 'upnp';
+  message.plugin = 'upnp';
 	message.method = 'POST';
 	message.tryCount = 0;
 	jeedomSendQueue.push(message);
