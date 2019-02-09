@@ -200,7 +200,7 @@ class ControlPoint extends EventEmitter
 
 	_addDevice(headers)
 	{
-    if (headers == null || headers.USN == null)
+    if (headers == null || headers.USN == null || headers['CACHE-CONTROL'] == null || headers.LOCATION == null)
     {
       Logger.log("Unable to add device : " + JSON.stringify(headers), LogType.ERROR);
       return;
