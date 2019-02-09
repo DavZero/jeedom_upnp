@@ -200,7 +200,7 @@ class ControlPoint extends EventEmitter
 
 	_addDevice(headers)
 	{
-    if (headers == null || headers.USN == null || headers['CACHE-CONTROL'] == null || headers.LOCATION == null)
+    if (headers == null || headers.USN == null || headers.LOCATION == null)
     {
       Logger.log("Unable to add device : " + JSON.stringify(headers), LogType.ERROR);
       return;
@@ -214,7 +214,8 @@ class ControlPoint extends EventEmitter
     {
       if (!this._allowedDevice[uuid]) return;
     }
-    var timeout = headers['CACHE-CONTROL'].match(/\d+/);
+    var timeout = 600; //default of 10 minutes
+    if (headers['CACHE-CONTROL'] != null) timeout = headers['CACHE-CONTROL'].match(/\d+/);
     var location = url.parse(headers.LOCATION);
     location.port = location.port || (location.protocol == "https:" ? 443 : 80);
 		if (this._requestedDeviceQueue[uuid])
