@@ -216,6 +216,7 @@ class ControlPoint extends EventEmitter
     }
     var timeout = 600; //default of 10 minutes
     if (headers['CACHE-CONTROL'] != null) timeout = headers['CACHE-CONTROL'].match(/\d+/);
+    else Logger.log("No timeout provide in device header : " + JSON.stringify(headers) + ", use default value (600)", LogType.WARNING);
     var location = url.parse(headers.LOCATION);
     location.port = location.port || (location.protocol == "https:" ? 443 : 80);
 		if (this._requestedDeviceQueue[uuid])
@@ -231,7 +232,7 @@ class ControlPoint extends EventEmitter
 		request(location.href, (error, response, body) =>	{
 			if (error || response.statusCode != 200)
       {
-        //ToDo Logging error
+        Logger.log("Can't find service description for " + uuid + " with location " + location.href + ". Unable to create device with header : " + JSON.stringify(headers), LogType.WARNING);
       }
 			else
 			{
