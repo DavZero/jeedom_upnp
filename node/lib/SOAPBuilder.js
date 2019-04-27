@@ -58,23 +58,34 @@ _getBody()
 	{
 		try
 		{
-			var options =
+      var body = this._getBody();
+      var options =
 			{
 				method: 'POST',
 				uri: this._action.Service.ControlUrl,
 				headers:
 				{
 					'SOAPAction': '"' + this._action.Service.Type + '#' + this._action.Name + '"',
-					'Content-Type': 'text/xml; charset="utf-8"'
+					'Content-type': 'text/xml; charset="utf-8"',
+          'Content-length': Buffer.byteLength(body, 'utf8')
 				},
-				body: this._getBody()
+				body: body
 			};
+
+      //Logger.log("Sending Message : " + JSON.stringify(options), LogType.DEBUG);
 
 			request.post(options, function (err, response, body){
 				if (err)
         {
-          console.log('err : ' + err);
+          //console.log('err : ' + err);
+          //Logger.log("Error sending message : " + JSON.stringify(options) + ", err : " + err, LogType.ERROR);
         }
+        if (response && response.statusCode != 200)
+        {
+          //console.log('err : ' + err);
+          //Logger.log("Error sending message : " + JSON.stringify(options) + ", response : " + JSON.stringify(response), LogType.ERROR);
+        }
+
 				if (callback)
 					callback(err, body);
 			});

@@ -601,10 +601,12 @@
       }
 
       //Ensuite on traite les commandes génériques
-      foreach ($this->getCmd($type, null, true) as $cmd) {
+      foreach ($this->getCmd(null, null, true) as $cmd) {
         if (isset($replace['#refresh_id#']) && $cmd->getId() == $replace['#refresh_id#']) {
           continue;
         }
+
+        if ($type != null && $cmd->getType() != $type && $cmd->getLogicalId() != 'UpdateOnlineStatus') continue;
 
         if ($processedService &&
             (((in_array($cmd->getLogicalId(),$processedCommand)) && !$this->getConfiguration('standardDisplayOfCustomizedCommand'))

@@ -7,6 +7,7 @@ var net = require('net');
 var xml2js = require('xml2js');
 var XmlEntities = require('html-entities').XmlEntities;
 var fs = require('fs');
+//var http = require('http');
 
 Logger.setLogLevel(LogType.DEBUG);
 
@@ -459,6 +460,21 @@ DesiredVolume:14
 processJeedomMessage(JSON.stringify(data));
 }, 10000);
  */
+
+
+//  //Creation d'un serveur pour test de transfer de flux
+//  http.createServer(function (req, resp) {
+//   if (req.url === '/test') {
+//     //var flux = 'http://ellebore.ice.infomaniak.ch/ellebore-high.aac';
+//     var flux='/mnt/JeedomDev/01 - Du temps.mp3';
+//     Logger.log('test du flux : ' + flux, LogType.ERROR);
+//     //req.pipe(fs.createReadStream(flux)).pipe(resp)
+//     fs.createReadStream(flux).pipe(resp);
+//     /*const x = request('https://github.com/request/request')
+//     req.pipe(x)
+//     x.pipe(resp)*/
+//   }
+// }).listen(8080);
 
 process.on('uncaughtException', function (err) {
 	console.error('An uncaughtException was found, the program will end : ' + err);

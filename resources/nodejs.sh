@@ -55,6 +55,9 @@ npm cache clean
 sudo npm cache clean
 sudo rm -rf node_modules
 
+sudo mkdir node_modules
+sudo chown -R www-data:www-data node_modules
+
 echo 80 > /tmp/upnp_dep
 sudo npm install --unsafe-perm ip
 echo 82 > /tmp/upnp_dep
