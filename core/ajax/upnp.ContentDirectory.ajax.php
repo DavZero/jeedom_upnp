@@ -19,7 +19,7 @@
     require_once dirname(__FILE__) . '/../../../../core/php/core.inc.php';
     include_file('core', 'authentification', 'php');
     
-    if (!isConnect('admin')) {
+    if (!isConnect()) {
       throw new Exception(__('401 - Accès non autorisé', __FILE__));
     }
     
@@ -61,7 +61,7 @@
       {
         $didlXML = new DomDocument();
         $response = json_decode($browseCmd->execute($option));
-        $didlXML->loadXML($response->{'u:BrowseResponse'}[0]->{'Result'}[0]);
+        $didlXML->loadXML($response->{'BrowseResponse'}[0]->{'Result'}[0]);
         
         foreach($didlXML->documentElement->getElementsByTagName("container") as $container)
         {
@@ -126,7 +126,7 @@
       );
       
       //Metadata au formatXML
-      $metadata = json_decode($browseCmd->execute($option))->{'u:BrowseResponse'}[0]->{'Result'}[0];
+      $metadata = json_decode($browseCmd->execute($option))->{'BrowseResponse'}[0]->{'Result'}[0];
       
       //echo htmlentities($metadata);
       //die();

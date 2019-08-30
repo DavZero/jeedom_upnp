@@ -1,11 +1,11 @@
 [panel,primary]
-.Comment faire un appel aux commandes des equipements Upnp dans les scénarios ?
+.Comment faire un appel aux commandes des équipements Upnp dans les scénarios ?
 --
-Les commandes Upnp nécessitent des paramètres pour être executées, il est nécessaire de passer par un bloc code. Exemple :
+Les commandes Upnp nécessitent des paramètres pour être exécutées, il est nécessaire de passer par un bloc code. Exemple :
 
 image::../images/upnp_scenario.png[]
 
-Pour connaitre les paramètres de chaque commande, il faut regarder le paramétrage des commandes sur l'equipement (attention pour les listes de valeur, il faut saisir une valeur autorisée)
+Pour connaitre les paramètres de chaque commande, il faut regarder le paramétrage des commandes sur l'équipement (attention pour les listes de valeur, il faut saisir une valeur autorisée).
 
 image::../images/upnp_commandes.png[]
 --

@@ -21,6 +21,10 @@
           <span class="resolution"></span>
         </div>
         <div class="otherDetail"></div>
+        <div class="itemActions" style="display:none;">
+          <a class="btn btn-sm btn-default execute play tooltips" title="Lire" style="background-color:#cmd-background-color# !important;border-color : transparent !important;">Lire</a>
+          <a class="btn btn-sm btn-default execute addShortcut tooltips" title="Ajout raccourci à un lecteur" style="background-color:#cmd-background-color# !important;border-color : transparent !important;">Ajout raccourci à un lecteur</a>
+        </div>
       </div>
     </div>
   </div>
@@ -38,53 +42,62 @@
       }, 250);
     });
 
+    function readItem(uri,metadata)
+    {
+        jeedom.eqLogic.getSelectModal({eqLogic : {type: 'upnp'}}, function(result){
+            $.ajax({
+                url: "plugins/upnp/core/ajax/upnp.AVTransport.ajax.php",
+                data: {"action": "setAVTransportURI","eqLogicId" : result.id ,"uri" :uri, "metadata":metadata},
+                dataType: "json",
+                success: function (data) {
+        			if (data.state != 'ok') {
+        				$('#div_alert').showAlert({message: data.result, level: 'danger'});
+        			}
+        		},
+                error: function (request, status, error) {
+                    handleAjaxError(request, status, error);
+                }
+            });
+        });
+    }
+
+    function addItemShortcut(uri,metadata)
+    {
+        //Todo a custom eqLogic Selector
+        jeedom.eqLogic.getSelectModal({eqLogic : {type: 'upnp'}}, function(result){
+            bootbox.prompt("{{Nom de la commande}}", function (cmdName) {
+                $.ajax({
+                    url: "plugins/upnp/core/ajax/upnp.AVTransport.ajax.php",
+                    data: {"action": "createAction","upnpAction": "SetAVTransportURI","cmdName": cmdName,"eqLogicId" : result.id ,"InstanceID":0,"CurrentURI" :uri, "CurrentURIMetaData":metadata},
+                    dataType: "json",
+                    success: function (data) {
+                        if (data.state != 'ok') {
+                            $('#div_alert').showAlert({message: data.result, level: 'danger'});
+                        }
+                    },
+                    error: function (request, status, error) {
+                        handleAjaxError(request, status, error);
+                    }
+                });
+            });
+        });
+    }
+
     function customMenu(node)
     {
       var items = {
         Read : {
           label : 'Lire',
-          action : function ()
+          action : function()
           {
-            //Todo a custom eqLogic Selector
-            jeedom.eqLogic.getSelectModal({eqLogic : {type: 'upnp'}}, function(result){
-              $.ajax({
-                url: "plugins/upnp/core/ajax/upnp.AVTransport.ajax.php",
-                data: {"action": "setAVTransportURI","eqLogicId" : result.id ,"uri" :node.data.uri, "metadata":$('<div/>').text(node.data.metadata).html()},
-                dataType: "json",
-                success: function (data) {
-        					if (data.state != 'ok') {
-        						$('#div_alert').showAlert({message: data.result, level: 'danger'});
-        					}
-        				},
-                error: function (request, status, error) {
-                  handleAjaxError(request, status, error);
-                }
-              });
-            });
+            readItem(node.data.uri,node.data.metadata);
           }
         },
         AddAction : {
           label : 'Ajout raccourci à un lecteur',
-          action : function ()
+          action : function()
           {
-            //Todo a custom eqLogic Selector
-            jeedom.eqLogic.getSelectModal({eqLogic : {type: 'upnp'}}, function(result){
-              bootbox.prompt("{{Nom de la commande}}", function (cmdName) {
-                $.ajax({
-                  url: "plugins/upnp/core/ajax/upnp.AVTransport.ajax.php",
-                  data: {"action": "createAction","upnpAction": "SetAVTransportURI","cmdName": cmdName,"eqLogicId" : result.id ,"InstanceID":0,"CurrentURI" :node.data.uri, "CurrentURIMetaData":node.data.metadata},
-                  dataType: "json",
-                  success: function (data) {
-                    if (data.state != 'ok') {
-                      $('#div_alert').showAlert({message: data.result, level: 'danger'});
-                    }
-                  },
-                  error: function (request, status, error) {
-                    handleAjaxError(request, status, error);
-                  }
-                });
-              });
-            });
+            addItemShortcut(node.data.uri,node.data.metadata);
           }
         }
       }
@@ -117,7 +130,7 @@
           }
         }
       },
-      plugins: ["search","contextmenu"],
+      plugins: [/*"state",*/"search","contextmenu"],
       contextmenu : {
         items : customMenu
       },
@@ -154,6 +167,60 @@
       });
     });
 
+    var xhrImgToDataURL#cmd_browse_id# = null;
+
+    function displayImageAsDataURL#cmd_browse_id#(url,imgDiv)
+    {
+      //console.log ('url '+ url + ' is not accessible, try to convert to DataURL from the server');
+      if(xhrImgToDataURL#cmd_browse_id# && xhrImgToDataURL#cmd_browse_id#.readyState != 4)
+      {
+        xhrImgToDataURL#cmd_browse_id#.abort();
+      }
+
+      xhrImgToDataURL#cmd_browse_id# = $.ajax({
+        url: "plugins/upnp/core/ajax/upnp.ajax.php",
+        data: {"action": "convertImgToDataURL","imagePath" : url },
+        async: true,
+        global: false,
+        dataType: "json",
+        success: function(data) {
+          if (data.state != 'ok') {
+            $('#div_alert').showAlert({message: data.result, level: 'danger'});
+          }
+          else {
+            imgDiv.html("<img style=\"max-width:100%\" src="+data.result+">");
+          }
+        },
+        error: function (request, status, error) {
+          handleAjaxError(request, status, error);
+        }
+      });
+    }
+
+    function displayImage#cmd_browse_id#(url,imgDiv) {
+      var timeout = 1000;
+      var timedOut = false, timer;
+      var img = new Image();
+      img.onerror = img.onabort = function() {
+        if (!timedOut) {
+          clearTimeout(timer);
+          displayImageAsDataURL#cmd_browse_id#(url, imgDiv);
+        }
+      };
+      img.onload = function() {
+        if (!timedOut) {
+          clearTimeout(timer);
+          //console.log ('url '+ url + ' is accessible, display it directly');
+          imgDiv.html("<img style=\"max-width:100%\" src="+url+">");
+        }
+      };
+      img.src = url;
+      timer = setTimeout(function() {
+        timedOut = true;
+        displayImageAsDataURL#cmd_browse_id#(url, imgDiv);
+      }, timeout);
+    }
+
     function BrowserXMLToHtml#cmd_browse_id# (xmlString)
     {
       var $xml;
@@ -183,7 +250,7 @@
       var detailedObject = $xml.find("container");
       if (!detailedObject.length) detailedObject = $xml.find("item");
 
-      title = detailedObject.find("title").text();
+      title = detailedObject.find("dc\\:title").text();
 
       detailedObject.find("res").each( function() {
         if (!url) url = $(this).text();
@@ -196,15 +263,16 @@
         }
       });
 
-      detailedObject.find("albumArtURI").each ( function() {
+      detailedObject.find("upnp\\:albumArtURI").each ( function() {
         thumbnail = $(this).text();
       });
 
       if (url) $('.cmd[data-cmd_id=#cmd_browse_id#] .upnpDetail .title').html("<a href="+url+">"+title+"</a>");
       else $('.cmd[data-cmd_id=#cmd_browse_id#] .upnpDetail .title').html(title);
 
-      if (thumbnail) $('.cmd[data-cmd_id=#cmd_browse_id#] .upnpDetail .upnpThumbnail').html("<img style=\"max-width:100%\" src="+thumbnail+">");
-      else $('.cmd[data-cmd_id=#cmd_browse_id#] .upnpDetail .upnpThumbnail').html("");
+      $('.cmd[data-cmd_id=#cmd_browse_id#] .upnpDetail .upnpThumbnail').html("");
+      if (thumbnail) displayImage#cmd_browse_id#(thumbnail,$('.cmd[data-cmd_id=#cmd_browse_id#] .upnpDetail .upnpThumbnail'));
+      //else $('.cmd[data-cmd_id=#cmd_browse_id#] .upnpDetail .upnpThumbnail').html("");
 
       var details="";
 
@@ -235,6 +303,9 @@
       });
 
       $('.cmd[data-cmd_id=#cmd_browse_id#] .upnpDetail .otherDetail').html(details);
+
+      if (url) $('.cmd[data-cmd_id=#cmd_browse_id#] .upnpDetail .itemActions').show();
+      else $('.cmd[data-cmd_id=#cmd_browse_id#] .upnpDetail .itemActions').hide();
     }
 
     function getLinkResourceFromXML(xmlString)
@@ -254,5 +325,16 @@
       }
       return $xml.find("res:first").text();
     }
+
+    $('.cmd[data-cmd_id=#cmd_browse_id#] .upnpDetail .itemActions .play').on('click', function() {
+      var selectedItem = $('.cmd[data-cmd_id=#cmd_browse_id#] .upnpBrowser').jstree().get_selected(true)[0];
+      readItem(selectedItem.data.uri,selectedItem.data.metadata);
+    });
+
+    $('.cmd[data-cmd_id=#cmd_browse_id#] .upnpDetail .itemActions .addShortcut').on('click', function() {
+      var selectedItem = $('.cmd[data-cmd_id=#cmd_browse_id#] .upnpBrowser').jstree().get_selected(true)[0];
+      addItemShortcut(selectedItem.data.uri,selectedItem.data.metadata);
+    });
+
   </script>
 </div>

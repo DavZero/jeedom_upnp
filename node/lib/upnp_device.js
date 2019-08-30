@@ -20,34 +20,42 @@ class UpnpDevice extends EventEmitter
     this._allowedServices = [];
     if (allowedServices) this._allowedServices = allowedServices;
     //On créer les services mais il faut laisser le temps au controlPoint de s'inscrire au evenement
-    setTimeout(() => {
-      this._updateServices(deviceDescription,eventServer);
-    },1000);
+    //setTimeout(() => {
+    //  this._updateServices(deviceDescription,eventServer);
+    //},1000);
+    process.nextTick(() => { this._updateServices(deviceDescription,eventServer); });
 	}
-  
+
   _updateServices(deviceDescription, eventServer)
   {
     var serviceList = [];
     if (deviceDescription.serviceList && deviceDescription.serviceList[0] && deviceDescription.serviceList[0].service)
 		{
       deviceDescription.serviceList[0].service.forEach((item) => {
-        //Si le service est autorisé on le créer
-        if (this._includeState || this._allowedServices.indexOf(item.serviceId[0]) !== -1)
+        //Si le service est autorisé on le créer (on ignore urn:dial­multiscreen­org:service:dial:1)
+        try
         {
-          if (this._services[item.serviceId[0]]) this._services[item.serviceId[0]].update(item);
-          else 
+          if ((this._includeState || this._allowedServices.indexOf(item.serviceId[0]) !== -1) && item.serviceType[0] != 'urn:dial­multiscreen­org:service:dial:1' )
           {
-            this._services[item.serviceId[0]] = this._createService(item, eventServer);
-            if (this._allowedServices.indexOf(item.serviceId[0]) === -1) this._allowedServices.push(item.serviceId[0]);
+            if (this._services[item.serviceId[0]]) this._services[item.serviceId[0]].update(item);
+            else
+            {
+              this._services[item.serviceId[0]] = this._createService(item, eventServer);
+              if (this._allowedServices.indexOf(item.serviceId[0]) === -1) this._allowedServices.push(item.serviceId[0]);
+            }
+            serviceList.push(item.serviceId[0]);
+            this.emit('serviceUpdated', this._services[item.serviceId[0]]);
           }
-          serviceList.push(item.serviceId[0]);
-          this.emit('serviceUpdated', this._services[item.serviceId[0]]);
+        }
+        catch (e)
+        {
+          Logger.log("Unable to create/update service " + JSON.stringify(item) + " err : " + e, LogType.DEBUG);
         }
 			});
 		}
     else
       Logger.log("No service list found for device" + this._UDN + " adresse : " + this._location.href + " : " + JSON.stringify(deviceDescription), LogType.DEBUG);
-    
+
     //On supprime les services qui n'existe plus
     for (var prop in this._services)
     {
@@ -56,14 +64,14 @@ class UpnpDevice extends EventEmitter
         this._services[prop].prepareForRemove();
         delete this._services[prop];
       }
-    }  
+    }
   }
-  
+
   setIncludeState(includeState)
   {
     this._includeState = includeState;
   }
-  
+
   _updateDeviceProperties(location, deviceDescription)
   {
     this._type = deviceDescription.deviceType[0];
@@ -71,7 +79,7 @@ class UpnpDevice extends EventEmitter
 		this._name = deviceDescription.friendlyName[0];
 		this._iconUrl = '';
 		this._additionalInfo = {};
-    
+
     //Manage additional properties
 		for (var prop in deviceDescription)
 		{
@@ -93,23 +101,24 @@ class UpnpDevice extends EventEmitter
 			});
 		}
   }
-  
+
   update(timeout, location, deviceDescription, eventServer)
   {
     Logger.log("Mise a jour du device " + deviceDescription.deviceType[0] + " " + this._UDN + " / timeout : " + timeout, LogType.DEBUG);
     this._setDeviceTimeout(timeout);
     this._updateDeviceProperties(location, deviceDescription);
-    setTimeout(() => {
-      this._updateServices(deviceDescription,eventServer);
-    },1000);
-    //this._updateServices(deviceDescription, eventServer);
+    //process.nextTick(() => { this._updateServices(deviceDescription,eventServer); });
+    //setTimeout(() => {
+    //  this._updateServices(deviceDescription,eventServer);
+  //},1000);
+    this._updateServices(deviceDescription, eventServer);
   }
-  
+
   setAllowedService(allowedServices)
   {
     this._allowedServices = allowedServices;
   }
-  
+
   _createService(serviceDescription, eventServer)
   {
     var service;
@@ -118,6 +127,11 @@ class UpnpDevice extends EventEmitter
     {
       //Création d'un service spécial pour le WEMO Insight
       service = new UpnpService.WemoInsightBasicevent(this, serviceDescription, eventServer);
+    }
+    else if (this._type == 'urn:Belkin:device:insight:1' && serviceDescription.serviceType[0] == 'urn:Belkin:service:insight:1')
+    {
+      //Création d'un service spécial pour le WEMO Insight
+      service = new UpnpService.WemoInsightService(this, serviceDescription, eventServer);
     }
     else if (this._type == 'urn:Belkin:device:Maker:1' && serviceDescription.serviceType[0] == 'urn:Belkin:service:deviceevent:1')
     {
@@ -132,13 +146,13 @@ class UpnpDevice extends EventEmitter
 			service = new UpnpService.BaseService(this, serviceDescription, eventServer);
     return service;
   }
-  
+
   _setDeviceTimeout(timeout)
   {
     if (this._checkAlive) clearTimeout(this._checkAlive);
     this._checkAlive = setTimeout((device) => {
-      device.prepareForRemove();
-      device.emit('deviceOffline', device);
+      Logger.log("Device " + this._UDN + " adresse : " + this._location.href + " alive timeout reach", LogType.DEBUG);
+      device.emit('deviceAliveTimeout',device);
     },timeout*1100,this);
   }
 
@@ -162,10 +176,10 @@ class UpnpDevice extends EventEmitter
       this._services[prop].prepareForRemove();
     }
 	}
-  
+
   removeService(serviceID)
   {
-    if (this._services[serviceID]) 
+    if (this._services[serviceID])
     {
       this._services[serviceID].prepareForRemove();
       delete this._services[serviceID];
@@ -187,12 +201,12 @@ class UpnpDevice extends EventEmitter
 	{
 		return this._UDN;
 	}
-  
+
   get Type()
 	{
 		return this._type;
 	}
- 
+
 	get Name()
 	{
 		return this._name;

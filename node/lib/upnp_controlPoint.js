@@ -14,7 +14,7 @@ var xml2js = require('xml2js');
 
 ip.address() // my ip address
 
-function getUUID(usn) 
+function getUUID(usn)
 {
   var udn = usn;
   var s = usn.split("::");
@@ -30,12 +30,12 @@ function getDeviceDescriptionByUUID(description, uuid)
   if (description.deviceList && description.deviceList[0] && description.deviceList[0].device)
   {
     var items = description.deviceList[0].device;
-    for (var i = 0; i < items.length; i++) 
+    for (var i = 0; i < items.length; i++)
     {
       var subDevice = getDeviceDescriptionByUUID(items[i],uuid);
       if (subDevice) return subDevice;
     }
-  }    
+  }
   return;
 }
 
@@ -57,7 +57,7 @@ class ControlPoint extends EventEmitter
 	constructor(ssdpPort, allowedDevice, disallowedDevice)
 	{
 		super();
-    
+
     this._includeState = false;
 
 		//On créer un serveur http pour gérer les events
@@ -82,7 +82,7 @@ class ControlPoint extends EventEmitter
 					var service = this.getServiceBySID(headers.sid);
 					if (service)
 					{
-						Logger.log("Service found.", LogType.DEBUG);
+						Logger.log("Service " + service.Device.UDN + '::' + service.ID + " found.", LogType.DEBUG);
             //Traitement pour corriger certain xml mal formatter uniquement si le xml ne contient pas de CDATA
             if (body.indexOf("<![CDATA[") === -1) body = body.replace(/&(?!amp;|gt;|lt;|apos;|quot;|#\d+;)/gi, "&amp;");
 						xml2js.parseString(body, (err, data) =>
@@ -95,7 +95,9 @@ class ControlPoint extends EventEmitter
 							}
 							else
 							{
-                service.processEvent(data);
+                //Check if data is null
+                if (data != null) service.processEvent(data);
+                else Logger.log("Temporary error report for debugging : " + service.Device.UDN + '::' + service.ID + " ==> xml : " + JSON.stringify(body) + ", there is no data " + JSON.stringify(data) + ", err : " + err, LogType.ERROR);
 							}
 						});
 					}
@@ -103,7 +105,7 @@ class ControlPoint extends EventEmitter
 			});
 			this._eventServer.listen(port);
 		});
-    
+
 		//On créer un serveur pour gérer le ssdp
 		this._SSDPserver = new ssdpAPI.SSDP(ssdpPort);
 		this._SSDPserver.startServer((msg, rinfo) => {	this._onSSDPMessage(msg, rinfo); });
@@ -116,7 +118,7 @@ class ControlPoint extends EventEmitter
 		this._devices = {};
 		this._requestedDeviceQueue = {};
 	}
- 
+
 	shutdown()
 	{
 		try
@@ -156,6 +158,7 @@ class ControlPoint extends EventEmitter
           break;
         case 'DeviceUnavailable':
           //On cherche le device qui a le bon usn et on le supprimer
+          Logger.log("Device " + getUUID(headers.USN) + " send ssdp:byebye message", LogType.DEBUG);
           this._removeDevice(getUUID(headers.USN));
           break;
 			}
@@ -176,19 +179,19 @@ class ControlPoint extends EventEmitter
 		}*/
 		Logger.log("UPDATE DEVICE NOT IMPLEMENTED", LogType.ERROR);
 	}
-   
+
   _isDisallowed(uuid)
-  {  
+  {
     return this._disallowedDevice.indexOf(uuid) === -1 ? false : true;
   }
-  
+
   _removeAllowed(uuid, serviceID)
   {
     if (this._allowedDevice[uuid] && this._allowedDevice[uuid].indexOf(serviceID) !== -1) this._allowedDevice[uuid].splice(this._allowedDevice[uuid].indexOf(serviceID),1);
     if (this._devices[uuid]) this._devices[uuid].setAllowedService(this._allowedDevice[uuid]);
     if (this._allowedDevice[uuid].length == 0) delete this._allowedDevice[uuid];
   }
-  
+
   _addAllowedService(uuid, serviceID)
   {
     if (!this._allowedDevice[uuid]) this._allowedDevice[uuid] = [];
@@ -197,15 +200,23 @@ class ControlPoint extends EventEmitter
 
 	_addDevice(headers)
 	{
+    if (headers == null || headers.USN == null || headers.LOCATION == null)
+    {
+      Logger.log("Unable to add device : " + JSON.stringify(headers), LogType.ERROR);
+      return;
+    }
     Logger.log("Process usn : " + headers.USN, LogType.DEBUG);
+
     var uuid = getUUID(headers.USN);
     //Si le device n'est pas autorisés
     if (this._isDisallowed(uuid)) return;
-    if (!this._includeState) 
+    if (!this._includeState)
     {
       if (!this._allowedDevice[uuid]) return;
     }
-    var timeout = headers['CACHE-CONTROL'].match(/\d+/);
+    var timeout = 600; //default of 10 minutes
+    if (headers['CACHE-CONTROL'] != null) timeout = headers['CACHE-CONTROL'].match(/\d+/);
+    else Logger.log("No timeout provide in device header : " + JSON.stringify(headers) + ", use default value (600)", LogType.WARNING);
     var location = url.parse(headers.LOCATION);
     location.port = location.port || (location.protocol == "https:" ? 443 : 80);
 		if (this._requestedDeviceQueue[uuid])
@@ -213,7 +224,7 @@ class ControlPoint extends EventEmitter
 			Logger.log("Device " + uuid + " with location " + location.href + " already queued for creation/update", LogType.DEBUG);
 			return;
 		}
-    
+
 		this._requestedDeviceQueue[uuid] = location.href;
 		Logger.log("Add Device " + uuid + " with location " + location.href + " to ceation/update queued", LogType.DEBUG);
 
@@ -221,7 +232,7 @@ class ControlPoint extends EventEmitter
 		request(location.href, (error, response, body) =>	{
 			if (error || response.statusCode != 200)
       {
-        //ToDo Logging error
+        Logger.log("Can't find service description for " + uuid + " with location " + location.href + ". Unable to create device with header : " + JSON.stringify(headers), LogType.WARNING);
       }
 			else
 			{
@@ -243,8 +254,8 @@ class ControlPoint extends EventEmitter
               else
               {
                 this._devices[uuid] = new upnpDeviceAPI.UpnpDevice(uuid, this._includeState, this._allowedDevice[uuid], timeout, location, deviceDescription, 'http://' + ip.address() + ':' + this._eventPort);
-                this._devices[uuid].on('serviceUpdated', (service) => { 
-                  this.emit('serviceUpdated', service); 
+                this._devices[uuid].on('serviceUpdated', (service) => {
+                  this.emit('serviceUpdated', service);
                   //On ajoute le service a la liste des services autorisés
                   this._addAllowedService(service.Device.UDN,service.ID);
                 });
@@ -252,14 +263,14 @@ class ControlPoint extends EventEmitter
                 this._devices[uuid].on('variableCreated', (variable) => { this.emit('variableDiscovered', variable); });
                 this._devices[uuid].on('variableUpdated', (variable, newVal) => { this.emit('variableUpdated', variable, newVal); });
                 this._devices[uuid].on('serviceOffline', (service) => { this.emit('serviceOffline', service); });
-                this._devices[uuid].on('deviceOffline', (device) => { delete this._devices[device.UDN] });
+                this._devices[uuid].on('deviceAliveTimeout', (device) => { this.checkDeviceStatus(device.UDN); });
                 this._devices[uuid].on('error', (error) => { this.emit('upnpError', error); });
               }
               //On l'ajoute a la liste des autorisés
               if (!this._allowedDevice[uuid]) this._allowedDevice[uuid] = ["All"];
             }
-            else 
-            { 
+            else
+            {
               //Manage error
             }
           }
@@ -274,6 +285,28 @@ class ControlPoint extends EventEmitter
 		});
 	}
 
+  checkDeviceStatus(udn,callback)
+  {
+    //On vérifie si le device existe dejà
+    var device = this.getDevice(udn);
+    //On laisse le temps au device de répondre et sinon on le supprime
+    var onlineTimeout = setTimeout((device) => {
+      if (device)
+      {
+        Logger.log("Device " + device.UDN + " was not alive", LogType.DEBUG);
+        this._removeDevice(device.UDN);
+      }
+      if (callback) callback('Offline');
+    },5000,device);
+
+    this._SSDPserver.sendMSearch('uuid:'+udn, (msg, rinfo) =>
+    {
+      clearTimeout(onlineTimeout);
+      this._onMSearchMessage(msg, rinfo);
+      if (callback) callback('Online');
+    });
+  }
+
 	_removeDevice(uuid)
 	{
     if (this._devices[uuid])
@@ -282,18 +315,18 @@ class ControlPoint extends EventEmitter
 			delete this._devices[uuid];
     }
 	}
-  
+
   removeAllowedService(uuid,serviceID)
   {
     this._removeAllowed(uuid,serviceID);
     this.removeService(uuid,serviceID);
   }
-  
+
   setIncludeState(val)
   {
     if (val) this._includeState = true;
     else this._includeState = false;
-    
+
     for (var prop in this._devices)
 		{
 			this._devices[prop].setIncludeState(this._includeState);
@@ -307,7 +340,7 @@ class ControlPoint extends EventEmitter
 			return;
 		return device.getService(serviceID);
 	}
-  
+
   removeService(udn, serviceID)
   {
     var device = this.getDevice(udn);
@@ -315,7 +348,7 @@ class ControlPoint extends EventEmitter
     {
       device.removeService(serviceID);
       //Si il n'y a plus de service on supprime le device
-      if (Object.keys(device.Services).length == 0) 
+      if (Object.keys(device.Services).length == 0)
       {
         this._devices[getUUID(udn)].prepareForRemove();
         delete this._devices[getUUID(udn)];

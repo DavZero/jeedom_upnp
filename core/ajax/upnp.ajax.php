@@ -29,7 +29,7 @@ try {
       foreach (eqLogic::byType('upnp') as $eqp) $eqp->remove();
       ajax::success();
     }
-    
+
     if (init('action') == 'scanUpnp') {
       if (upnp::deamon_info()['state'] != 'ok') throw new Exception(__('Le service doit être démarré avant de lancer l\'action : ', __FILE__) . init('action'));
       $msg = array(
@@ -40,18 +40,27 @@ try {
       upnp::sendToDaemon(json_encode($msg)) ;
       ajax::success('Scan en cours ...');
     }
-    
+
     if (init('action') == 'changeIncludeState') {
-      if (!upnp::deamon_info()['state'] == 'ok') throw new Exception(__('Le service doit être démarré avant de lancer l\'action : ', __FILE__) . init('action'));
-      $msg = array(
-        'command' => 'controlPointAction',
-        'subCommand' => 'changeIncludeState',
-        'value' => init('state')
-      );
-      upnp::sendToDaemon(json_encode($msg)) ;
+      if (upnp::deamon_info()['state'] == 'ok') {//throw new Exception(__('Le service doit être démarré avant de lancer l\'action : ', __FILE__) . init('action'));
+        $msg = array(
+          'command' => 'controlPointAction',
+          'subCommand' => 'changeIncludeState',
+          'value' => init('state')
+        );
+        upnp::sendToDaemon(json_encode($msg)) ;
+      }
       ajax::success();
     }
-    
+
+    if (init('action') == 'convertImgToDataURL') {
+      $path = init('imagePath');
+      $type = pathinfo($path, PATHINFO_EXTENSION);
+      $data = file_get_contents($path);
+      $dataURL = 'data:image/' . $type . ';base64,' . base64_encode($data);
+      ajax::success($dataURL);
+    }
+
     throw new Exception(__('Aucune méthode correspondante à : ', __FILE__) . init('action'));
     /*     * *********Catch exeption*************** */
 } catch (Exception $e) {

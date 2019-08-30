@@ -5,6 +5,7 @@ var Logger = require('../logger/logger.js').getInstance();
 var SOAPBuilder = require('./SOAPBuilder.js').SOAPBuilder;
 //var XmlEntities = require('html-entities').XmlEntities;
 var xml2js = require('xml2js');
+var stripNS = require('xml2js').processors.stripPrefix;
 
 class UpnpAction
 {
@@ -44,7 +45,7 @@ class UpnpAction
 			{
 				Logger.log("Error executiong action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options) + ", err : " + err, LogType.ERROR);
 				//this._service.Device.emit('error',"Error executiong action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify (options) + ", err : " + err);
-				callback("Error executiong action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options) + ", err : " + err, null);
+				if (callback) callback("Error executiong action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options) + ", err : " + err, null);
 			}
 			else
 			{
@@ -53,28 +54,35 @@ class UpnpAction
 				//On decode le XML au cas ou pour qu'il soit également convertie en JSON
 				//responseBody = XmlEntities.decode(responseBody);
 				//On convertie en js Object en supprimant les namespaces pour traitement du json en php
-				xml2js.parseString(responseBody, (err, data) =>
+				xml2js.parseString(responseBody, { tagNameProcessors: [stripNS] }, (err, data) =>
 				{
 					//Manage error
 					var returnData = '';
 					if (err)
 					{
-						//this._service.Device.emit('error',"Error parsing response XML for action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify (options) + ", err : " + err + ", XML : " + responseBody);
-						callback("Error parsing response XML for action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options) + ", err : " + err + ", XML : " + responseBody, null);
+						Logger.log("Unable to process action " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " err : " + JSON.stringify(err), LogType.ERROR);
+            //this._service.Device.emit('error',"Error parsing response XML for action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify (options) + ", err : " + err + ", XML : " + responseBody);
+						if (callback) callback("Error parsing response XML for action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options) + ", err : " + err + ", XML : " + responseBody, null);
 					}
 					else
 					{
-						if (!data || !data['s:Envelope'] || !data['s:Envelope']['s:Body'])
+						//if (!data || !data['s:Envelope'] || !data['s:Envelope']['s:Body']) namespace change depending of manufacturer
+            Logger.log("Action response " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " response : " + JSON.stringify(data), LogType.DEBUG);
+            if (!data || !data.hasOwnProperty('Envelope') || !data['Envelope'].hasOwnProperty('Body'))
             {
               Logger.log("Unable to process action " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " response : " + JSON.stringify(data), LogType.ERROR);
+              //Should return an error instead of just return.
               return;
             }
-            returnData = data['s:Envelope']['s:Body'][0];
-						if (returnData['s:Fault'])
+            //returnData = data['s:Envelope']['s:Body'][0]; namespace change depending of manufacturer
+            returnData = data['Envelope']['Body'][0]; 
+						//if (returnData['s:Fault']) namespace change depending of manufacturer
+            if (returnData.hasOwnProperty('Fault'))
 							//returnData = data['Envelope']['Body'][0];
 							//if (returnData['Fault'])
 						{
 							//Gestion de l'Erreur
+              Logger.log("Action Fault " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " response : " + JSON.stringify(returnData['Fault']), LogType.ERROR);
 							//this._service.Device.emit('error',"Upnp action error for : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify (options) + ", err : " + JSON.stringify(returnData));
 							if (callback)
 								callback("Upnp action error for : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options) + ", err : " + JSON.stringify(returnData), JSON.stringify(returnData));
@@ -84,7 +92,8 @@ class UpnpAction
 					if (callback)
 						callback(null, JSON.stringify(returnData));
 					//Todo Process response and update data if nacessary
-					var outputsVariable = returnData['u:' + this.Name + 'Response'][0];
+					//var outputsVariable = returnData['u:' + this.Name + 'Response'][0]; namespace change depending of manufacturer
+          var outputsVariable = returnData[this.Name + 'Response'][0];
 					for (var prop in outputsVariable)
 					{
 						if (prop == '$')
@@ -93,7 +102,9 @@ class UpnpAction
 						var arg = this.getArgumentByName(prop);
 						if (arg && arg.RelatedStateVariable)
 						{
-							arg.RelatedStateVariable.Value = outputsVariable[prop][0];
+							var value = outputsVariable[prop][0];
+              if (value.hasOwnProperty('_')) value = value['_'];
+              arg.RelatedStateVariable.Value = value;
 						}
 						else
 							Logger.log("Unable to process output argument " + prop + " of action " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options), LogType.WARNING);

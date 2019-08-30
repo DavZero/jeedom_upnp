@@ -436,7 +436,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_fehlersuche">5. Fehlersuche</a></li>
 <li><a href="#_Änderungsprotokoll">6. Änderungsprotokoll</a>
 <ul class="sectlevel3">
-<li><a href="#_version_1">6.1. Version 1</a></li>
+<li><a href="#_14_10_2017">6.1. 14/10/2017</a></li>
+<li><a href="#_03_06_2017">6.2. 03/06/2017</a></li>
+<li><a href="#_09_03_2017">6.3. 09/03/2017</a></li>
+<li><a href="#_01_02_2017">6.4. 01/02/2017</a></li>
+<li><a href="#_19_11_2017">6.5. 19/11/2017</a></li>
 </ul>
 </li>
 </ul>
@@ -449,7 +453,60 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect3">
 <h4 id="_präsentation">1.1. Präsentation</h4>
 <div class="paragraph">
-<p>Ce plugin permet la gestion des periphériques Upnp</p>
+<p>Ce plugin permet la gestion des périphériques Upnp.</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>Chaque equipement généré par le plugin propose en plus des commandes Upnp fourni par le service, deux commandes spécifique pour Jeedom :</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Une commande info "IsOnline" qui permet de savoir si un equipement est disponible ou non</p>
+</li>
+<li>
+<p>Une commande action "UpdateOnlineStatus" qui permet au besoin de controler si un equipement est bien en ligne ou non.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Normalement, les equipement Upnp doivent se signaler lorsqu&#8217;il se coupe, ce qui est géré par le plugin mais si par exemple on coupe la prise d&#8217;un ecran de television, alors celui ci ne peut pas prévenir qu&#8217;il n&#8217;est plus disponible. Dans ce cas le plugin ne se rendra alors compte que l&#8217;equipement n&#8217;est ligne que lors du "heartbeat" qui se produit en général toutes les 30 minutes (c&#8217;est l&#8217;appareil qui defini cette valeur). La commande "UpdateOnlineStatus" peut donc permettre de résoudre ce problème. Suivant les appareils et ce qu&#8217;on souhaite en faire, elle peut être executer via script toutes les 5 minutes par exemple pour controler l&#8217;état d&#8217;un périphérique ou alors elle peut être utiliser dans un scénario pour rafraichir l&#8217;etat de "IsOnline" afin de décider de l&#8217;action a faire (par exemple éteindre ou allumer l&#8217;appareil)
+</td>
+</tr>
+</table>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+La commande UpdateOnlineStatus ne prend qu&#8217;un seul paramètre "WaitResponse". Si WaitResponse = 1 alors commande est "bloquante" jusqu&#8217;a la réponse de l&#8217;appareil, si celui ci est allumé, la réponse intervient en moins d&#8217;une seconde mais si il est éteint, le temps d&#8217;attente de la réponse est d&#8217;environ 5 secondes. Je préconise de n&#8217;utiliser le mode WaitResponse=1 que dans le cas d&#8217;un enchainement d&#8217;autre commande dans un scénario. Dans le cadre du rafraichissement de la valeur de "IsOnline" toutes les 5 minutes par exemple, il n&#8217;y a pas d&#8217;interet a metre WaitResponse=1
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="paragraph">
+<p>Exemple d&#8217;utilisation de la commande dans un scénario:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../images/upnp_customAction_UpdateOnlineStatus.png" alt="upnp customAction UpdateOnlineStatus">
+</div>
 </div>
 <hr>
 </div>
@@ -462,17 +519,24 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h4 id="_plugin_konfiguration">2.1. Plugin Konfiguration</h4>
 <div class="paragraph">
 <p>Une fois le plugin activé, les dépendances doivent s’installer automatiquement.
-Si ce n’est pas le cas ou si elle ne sont pas OK, cliquer sur relancer.</p>
+Si ce n’est pas le cas ou si elles ne sont pas OK, cliquer sur relancer.</p>
 </div>
 <div class="openblock">
 <div class="content">
 <div class="paragraph">
-<p>Ensuite il faut définir le port utilisé par le démon (si vous ne mettez rien, le port utilisé sera 5002)</p>
+<p>Ensuite il faut définir le port utilisé par le démon (si vous ne mettez rien, le port utilisé sera 5002).</p>
 </div>
 </div>
 </div>
 <div class="paragraph">
-<p>Enfin il est possible (en mode expert uniquement) de paramètrer le timeout des commandes (par défaut le timeout est de 10 secondes)</p>
+<p>Il est également possible de définir un objet parent par defaut (lors de leur création, les équipements sont directment associés a ce parent)</p>
+</div>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>Enfin il est possible (en mode expert uniquement) de paramètrer le timeout des commandes (par défaut le timeout est de 10 secondes).</p>
+</div>
+</div>
 </div>
 <hr>
 </div>
@@ -484,15 +548,15 @@ Si ce n’est pas le cas ou si elle ne sont pas OK, cliquer sur relancer.</p>
 <div class="sect3">
 <h4 id="_recherche_d_équipement">3.1. Recherche d&#8217;équipement</h4>
 <div class="paragraph">
-<p>Lors du démarrage du plugin, un scan des equipements upnp présent sur votre reseau est effectué.</p>
+<p>Lors du démarrage du plugin, un scan des équipements upnp présent sur votre réseau est effectué.</p>
 </div>
 <div class="paragraph">
-<p>Si le plugin est en mode inclusion (voir page de configuration des équipements) alors des équipements vont se créer, sinon seul les équipements déjà présent dans votre Jeedom seront opérationnel.
-Si vous souhaiter ajouter des equipements, il faut que le plugin soit en mode inclusion (voir page de configuration des équipements) et lancer une recherche (voir page de configuration des équipements).
-Bien sur seul les équipements allumer et présent sur votre reseau local pourront être detecté.</p>
+<p>Si le plugin est en mode inclusion (voir page de configuration des équipements) alors des équipements vont se créer, sinon seuls les équipements déjà présents dans votre Jeedom seront opérationnels.
+Si vous souhaitez ajouter des équipements, il faut que le plugin soit en mode inclusion (voir page de configuration des équipements) et lancer une recherche (voir page de configuration des équipements).
+Bien sûr seuls les équipements allumés et présents sur votre réseau local pourront être détectés.</p>
 </div>
 <div class="paragraph">
-<p>Une fois que les equipements requis ont été detecté, vous pouvez quitter le mode inclusion et supprimer ceux que vous considerer comme inutile.</p>
+<p>Une fois que les équipements requis ont été détectés, vous pouvez quitter le mode inclusion et supprimer ceux que vous considérez comme inutiles.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -501,7 +565,7 @@ Bien sur seul les équipements allumer et présent sur votre reseau local pourro
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-Si vous supprimer des equipements mais que vous rester en mode inclusion, ceux ci risque de se recréer même sans faire de recherche.
+Si vous supprimez des équipements mais que vous restez en mode inclusion, ceux-ci risquent de se recréer même sans faire de recherche.
 </td>
 </tr>
 </table>
@@ -524,8 +588,7 @@ Si vous supprimer des equipements mais que vous rester en mode inclusion, ceux c
 </div>
 <div class="paragraph">
 <p>Il est possible de choisir entre l&#8217;affichage "standard" des commandes et l&#8217;affichage spécifique aux services.
-En complément de l&#8217;affichage spécifique, il est possible d&#8217;afficher les commandes du service "non géré" par l&#8217;affichage spécifique et de forcer
-l&#8217;affichage des commandes en "standard" en plus de l&#8217;affichage spécifique</p>
+En complément de l&#8217;affichage spécifique, il est possible d&#8217;afficher les commandes du service "non gérées" par l&#8217;affichage spécifique et de forcer l&#8217;affichage des commandes en "standard" en plus de l&#8217;affichage spécifique.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -534,7 +597,7 @@ l&#8217;affichage des commandes en "standard" en plus de l&#8217;affichage spéc
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-Que se soit pour les services disposant d&#8217;un widget spécifique ou pour les autres services, l&#8217;affichage en mode "standard" prend en compte les paramètrages des commandes (affichage On/Off).
+Que se soit pour les services disposant d&#8217;un widget spécifique ou pour les autres services, l&#8217;affichage en mode "standard" prend en compte les paramétrages des commandes (affichage On/Off).
 </td>
 </tr>
 </table>
@@ -543,12 +606,10 @@ Que se soit pour les services disposant d&#8217;un widget spécifique ou pour le
 <div class="sect3">
 <h4 id="_befehls_einrichtung">3.3. Befehls Einrichtung</h4>
 <div class="paragraph">
-<p>Les actions mises a disposition par le plugin nécessitent la plupart du temps des paramètres.
-Il est possible via l&#8217;onglet "Commandes" de la page de configuration d&#8217;un equipement de définir des valeurs par defaut pour ces paramètres
-et de créer plusieur configuration de la même commande, ceci permet par exemples afin de créer les actions On et Off pour la commande UPnP "SetBinaryState"
-ou encore de créer un bouton permettant de charger ma chanson préféré ou encore de paramètré plusieur radio.
-Pour cela il faut créer une nouvelle commande d&#8217;action et dans le champs "Action" correspondant à la commande créer définir l&#8217;action UPnP qu&#8217;on souhaite paramètré.
-Ensuite, après enregistrement, les paramètre de la commande apparaissent dans le champ Option de la commande.</p>
+<p>Les actions mises à disposition par le plugin nécessitent la plupart du temps des paramètres.
+Il est possible via l&#8217;onglet "Commandes" de la page de configuration d&#8217;un équipement de définir des valeurs par défaut pour ces paramètres et de créer plusieurs configurations de la même commande, ceci permet par exemple de créer les actions On et Off pour la commande UPnP "SetBinaryState" ou encore de créer un bouton permettant de charger sa chanson préférée ou même de paramétrer plusieurs radios.
+Pour cela il faut créer une nouvelle commande d&#8217;action et dans le champ "Action" correspondant à la commande créée, de définir l&#8217;action UPnP que l&#8217;on souhaite paramétrer.
+Ensuite, après enregistrement, les paramètres de la commande apparaissent dans le champ "Option" de la commande.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -562,8 +623,7 @@ Ensuite, après enregistrement, les paramètre de la commande apparaissent dans 
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-Si vous n&#8217;avez pas besoin d&#8217;afficher les paramètres des commandes sur le dashboard (parce que par exemple la valeur par defaut que vous
-avez indiquer est la seul valeur qui vous interesse alors vous pouvez décocher la checbox "Afficher les options")
+Si vous n&#8217;avez pas besoin d&#8217;afficher les paramètres des commandes sur le dashboard (parce que, par exemple, la valeur par défaut que vous avez indiquée est la seule qui vous intéresse alors vous pouvez décocher la checkbox "Afficher les options").
 </td>
 </tr>
 </table>
@@ -575,8 +635,7 @@ avez indiquer est la seul valeur qui vous interesse alors vous pouvez décocher 
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-La valeur du champ information peut être renseigner afin de définir quel info est en relation avec cette action (a part pour la commande
-SetBinaryState je ne vois pas de cas d&#8217;usage mais on ne sais jamais soyez inventif)
+La valeur du champ "Information" peut être renseigné afin de définir quelle information est en relation avec cette action (à part pour la commande SetBinaryState, je ne vois pas de cas d&#8217;usage mais sait-on jamais, soyez inventif).
 </td>
 </tr>
 </table>
@@ -588,9 +647,7 @@ SetBinaryState je ne vois pas de cas d&#8217;usage mais on ne sais jamais soyez 
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-L&#8217;option WaitResponse est utilise si vous souhaiter "enchainer" des commandes dans un sénario par exemple, le traitement ne passera à la commande
-suivante que lorsque la commande avec WaitResponse = 1 ou true sera fini alors que si WaitResponse = 0 ou false,
-alors la commande suivante sera executer sans attendre la fin de la première commande. Dans la plupart des cas, mettre 0 ou 1 ou rien n&#8217;a pas d&#8217;incidence.
+L&#8217;option WaitResponse est utilisée si vous souhaitez "enchainer" des commandes dans un scénario par exemple, le traitement ne passera à la commande suivante que lorsque la commande avec WaitResponse = 1 ou true sera finie. Si WaitResponse = 0 ou false, alors la commande suivante sera exécutée sans attendre la fin de la première commande. Dans la plupart des cas, mettre 0 ou 1 ou rien n&#8217;a pas d&#8217;incidence.
 </td>
 </tr>
 </table>
@@ -603,9 +660,9 @@ alors la commande suivante sera executer sans attendre la fin de la première co
 <h2 id="_faq">4. FAQ</h2>
 <div class="sectionbody">
 <div class="openblock panel">
-<div class="title">Comment faire un appel aux commandes des equipements Upnp dans les scénarios ?</div><div class="content">
+<div class="title">Comment faire un appel aux commandes des équipements Upnp dans les scénarios ?</div><div class="content">
 <div class="paragraph">
-<p>Les commandes Upnp nécessitent des paramètres pour être executées, il est nécessaire de passer par un bloc code. Exemple :</p>
+<p>Les commandes Upnp nécessitent des paramètres pour être exécutées, il est nécessaire de passer par un bloc code. Exemple :</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -613,7 +670,7 @@ alors la commande suivante sera executer sans attendre la fin de la première co
 </div>
 </div>
 <div class="paragraph">
-<p>Pour connaitre les paramètres de chaque commande, il faut regarder le paramétrage des commandes sur l&#8217;equipement (attention pour les listes de valeur, il faut saisir une valeur autorisée)</p>
+<p>Pour connaitre les paramètres de chaque commande, il faut regarder le paramétrage des commandes sur l&#8217;équipement (attention pour les listes de valeur, il faut saisir une valeur autorisée).</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -629,19 +686,19 @@ alors la commande suivante sera executer sans attendre la fin de la première co
 <h2 id="_fehlersuche">5. Fehlersuche</h2>
 <div class="sectionbody">
 <div class="openblock panel">
-<div class="title">Dans le log il y a parfois des messages : "Unable to find the service with SID XXX"</div><div class="content">
+<div class="title">Dans le log il y a parfois des messages : "Unable to find the service with SID XXX".</div><div class="content">
 <div class="paragraph">
-<p>Ces messages n&#8217;ont pas d&#8217;incidence en fonctionnement normal et sont la uniquement pour du dépannage.
-Ce genre de message apparaît notamment lorsqu’on redémarre le service et sont liés à de précédant abonnement au messages des services UPnP</p>
+<p>Ces messages n&#8217;ont pas d&#8217;incidence en fonctionnement normal et sont là uniquement pour du dépannage.
+Ce genre de message apparaît notamment lorsque l’on redémarre le service et sont liés à de précédents abonnements aux messages des services UPnP.</p>
 </div>
 </div>
 </div>
 <div class="openblock">
-<div class="title">Lorsque j&#8217;execute certaines commandes, j&#8217;ai un message d&#8217;erreur indiquant que la commande n&#8217;a pas pu s&#8217;executer dans le délai imparti</div><div class="content">
+<div class="title">Lorsque j&#8217;exécute certaines commandes, j&#8217;ai un message d&#8217;erreur indiquant que la commande n&#8217;a pas pu s&#8217;exécuter dans le délai imparti.</div><div class="content">
 <div class="paragraph">
-<p>La configuration du plugin permet de définir le timeout de l’exécution d’une commande (voir la rubrique configuration).
-Dans mon cas, lors du chargement d’un media sur ma télévision, la première fois, le délai de réponse de la télévision peut aller au delà de 5 secondes.
-Si ce problème vous arrive, il suffit de relancer l’action. Si ce problème arrive régulièrement, augmenter le délai du timeout.</p>
+<p>Die Konfiguration des Plugins ermöglicht es, das Zeitlimit für die Ausführung eines Befehls zu definieren (siehe Abschnitt Konfiguration).
+Dans mon cas, lors du chargement d’un média sur ma télévision, la première fois, le délai de réponse de la télévision a pu dépasser les 5 secondes.
+Si ce problème vous arrive, il suffit de relancer l’action. Si ce problème arrive régulièrement, augmentez le délai du timeout.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -650,7 +707,7 @@ Si ce problème vous arrive, il suffit de relancer l’action. Si ce problème a
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-La valeur par defaut est 10 secondes
+La valeur par défaut est 10 secondes.
 </td>
 </tr>
 </table>
@@ -664,9 +721,71 @@ La valeur par defaut est 10 secondes
 <h2 id="_Änderungsprotokoll">6. Änderungsprotokoll</h2>
 <div class="sectionbody">
 <div class="sect3">
-<h4 id="_version_1">6.1. Version 1</h4>
-<div class="paragraph">
-<p>Erstellung des Plugins</p>
+<h4 id="_14_10_2017">6.1. 14/10/2017</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Ajout de l&#8217;action UpdateOnlineStatus</p>
+</li>
+<li>
+<p>Amélioration de la detection des appareils offline lors du démarrage du plugin</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_03_06_2017">6.2. 03/06/2017</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Prise en charge spécfique pour Wemo Insight</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_09_03_2017">6.3. 09/03/2017</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Prise en charge Windows Media Player</p>
+</li>
+<li>
+<p>Amélioration de la gestion de l&#8217;encodage des xml pour DLNA</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_01_02_2017">6.4. 01/02/2017</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Mise en place de la gestion de l&#8217;inclusion / exclusion</p>
+</li>
+<li>
+<p>Ajout de la possibilité de créer des commandes avec des options sauvegarder</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_19_11_2017">6.5. 19/11/2017</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Création du plugin</p>
+</li>
+<li>
+<p>Prise en compte des services Upnp de facon dynamique</p>
+</li>
+<li>
+<p>Prise en compte spécifique de OpenHome</p>
+</li>
+<li>
+<p>Prise en compte spécifique de Wemo</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

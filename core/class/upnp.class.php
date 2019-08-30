@@ -20,7 +20,7 @@
 
   class upnp extends eqLogic {
     /*     * *************************Attributs****************************** */
-    
+
     /*     * ***********************Methode static*************************** */
     public static function event()
     {
@@ -32,22 +32,22 @@
         log::add('upnp', 'error', $data->description);
         return;
         }
-      
+
       if (!isset($data->deviceUDN))
       {
         log::add('upnp', 'error', 'Le deviceUDN est necessaire impossible de traiter le message');
         throw new Exception('Upnp event Error : ' . 'Le deviceUDN est necessaire impossible de traiter le message');
         return;
       }
-      
+
       if (!isset($data->serviceId)){
         log::add('upnp', 'error', 'Le ServiceId est necessaire impossible de traiter le message');
         throw new Exception('Upnp event Error : ' . 'Le ServiceId est necessaire impossible de traiter le message');
         return;
       }
-      
+
       $eqp = eqlogic::byLogicalId($data->deviceUDN.'_'.$data->serviceId,'upnp');
-      
+
       if (!is_object($eqp)) {
         //Si on n'est pas en mode inclusion, on quitte
         if (config::byKey('eqLogicIncludeState', 'upnp', 0) != 1) return;
@@ -64,7 +64,7 @@
         $eqp->setIsEnable(1);
         //Recuparation de l'objet parent par defaut et vérification qu'il existe
         $objetParent = object::byId(config::byKey('defaultParentObject', 'upnp'));
-        if (is_object($objetParent)) 
+        if (is_object($objetParent))
         {
           log::add('upnp', 'debug', 'Obj parent existe');
           $eqp->setObject_id($objetParent->getId());
@@ -72,7 +72,7 @@
         $eqp->save();
         event::add('upnp::includeDevice', $eqp->getId());
       }
-      
+
       //Ajout de l'information isOnline
       $cmd = $eqp->getCmd('info','isOnline');
       if (!is_object($cmd))
@@ -88,7 +88,22 @@
         $cmd->save();
         $cmd->event(1);
       }
-          
+
+      //Ajout de l'action UpdateOnlineStatus
+      $cmd = $eqp->getCmd('action','UpdateOnlineStatus');
+      if (!is_object($cmd))
+      {
+        log::add('upnp', 'info', 'création de l\'action ' . 'UpdateOnlineStatus' . ' pour l\'équipement ' . $data->deviceUDN.'_'.$data->serviceId);
+        $cmd = new upnpCmd();
+        $cmd->setName(__('UpdateOnlineStatus', __FILE__));
+        $cmd->setLogicalId('UpdateOnlineStatus');
+        $cmd->setEqLogic_id($eqp->getId());
+        $cmd->setType('action');
+        $cmd->setSubType('other');
+        $cmd->setConfiguration('source','Plugin');
+        $cmd->save();
+      }
+
       switch ($data->eventType)
       {
       case 'createAction':
@@ -112,7 +127,7 @@
           $cmd->setConfiguration('arguments',$data->arguments);
           $cmd->save();
         }
-        
+
         //On vérifie si le retour d'action existe, sinon on le créer
         $cmd = $eqp->getCmd('info','LastResponse');
         if (!is_object($cmd))
@@ -128,7 +143,7 @@
           $cmd->save();
         }
         break;
-        
+
       case 'createInfo':
         $cmd = $eqp->getCmd('info',$data->name);
         if (!is_object($cmd))
@@ -157,7 +172,7 @@
           $cmd->save();
         }
         break;
-        
+
       case 'updateInfo':
         $cmd = $eqp->getCmd('info',$data->name);
         if (!is_object($cmd))
@@ -186,45 +201,71 @@
         }
         log::add('upnp', 'debug', 'Event cmd '.$cmd->getHumanName().' with value '.$data->value);
         //$cmd->event($data->value);
-        $cmd->event(htmlentities($data->value));
+        //$cmd->event(htmlentities($data->value));
+        $eqp->checkAndUpdateCmd($cmd,htmlentities($data->value));
         break;
-        
+
       case 'updateService':
-        if (isset($data->friendlyName)) 
+        $needSave = false;
+        if (isset($data->friendlyName))
         {
-          $eqp->setConfiguration('friendlyName', $data->friendlyName);
+          $needSave |= $eqp->CheckAndUpdateConfiguration('friendlyName', $data->friendlyName);
+          //$eqp->setConfiguration('friendlyName', $data->friendlyName);
           //On vérifie si le nom est celui par defaut, dans ce cas, on met a jour le nom sinon on laisse la valeur (cas du renommage manuel)
           if ($eqp->getName() == $data->deviceUDN.'_'.$data->serviceId)
           {
+            log::add('upnp', 'debug', 'Mise a jour du nom???');
             $eqp->setName($data->friendlyName.':'.array_reverse(explode(":", $data->serviceId))[0]);
+            $needSave = true;
           }
         }
-        if (isset($data->location)) $eqp->setConfiguration('location', $data->location);
-        if (isset($data->additionalData)) $eqp->setConfiguration('additionalData', $data->additionalData);
-        if (isset($data->icon)) $eqp->setConfiguration('icon', $data->icon);
-        if (isset($data->description)) $eqp->setConfiguration('description', $data->description);
-        if (isset($data->deviceType)) $eqp->setConfiguration('deviceType', $data->deviceType);
-        if (isset($data->isOnline)) 
+        if (isset($data->location)) $needSave |= $eqp->CheckAndUpdateConfiguration('location', $data->location);//$eqp->setConfiguration('location', $data->location);
+        if (isset($data->additionalData)) $needSave |= $eqp->CheckAndUpdateConfiguration('additionalData', $data->additionalData);//$eqp->setConfiguration('additionalData', $data->additionalData);
+        if (isset($data->icon)) $needSave |= $eqp->CheckAndUpdateConfiguration('icon', $data->icon);//$eqp->setConfiguration('icon', $data->icon);
+        if (isset($data->description)) $needSave |= $eqp->CheckAndUpdateConfiguration('description', $data->description);//$eqp->setConfiguration('description', $data->description);
+        if (isset($data->deviceType)) $needSave |= $eqp->CheckAndUpdateConfiguration('deviceType', $data->deviceType);//$eqp->setConfiguration('deviceType', $data->deviceType);
+        if (isset($data->isOnline))
         {
-          $eqp->setConfiguration('isOnline',$data->isOnline?true:false);
-          $cmd = $eqp->getCmd('info','isOnline');
-          $cmd->event($data->isOnline?1:0);
+          $needSave |= $eqp->CheckAndUpdateConfiguration('isOnline', $data->isOnline?true:false);//$eqp->setConfiguration('isOnline',$data->isOnline?true:false);
+          //$cmd = $eqp->getCmd('info','isOnline');
+          //$cmd->event($data->isOnline?1:0);
+          $eqp->checkAndUpdateCmd('isOnline',$data->isOnline?1:0);
         }
-        if (isset($data->serviceDescription)) $eqp->setConfiguration('serviceDescription',$data->serviceDescription);
-        $eqp->save();
+        if (isset($data->serviceDescription)) $needSave |= $eqp->CheckAndUpdateConfiguration('serviceDescription', $data->serviceDescription);//$eqp->setConfiguration('serviceDescription',$data->serviceDescription);
+        if ($needSave)
+        {
+          $eqp->save();
+          log::add('upnp', 'debug', 'Sauvegarde de equipement ????');
+        }
         break;
       }
     }
-    
+
+    public function CheckAndUpdateConfiguration($configName,$newVal)
+    {
+      log::add('upnp', 'debug', 'Traitement de la configuration '.$configName);
+      $oldVal = $this->getConfiguration($configName);
+      if (json_encode($oldVal) != json_encode($newVal))
+      {
+        log::add('upnp', 'debug', 'Ancienne valeur '.json_encode($oldVal).' nouvelle valeur '.json_encode($newVal));
+        $this->setConfiguration($configName,$newVal);
+        return true;
+      }
+      log::add('upnp', 'debug', 'OK pas de maj');
+      return false;
+    }
+
     public static function offlineAll()
     {
       foreach (eqlogic::byType('upnp') as $eqp)
       {
-        $eqp->setConfiguration('isOnline',false);
-        $eqp->save();
+        if ($eqp->CheckAndUpdateConfiguration('isOnline',false)) $eqp->save();
+        //$cmd = $eqp->getCmd('info','isOnline');
+        //if (is_object($cmd)) $cmd->event(0);
+        $eqp->checkAndUpdateCmd('isOnline',0);
       }
     }
-    
+
     public static function getAllowedList()
     {
       $list = array();
@@ -237,21 +278,21 @@
       }
       return $list;
     }
-    
+
     public static function getDisallowedList()
     {
       $list = array();
       return $list;
     }
-    
+
     public static function health() {
       $return = array();
-      $urlService = '127.0.0.1';
+      $urlService = 'localhost';
       $servicePort = config::byKey('servicePort', 'upnp');
       if ($servicePort == '') $servicePort = 5002;
-      
+
       $fp = fsockopen($urlService, $servicePort, $errno, $errstr);
-      
+
       $return[] = array(
       'test' => __('Serveur upnp', __FILE__),
       'result' => ($fp) ?  __('OK', __FILE__) : (__('Erreur : ', __FILE__)).$errno.', '.$errstr,
@@ -261,7 +302,7 @@
       fclose($fp);
       return $return;
     }
-    
+
     public static function deamon_info() {
       $return = array();
       $return['log'] = 'upnp_deamon';
@@ -273,17 +314,17 @@
       $return['launchable'] = 'ok';
       return $return;
     }
-    
+
     public static function dependancy_info() {
       $return = array();
       $return['log'] = 'upnp_dep';
-      
+
       $xml2js = realpath(dirname(__FILE__) . '/../../node/node_modules/xml2js');
       $request = realpath(dirname(__FILE__) . '/../../node/node_modules/request');
       $ip = realpath(dirname(__FILE__) . '/../../node/node_modules/ip');
       $portfinder = realpath(dirname(__FILE__) . '/../../node/node_modules/portfinder');
       $htmlentities = realpath(dirname(__FILE__) . '/../../node/node_modules/html-entities');
-      
+
       $return['progress_file'] = '/tmp/upnp_dep';
       if (is_dir($ip) && is_dir($xml2js)  && is_dir($portfinder) && is_dir($request) && is_dir($htmlentities)){
         $return['state'] = 'ok';
@@ -292,13 +333,13 @@
       }
       return $return;
     }
-    
+
     public static function dependancy_install() {
       log::add('upnp','info','Installation des dépéndances nodejs');
       $resource_path = realpath(dirname(__FILE__) . '/../../resources');
       passthru('/bin/bash ' . $resource_path . '/nodejs.sh ' . $resource_path . ' > ' . log::getPathToLog('upnp_dep') . ' 2>&1 &');
     }
-    
+
     public static function deamon_start() {
       self::deamon_stop();
       //On met tous les equipements OffLine
@@ -308,42 +349,42 @@
         throw new Exception(__('Veuillez vérifier la configuration', __FILE__));
       }
       log::add('upnp', 'info', 'Lancement du démon upnp');
-      
+
       $servicePort = config::byKey('servicePort', 'upnp');
       if ($servicePort == '') $servicePort = 5002;
       $cmdTimeout = config::byKey('cmdTimeout', 'upnp');
       if ($cmdTimeout < 5 || $cmdTimeout > 20) $cmdTimeout = 10;
-      $url  = network::getNetworkAccess('internal').'/core/api/jeeApi.php?api='.config::byKey('api');
+      $url  = network::getNetworkAccess('internal').'/core/api/jeeApi.php?apikey=' . jeedom::getApiKey('upnp') ;
       $includeState = config::byKey('eqLogicIncludeState', 'upnp', 0) == 1 ? 1 : 0;
-      
+
       $allowedList = upnp::getAllowedList();
       $allowedListFile = fopen('/tmp/allowedDevice.lst', 'w');
       fputs($allowedListFile, json_encode($allowedList));
       fclose($allowedListFile);
-      
+
       $disallowedList = upnp::getDisallowedList();
       $disallowedListFile = fopen('/tmp/disallowedDevice.lst', 'w');
       fputs($disallowedListFile, json_encode($disallowedList));
       fclose($disallowedListFile);
-      
+
       upnp::launch_svc($url, $servicePort, $cmdTimeout, $includeState, '/tmp/allowedDevice.lst','/tmp/disallowedDevice.lst');
     }
-    
+
     public static function launch_svc($url, $servicePort, $cmdTimeout, $includeState, $allowedListFile, $disallowedListFile)
     {
       $logLevel = log::convertLogLevel(log::getLogLevel('upnp'));
       //$logLevel = log::getLogLevel('upnp');
       $upnp_path = realpath(dirname(__FILE__) . '/../../node');
       $cmd = 'nice -n 19 nodejs ' . $upnp_path . '/upnpDaemon.js ' . $url .' '. $servicePort . ' ' . $cmdTimeout. ' ' . $includeState. ' ' . $allowedListFile . ' ' . $disallowedListFile . ' ' . $logLevel;
-      
+
       log::add('upnp', 'debug', 'Lancement démon upnp : ' . $cmd);
-      
+
       $result = exec('nohup ' . $cmd . ' >> ' . log::getPathToLog('upnp_deamon') . ' 2>&1 &');
       if (strpos(strtolower($result), 'error') !== false || strpos(strtolower($result), 'traceback') !== false) {
         log::add('upnp', 'error', $result);
         return false;
       }
-      
+
       $i = 0;
       while ($i < 30) {
         $deamon_info = self::deamon_info();
@@ -361,7 +402,7 @@
       log::add('upnp', 'info', 'Démon upnp lancé');
       return true;
     }
-    
+
     public static function deamon_stop() {
       log::add('upnp', 'info', 'Arrêt du service upnpDaemon');
       $deamon_info = self::deamon_info();
@@ -389,10 +430,10 @@
       //Normalement non nécessaire mais au cas ou
       upnp::offlineAll();
     }
-    
+
     public static function sendToDaemon( $msg, $waitResponse = false ) {
       $response = '';
-      $urlService = '127.0.0.1';
+      $urlService = 'localhost';
       $servicePort = config::byKey('servicePort', 'upnp');
       if ($servicePort == '') $servicePort = 5002;
       $response = '';
@@ -413,7 +454,7 @@
       if ($waitResponse) log::add('upnp','debug','reponse : '.$response);
       return $response;
     }
-    
+
     /*private function getCmdByUPnPName($_name, $_type = null)
         {
         foreach($this->getCmd($_type) as $cmd)
@@ -422,13 +463,13 @@
         }
         return null;
       }*/
-    
+
     private function isUniqueName($_name)
     {
       if (is_object(cmd::byEqLogicIdCmdName($this->getId(),$_name))) return false;
       return true;
     }
-    
+
     private function getUniqueCmdName($_name)
     {
       $outputName = $_name;
@@ -440,15 +481,15 @@
         $cmdIndex = 1;
       }
       if ($this->isUniqueName($outputName)) return $outputName;
-      
+
       do {
         $cmdIndex++;
         $suffixe = sprintf("%'.02d", $cmdIndex);
       } while (!$this->isUniqueName($outputName.$suffixe));
-      
+
       return $outputName.$suffixe;
     }
-    
+
     public function toHtml($_version = 'dashboard')
     {
       $replace = $this->preToHtml($_version);
@@ -459,22 +500,22 @@
       $cmd_html = '';
       $br_before = 0;
       $type = null;
-      
+
       if ($this->getConfiguration('isOnline') != true) $type = 'info';
-      
+
       $processedCommand = array();
       $processedService = false;
-      
+
       //On traite le service ContentDirectory
       if ($_version == 'dashboard' && strpos($this->getConfiguration('serviceId'),'ContentDirectory') !== false && $this->getConfiguration('customDisplay'))
       {
-        $cmdReplace = array();
+        $cmdReplace = $replace;//array();
         $browseCMD = $this->getCmd('action','Browse');
         if (is_object($browseCMD))
         {
           $cmdReplace["#cmd_browse_id#"] = $browseCMD->getId();
         }
-        
+
         $searchCMD = $this->getCmd('action','Search');
         if (is_object($searchCMD))
         {
@@ -485,10 +526,10 @@
           $cmdReplace["#cmd_search_id#"] = $browseCMD->getId().'_search';
           $cmdReplace["#search_disable#"] = '1';
         }
-        
+
         $processedCommand = array('Browse','Search','GetSearchCapabilities','GetSortCapabilities','GetSystemUpdateID','SearchCapabilities','SortCapabilities','SystemUpdateID');
         $processedService = true;
-        
+
         $cmd_html .= template_replace($cmdReplace,getTemplate('core', $version, 'cmd.upnp.ContentDirectory', 'upnp'));
       }
       //On traite le service AVTransport
@@ -501,10 +542,10 @@
         $cmdReplace["#cmd_seek_id#"] = $this->getCmd('action','Seek')->getId();
         $cmdReplace["#cmd_previous_id#"] = $this->getCmd('action','Previous')->getId();
         $cmdReplace["#cmd_next_id#"] = $this->getCmd('action','Previous')->getId();
-        
-        $relTimePosCmd = $this->getCmd('info','RelativeTimePosition');        
+
+        $relTimePosCmd = $this->getCmd('info','RelativeTimePosition');
         $curTrackDurCmd = $this->getCmd('info','CurrentTrackDuration');
-        
+
         if (is_object($curTrackDurCmd) && is_object($relTimePosCmd))
         {
           $cmdReplace["#cmd_relativeTimePosition_id#"] = $relTimePosCmd->getId();
@@ -513,18 +554,18 @@
           $cmdReplace["#cmd_currentTrackDuration_value#"] = $curTrackDurCmd->execCmd();
         }
         else log::add('upnp','warning',"La progressBar d'avancement de la lecture ne fonctionnera pas car il manque une des commandes 'RelativeTimePosition' ou 'CurrentTrackDuration'. Pour résoudre le problème, envoyer le XML de description du service au developpeur");
-        
+
         $transportStateCmd = $this->getCmd('info','TransportState');
-        
-        if (is_object($transportStateCmd)) 
+
+        if (is_object($transportStateCmd))
         {
           $cmdReplace["#cmd_transportState_id#"] = $transportStateCmd->getId();
           $cmdReplace["#cmd_transportState_value#"] = $transportStateCmd->execCmd();
         }
         else log::add('upnp','warning',"La gestion de l'interface (affichage play stop pause) ne sera pas optimal car il manque la commande 'TransportState'. Pour résoudre le problème, envoyer le XML de description du service au developpeur");
-        
+
         $trackMetaDataCmd = $this->getCmd('info','CurrentTrackMetaData');
-        
+
         if (is_object($trackMetaDataCmd))
         {
           $cmdMetaDataReplace = array();
@@ -533,9 +574,9 @@
           $cmdReplace["#CurrentTrackMetaData#"] = $tempCmd;
         }
         else log::add('upnp','warning',"L'affichage de la description du média en cours de lecture ne sera pas optimal car il manque la commande 'CurrentTrackMetaData'. Pour résoudre le problème, envoyer le XML de description du service au developpeur");
-        
-        $AVTransURIMetaDataCmd = $this->getCmd('info','AVTransportURIMetaData');      
-        
+
+        $AVTransURIMetaDataCmd = $this->getCmd('info','AVTransportURIMetaData');
+
         if (is_object($AVTransURIMetaDataCmd))
         {
           $cmdMetaDataReplace = array();
@@ -544,8 +585,8 @@
           $cmdReplace["#AVTransportURIMetaData#"] = $tempCmd;
         }
         else log::add('upnp','warning',"L'affichage de la description du média en cours de lecture ne sera pas optimal car il manque la commande 'AVTransportURIMetaData'. Pour résoudre le problème, envoyer le XML de description du service au developpeur");
-        
-        
+
+
         $processedCommand = array('AbsoluteCounterPosition','AbsoluteTimePosition','AVTransportURI','AVTransportURIMetaData','CurrentMediaDuration'/*,
           'CurrentRecordQualityMode','CurrentTrack'*/,'CurrentTrackDuration','CurrentTrackMetaData','CurrentTrackURI',
         'CurrentTransportActions','GetCurrentTransportActions','GetDeviceCapabilities','GetMediaInfo','GetPositionInfo',
@@ -553,41 +594,43 @@
           'NumberOfTracks'*/,'Pause','Play'/*,'PlaybackStorageMedium','PossiblePlaybackStorageMedia','PossibleRecordQualityModes',
           'PossibleRecordStorageMedia'*/,'Previous'/*,'RecordMediumWriteStatus','RecordStorageMedium'*/,'RelativeCounterPosition','RelativeTimePosition',
         'Seek','SetAVTransportURI','Stop','TransportPlaySpeed','TransportState','TransportStatus');
-        
+
         $processedService = true;
-        
+
         $cmd_html .= template_replace($cmdReplace,getTemplate('core', $version, 'cmd.upnp.AVTransport', 'upnp'));
       }
-      
+
       //Ensuite on traite les commandes génériques
-      foreach ($this->getCmd($type, null, true) as $cmd) {
+      foreach ($this->getCmd(null, null, true) as $cmd) {
         if (isset($replace['#refresh_id#']) && $cmd->getId() == $replace['#refresh_id#']) {
           continue;
         }
-        
+
+        if ($type != null && $cmd->getType() != $type && $cmd->getLogicalId() != 'UpdateOnlineStatus') continue;
+
         if ($processedService &&
             (((in_array($cmd->getLogicalId(),$processedCommand)) && !$this->getConfiguration('standardDisplayOfCustomizedCommand'))
               ||
               (!(in_array($cmd->getLogicalId(),$processedCommand)) && !$this->getConfiguration('displayUnmanagedCommand')))
             ) continue; // && (!$this->getConfiguration('displayUnmanagedCommand'))) continue; // || in_array($cmd->getLogicalId(),$processedCommand))) continue;
-        
+
         if ($br_before == 0 && $cmd->getDisplay('forceReturnLineBefore', 0) == 1) {
           $cmd_html .= '<br/>';
         }
-        
+
         $args = $cmd->getConfiguration('arguments');
-        
+
         if ($cmd->getType()=='action' && count($args) > 0 && $cmd->getConfiguration('isOptionsVisible'))
         {
           $cmdUID = 'cmd' . $cmd->getId() . eqLogic::UIDDELIMITER . mt_rand() . eqLogic::UIDDELIMITER;
-          
+
           $cmd_html .= '<div class="cmd" data-type="action" data-subtype="upnp" data-cmd_id="'.$this->getId().'" data-cmd_uid="'.$cmdUID.'" style="display:flex;flex-direction: row;justify-content: center;border:1px;border-color:black red;">';
           $cmd_html .= '<div style="display:flex;flex-direction: row;justify-content: center;">';
           foreach($args as $option)
           {
             $cmd_html .= '<div style="margin-left:2px;margin-right:2px;">';
             $cmd_html .= '<label class="control-label">'. $option['name'] .'</label>';
-            
+
             if (isset($option['allowedValue']) && count($option['allowedValue']) > 0)
             {
               $cmd_html .= '<select class="form-control '. $option['name'] .'" >';
@@ -612,7 +655,7 @@
           $cmd_html .= '</div>';
           $cmd_html .= '<a class="btn btn-sm btn-default execute cmdName tooltips" title="'.$cmd->getName().'" style="background-color:'.$replace['#cmd-background-color#'].' !important;border-color : transparent !important;">'.$cmd->getName().'</a>';//style="background-color:#cmdColor#
           $cmd_html .= '</div>';
-          
+
           $cmd_html .= '<script>';
           $param = '{ id : '.$cmd->getId().', value : {';
           foreach($args as $option)
@@ -626,40 +669,40 @@
           $cmd_html .= '</script>';
         }
         else $cmd_html .= $cmd->toHtml($_version, '', $replace['#cmd-background-color#']);
-        
+
         $br_before = 0;
         if ($cmd->getDisplay('forceReturnLineAfter', 0) == 1) {
           $cmd_html .= '<br/>';
           $br_before = 1;
         }
       }
-      
+
       $replace['#cmd#'] = $cmd_html;
       return $this->postToHtml($_version, template_replace($replace, getTemplate('core', $version, 'eqLogic')));
     }
-    
-    
+
+
     /*public function preInsert() {
-        
+
     }
-    
+
     public function postInsert() {
-        
+
     }
     public function preSave() {
-        
+
     }
     public function postSave() {
-        
+
     }
     public function preUpdate() {
-        
+
     }
     public function postUpdate() {
-        
+
     }
     public function preRemove() {
-        
+
     }*/
     public function postRemove() {
       if (upnp::deamon_info()['state'] != 'ok') return;
@@ -674,25 +717,25 @@
 
   class upnpCmd extends cmd {
     /*     * *************************Attributs****************************** */
-    
+
     /*     * ***********************Methode static*************************** */
-    
+
     /*     * *********************Methode d'instance************************* */
     /*public function preSave() {
-        
+
       }*/
-    
+
     /*public function postSave() {
-        
+
       }*/
-    
+
     /*
         * Non obligatoire permet de demander de ne pas supprimer les commandes même si elles ne sont pas dans la nouvelle configuration de l'équipement envoyé en JS
         public function dontRemoveCmd() {
         return true;
         }
       */
-    
+
     public function execute($_options = array()) {
       if ($this->getLogicalId() == 'UpnpUserAction')
       {
@@ -713,18 +756,36 @@
       log::add('upnp', 'info', 'execute '.$this->getLogicalId().' avec option : '.json_encode($_options));
       switch ($this->getType()) {
       case 'action':
-        if ($this->getEqLogic()->getConfiguration('isOnline') == false) throw new Exception("Error Processing Request, equipment is offline", 1);
         $msg = array();
-        $msg['command'] = 'executeAction';
-        $msg['UDN'] = $this->getEqLogic()->getConfiguration('UDN');
-        $msg['serviceID'] = $this->getEqLogic()->getConfiguration('serviceId');
-        $msg['actionName'] = $this->getLogicalId();
-        $msg['options'] = $this->getParameters($this,$_options);
-        return upnp::sendToDaemon(json_encode($msg),$msg['options']['WaitResponse']);
+        $response = '';
+        if ($this->getLogicalId() == 'UpdateOnlineStatus')
+        {
+          $msg['command'] = 'controlPointAction';
+          $msg['subCommand'] = $this->getLogicalId();
+          $msg['UDN'] = $this->getEqLogic()->getConfiguration('UDN');
+          $msg['options'] = $this->getParameters($this,$_options);
+          $reponse = upnp::sendToDaemon(json_encode($msg),$msg['options']['WaitResponse']);
+          if ($msg['options']['WaitResponse'])
+          {
+            if ($response == 'Online') $this->getEqLogic()->checkAndUpdateCmd('isOnline',1);//$this->getEqLogic()->getCmd('info','isOnline')->event(1);
+            else if ($response == 'Offline') $this->getEqLogic()->checkAndUpdateCmd('isOnline',0);//$this->getEqLogic()->getCmd('info','isOnline')->event(0);
+          }
+        }
+        else
+        {
+          if ($this->getEqLogic()->getConfiguration('isOnline') == false) throw new Exception("Error Processing Request, equipment is offline", 1);
+          $msg['command'] = 'executeAction';
+          $msg['UDN'] = $this->getEqLogic()->getConfiguration('UDN');
+          $msg['serviceID'] = $this->getEqLogic()->getConfiguration('serviceId');
+          $msg['actionName'] = $this->getLogicalId();
+          $msg['options'] = $this->getParameters($this,$_options);
+          $response = upnp::sendToDaemon(json_encode($msg),$msg['options']['WaitResponse']);
+        }
+        return $response;
         break;
       }
     }
-    
+
     private function getParameters($originalCmd,$_options = array())
     {
       //Calcul des paramètres

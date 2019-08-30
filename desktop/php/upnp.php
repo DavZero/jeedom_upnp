@@ -19,7 +19,8 @@ $eqLogics = eqLogic::byType('upnp');
   
   return false;
 }*/
-function url_exists($url){
+function url_exists($url)
+{
   $curl = curl_init();
   curl_setopt($curl, CURLOPT_URL, $url);
   curl_setopt($curl, CURLOPT_HEADER, true);
@@ -29,7 +30,7 @@ function url_exists($url){
   curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
   $data = curl_exec($curl);
   curl_close($curl);
-  preg_match("/HTTP\/1\.[1|0]\s(\d{3})/",$data,$matches);
+  preg_match("/HTTP\/1\.[1|0]\s(\d{3})/", $data, $matches);
   return ($matches[1] == 200);
 }
 ?>
@@ -39,10 +40,11 @@ function url_exists($url){
     <div class="bs-sidebar">
       <ul id="ul_eqLogic" class="nav nav-list bs-sidenav">
         <!--<a class="btn btn-default eqLogicAction" style="width : 100%;margin-top : 5px;margin-bottom: 5px;" data-action="add"><i class="fa fa-plus-circle"></i> {{Ajouter Thermostat}}</a>-->
-        <li class="filter" style="margin-bottom: 5px;"><input class="filter form-control input-sm" placeholder="{{Rechercher}}" style="width: 100%"/></li>
+        <li class="filter" style="margin-bottom: 5px;"><input class="filter form-control input-sm" placeholder="{{Rechercher}}" style="width: 100%" /></li>
         <?php
         foreach ($eqLogics as $eqLogic) {
-          echo '<li class="cursor li_eqLogic" data-eqLogic_id="' . $eqLogic->getId() . '"><a>' . $eqLogic->getHumanName(true) . '</a></li>';
+          $opacity = ($eqLogic->getIsEnable()) ? '' : jeedom::getConfiguration('eqLogic:style:noactive');
+          echo '<li class="cursor li_eqLogic" data-eqLogic_id="' . $eqLogic->getId() . '" style="' . $opacity . '"><a>' . $eqLogic->getHumanName(true) . '</a></li>';
         }
         ?>
       </ul>
@@ -50,13 +52,15 @@ function url_exists($url){
   </div>
 
   <div class="col-lg-10 col-md-9 col-sm-8 eqLogicThumbnailDisplay" style="border-left: solid 1px #EEE; padding-left: 25px;">
-    <legend><i class="fa fa-cog"></i>  {{Gestion}}</legend>
+    <legend><i class="fa fa-cog"></i> {{Gestion}}</legend>
     <div class="eqLogicThumbnailContainer">
       <div class="cursor eqLogicAction" data-action="gotoPluginConf" style="background-color : #ffffff; height : 140px;margin-bottom : 10px;padding : 5px;border-radius: 2px;width : 160px;margin-left : 10px;">
         <center>
           <i class="fa fa-wrench" style="font-size : 5em;color:#767676;"></i>
         </center>
-        <span style="font-size : 1.1em;position:relative; top : 23px;word-break: break-all;white-space: pre-wrap;word-wrap: break-word;color:#767676"><center>{{Configuration}}</center></span>
+        <span style="font-size : 1.1em;position:relative; top : 23px;word-break: break-all;white-space: pre-wrap;word-wrap: break-word;color:#767676">
+          <center>{{Configuration}}</center>
+        </span>
       </div>
       <!--<div class="cursor" id="bt_healthUpnp" style="background-color : #ffffff; height : 120px;margin-bottom : 10px;padding : 5px;border-radius: 2px;width : 160px;margin-left : 10px; display:none;" >
         <center>
@@ -81,22 +85,25 @@ function url_exists($url){
         echo '</div>';
       }
       ?>
-      <div class="cursor expertModeVisible" id="bt_scanEqLogic" style="background-color : #ffffff; height : 140px;margin-bottom : 10px;padding : 5px;border-radius: 2px;width : 160px;margin-left : 10px;" >
+      <div class="cursor expertModeVisible" id="bt_scanEqLogic" style="background-color : #ffffff; height : 140px;margin-bottom : 10px;padding : 5px;border-radius: 2px;width : 160px;margin-left : 10px;">
         <center>
           <i class="fa fa-refresh" style="font-size : 5em;color:#767676;"></i>
         </center>
-        <span style="font-size : 1.1em;position:relative; top : 23px;word-break: break-all;white-space: pre-wrap;word-wrap: break-word;color:#767676"><center>{{Rechercher}}</center></span>
+        <span style="font-size : 1.1em;position:relative; top : 23px;word-break: break-all;white-space: pre-wrap;word-wrap: break-word;color:#767676">
+          <center>{{Rechercher}}</center>
+        </span>
       </div>
     </div>
     <legend><i class="fa fa-table"></i> {{Mes equipements}} <a class="btn btn-default btn-xs pull-right expertModeVisible" id="bt_removeAll"> {{Supprimer tous}}</a></legend>
     <div class="eqLogicThumbnailContainer">
       <?php
       foreach ($eqLogics as $eqLogic) {
-        echo '<div class="eqLogicDisplayCard cursor" data-eqLogic_id="' . $eqLogic->getId() . '" style="background-color : #ffffff; height : 200px;margin-bottom : 10px;padding : 5px;border-radius: 2px;width : 160px;margin-left : 10px;" >';
+        $opacity = ($eqLogic->getIsEnable()) ? '' : jeedom::getConfiguration('eqLogic:style:noactive');
+        echo '<div class="eqLogicDisplayCard cursor" data-eqLogic_id="' . $eqLogic->getId() . '" style="background-color : #ffffff; height : 200px;margin-bottom : 10px;padding : 5px;border-radius: 2px;width : 160px;margin-left : 10px;' . $opacity . '" >';
         echo "<center>";
         $icon = $eqLogic->getConfiguration('icon');
-        if (!isset($icon) || $icon=='' || !url_exists($icon)) echo '<img src="plugins/upnp/doc/images/upnp_icon.png" height="105" width="95" />';
-        else echo '<img src="'.$icon.'" height="100" width="100" />';
+        if (!isset($icon) || $icon == '' || !url_exists($icon)) echo '<img src="plugins/upnp/doc/images/upnp_icon.png" height="105" width="95" />';
+        else echo '<img src="' . $icon . '" height="100" width="100" />';
         echo "</center>";
         echo '<span style="font-size : 1.1em;position:relative; top : 15px;word-break: break-all;white-space: pre-wrap;word-wrap: break-word;"><center>' . $eqLogic->getHumanName(true, true) . '</center></span>';
         echo '</div>';
@@ -108,7 +115,7 @@ function url_exists($url){
     <a class="btn btn-success eqLogicAction pull-right" data-action="save"><i class="fa fa-check-circle"></i> {{Sauvegarder}}</a>
     <a class="btn btn-danger eqLogicAction pull-right" data-action="remove"><i class="fa fa-minus-circle"></i> {{Supprimer}}</a>
     <a class="btn btn-default eqLogicAction pull-right" data-action="configure"><i class="fa fa-cogs"></i> {{Configuration avancée}}</a>
-    
+
 
     <ul class="nav nav-tabs" role="tablist">
       <li role="presentation"><a href="#" class="eqLogicAction" aria-controls="home" role="tab" data-toggle="tab" data-action="returnToThumbnailDisplay"><i class="fa fa-arrow-circle-left"></i></a></li>
@@ -122,16 +129,16 @@ function url_exists($url){
           <div class="col-sm-6">
             <form class="form-horizontal">
               <fieldset>
-                <br/>
+                <br />
                 <div class="form-group">
                   <label class="col-sm-3 control-label">{{Nom de l'équipement}}</label>
                   <div class="col-sm-8">
                     <input type="text" class="eqLogicAttr form-control" data-l1key="id" style="display : none;" />
-                    <input type="text" class="eqLogicAttr form-control" data-l1key="name" placeholder="{{Nom de l'équipement}}"/>
+                    <input type="text" class="eqLogicAttr form-control" data-l1key="name" placeholder="{{Nom de l'équipement}}" />
                   </div>
                 </div>
                 <div class="form-group">
-                  <label class="col-sm-3 control-label" >{{Objet parent}}</label>
+                  <label class="col-sm-3 control-label">{{Objet parent}}</label>
                   <div class="col-sm-8">
                     <select id="sel_object" class="eqLogicAttr form-control" data-l1key="object_id">
                       <option value="">{{Aucun}}</option>
@@ -156,18 +163,18 @@ function url_exists($url){
                   </div>
                 </div>
                 <div class="form-group">
-                  <label class="col-sm-3 control-label" >{{Activer}}</label>
+                  <label class="col-sm-3 control-label">{{Activer}}</label>
                   <div class="col-sm-8">
-                    <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="isEnable" checked/>{{Activer}}</label>
-                    <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="isVisible" checked/>{{Visible}}</label>
+                    <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="isEnable" checked />{{Activer}}</label>
+                    <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="isVisible" checked />{{Visible}}</label>
                   </div>
                 </div>
                 <div class="form-group displayOptions">
-                  <label class="col-sm-3 control-label" >{{Affichage}}</label>
+                  <label class="col-sm-3 control-label">{{Affichage}}</label>
                   <div class="col-sm-8">
-                    <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="configuration" data-l2key="customDisplay" checked/>{{Affichage spécifique au service}}</label>
-                    <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="configuration" data-l2key="displayUnmanagedCommand" checked/>{{Afficher les commandes complémentaires}}</label>
-                    <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr expertModeVisible" data-l1key="configuration" data-l2key="standardDisplayOfCustomizedCommand" unchecked/>{{Afficher toutes les commandes en mode "standard", en plus de l'affichage spécifique}}</label>
+                    <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="configuration" data-l2key="customDisplay" checked />{{Affichage spécifique au service}}</label>
+                    <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr" data-l1key="configuration" data-l2key="displayUnmanagedCommand" checked />{{Afficher les commandes complémentaires}}</label>
+                    <label class="checkbox-inline"><input type="checkbox" class="eqLogicAttr expertModeVisible" data-l1key="configuration" data-l2key="standardDisplayOfCustomizedCommand" unchecked />{{Afficher toutes les commandes en mode "standard", en plus de l'affichage spécifique}}</label>
                   </div>
                 </div>
                 <div class="form-group">
@@ -218,7 +225,7 @@ function url_exists($url){
           <div class="col-sm-6">
             <form class="form-horizontal">
               <fieldset>
-                <br/>
+                <br />
                 <div id="eqLogicAdditionalData"></div>
               </fieldset>
             </form>
@@ -226,13 +233,18 @@ function url_exists($url){
         </div>
       </div>
       <div role="tabpanel" class="tab-pane" id="commandtab">
-        <br/>
-        <a class="btn btn-success btn-sm cmdAction pull-right" data-action="addUserCmd"><i class="fa fa-plus-circle"></i> Ajouter une commande</a><br/><br/>
+        <br />
+        <a class="btn btn-success btn-sm cmdAction pull-right" data-action="addUserCmd"><i class="fa fa-plus-circle"></i> Ajouter une commande</a><br /><br />
         <table id="table_cmd" class="table table-bordered table-condensed">
           <thead>
             <tr>
               <!--<th>{{Nom}}</th><th>{{Source}}</th><th>{{Type}}</th><th>{{Nom UPnP}}</th><th>{{Options}}</th><th>{{Paramètre}}</th><th>{{Action}}</th>-->
-              <th>{{Nom}}</th><th>{{Type}}</th><th>{{Nom UPnP}}</th><th>{{Options}}</th><th>{{Paramètre}}</th><th>{{Action}}</th>
+              <th>{{Nom}}</th>
+              <th>{{Type}}</th>
+              <th>{{Nom UPnP}}</th>
+              <th>{{Options}}</th>
+              <th>{{Paramètre}}</th>
+              <th>{{Action}}</th>
             </tr>
           </thead>
           <tbody>
@@ -244,5 +256,5 @@ function url_exists($url){
   </div>
 </div>
 
-<?php include_file('desktop', 'upnp', 'js', 'upnp');?>
-<?php include_file('core', 'plugin.template', 'js');?>
+<?php include_file('desktop', 'upnp', 'js', 'upnp'); ?>
+<?php include_file('core', 'plugin.template', 'js'); ?>
