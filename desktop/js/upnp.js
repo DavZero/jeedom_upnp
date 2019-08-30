@@ -63,7 +63,7 @@ $('.changeIncludeState').on('click', function () {
 				$('.changeIncludeState').attr('data-state', 0);
 				$('.changeIncludeState.card').css('background-color', '#8000FF');
 				$('.changeIncludeState.card span center').text('{{Arrêter l\'inclusion}}');
-				$('.changeIncludeState:not(.card)').html('<i class="fa fa-sign-in fa-rotate-90"></i> {{Arreter inclusion}}');
+				$('.changeIncludeState:not(.card)').html('<i class="fas fa-sign-in fa-rotate-90"></i> {{Arreter inclusion}}');
 				$('#div_alert').showAlert({
           message: '{{Vous etes en mode inclusion. Recliquez sur le bouton d\'inclusion pour sortir de ce mode}}',
 					level: 'warning'
@@ -74,10 +74,10 @@ $('.changeIncludeState').on('click', function () {
 				$.hideAlert();
 				$('.changeIncludeState:not(.card)').addClass('btn-default').removeClass('btn-success btn-danger');
 				$('.changeIncludeState').attr('data-state', 1);
-				$('.changeIncludeState:not(.card)').html('<i class="fa fa-sign-in fa-rotate-90"></i> {{Mode inclusion}}');
+				$('.changeIncludeState:not(.card)').html('<i class="fas fa-sign-in fa-rotate-90"></i> {{Mode inclusion}}');
 				$('.changeIncludeState.card span center').text('{{Mode inclusion}}');
 				$('.changeIncludeState.card').css('background-color', '#ffffff');
-			} 
+			}
       $.ajax({// fonction permettant de faire de l'ajax
         type: "POST", // methode de transmission des données au fichier php
         url: "plugins/upnp/core/ajax/upnp.ajax.php", // url du fichier php
@@ -98,7 +98,7 @@ $('.changeIncludeState').on('click', function () {
     }
   });
 });
-  
+
 
 $("#table_cmd").sortable({
   axis: "y",
@@ -191,7 +191,7 @@ function addUserCmdToTable()
     subType: 'other',
     logicalId: 'UpnpUserAction'
   };
-  
+
   addCmdToTable(cmd);
 }
 
@@ -241,7 +241,7 @@ function addCmdToTable(_cmd) {
     tr += '</select>';
     tr += '</div>';
     tr += '</div>';
-    
+
     tr += '<div class="form-group">';
     tr += '<label class="col-sm-2 control-label">Info</label>';
     tr += '<div class="col-sm-6" >';
@@ -258,17 +258,17 @@ function addCmdToTable(_cmd) {
   }
   tr += '</div>';
   tr += '</td>';
-  
+
   //Option
   tr += '<td>';
   tr += '<form class="form-horizontal options">';
   //Les options sont mises a jour dynamiquement
   tr += '</form>';
   tr += '</td>';
-  
+
   tr += '<td>';
   tr += '<label class="checkbox-inline"><input type="checkbox" class="cmdAttr" data-l1key="isVisible" checked/>{{Afficher}}</label>';
-  
+
   if (init(_cmd.type) == 'info' && (init(_cmd.subType) == 'numeric' || init(_cmd.subType) == 'binary')) {
     tr += '<label class="checkbox-inline"><input type="checkbox" class="cmdAttr" data-l1key="isHistorized" checked/>{{Historiser}}</label>';
   }
@@ -284,23 +284,23 @@ function addCmdToTable(_cmd) {
     tr += '<i class="fa fa-minus-circle pull-right cmdAction cursor" data-action="remove"></i>';
   tr += '</td>';
   tr += '</tr>';
-  $('#table_cmd tbody').append(tr);  
-  
+  $('#table_cmd tbody').append(tr);
+
   $('#table_cmd tbody tr:last').setValues(_cmd, '.cmdAttr');
 
   var tr = $('#table_cmd tbody tr:last');
-  
+
   if (init(_cmd.logicalId) == 'UpnpUserAction')
   {
     jeedom.cmd.byId({
-      id:_cmd.configuration.upnpAction, 
+      id:_cmd.configuration.upnpAction,
       success: function (upnpCmd){
         updateOptions(tr,_cmd,upnpCmd.configuration.arguments);
       }
     });
   }
   else if (init(_cmd.type) == 'action') updateOptions(tr,_cmd,_cmd.configuration.arguments);
-  
+
   buildUPnPActionSelectCmd({
     id: $(".li_eqLogic.active").attr('data-eqLogic_id'),
     error: function (error) {
@@ -311,7 +311,7 @@ function addCmdToTable(_cmd) {
       tr.setValues(_cmd, '.cmdAttr');
     }
   });
-  
+
   jeedom.eqLogic.builSelectCmd({
     id: $(".li_eqLogic.active").attr('data-eqLogic_id'),
     filter: {type: 'info'},
@@ -322,14 +322,14 @@ function addCmdToTable(_cmd) {
       tr.find('.cmdAttr[data-l1key=value]').append(result);
       tr.setValues(_cmd, '.cmdAttr');
     }
-  });  
+  });
 }
 
 function updateOptions(tr,cmd,args)
 {
   var options = "";
   tr.find('.options').empty()
-  
+
   if (!isset(args)) args = [];
   var lastParameter = {
     name : 'WaitResponse',
@@ -337,7 +337,7 @@ function updateOptions(tr,cmd,args)
   };
   if (args.length == 0 || args[args.length - 1].name != 'WaitResponse')
     args.push(lastParameter);
-  
+
   for (var arg in args)
   {
     options += '<div class="form-group">';
@@ -367,8 +367,8 @@ function updateOptions(tr,cmd,args)
       }
     }
     options += '</div>';
-    options += '</div>'; 
-  } 
+    options += '</div>';
+  }
   tr.find('.options').append(options);
   tr.setValues(cmd, '.cmdAttr');
 }
