@@ -3,22 +3,8 @@ if (!isConnect('admin')) {
   throw new Exception('{{401 - Accès non autorisé}}');
 }
 sendVarToJS('eqType', 'upnp');
+$plugin = plugin::byId('upnp');
 $eqLogics = eqLogic::byType('upnp');
-
-/**
- * Vérifie l'existance d'une URL
- * @paramstring$url
- * @returnboolean
- */
-/*function url_exists($url){
-  if(!is_string($url) || strlen($url)==0)return false;
-  try {
-    //$essais = get_headers($url, 1);
-    //if(preg_match("#[^a-z0-9]2[0-9]{2}([^a-z0-9].*)$#i",$essais[0]))return true;
-  }catch(Exception $e){}
-
-  return false;
-}*/
 function url_exists($url)
 {
   $curl = curl_init();
