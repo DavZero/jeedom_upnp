@@ -23,7 +23,7 @@ function url_exists($url)
 
 <div class="row row-overflow">
   <div class="col-xs-12 eqLogicThumbnailDisplay">
-    <legend><i class="fas fa-cog"></i>  {{Gestion}}</legend>
+    <legend><i class="fas fa-cog"></i> {{Gestion}}</legend>
     <div class="eqLogicThumbnailContainer">
       <div class="cursor eqLogicAction logoSecondary" data-action="gotoPluginConf">
         <i class="fas fa-wrench"></i>
@@ -33,23 +33,22 @@ function url_exists($url)
       <?php
       if (config::byKey('eqLogicIncludeState', 'upnp', 0) == 1) {
         echo '<div class="cursor changeIncludeState expertModeVisible logoSecondary" data-mode="1" data-state="0" >';
-        echo '<center>';
-        echo '<i class="fas fa-sign-in-alt fa-rotate-90" style="color:#94ca02;"></i>';
-        echo '</center>';
-        echo '<span style="color:#94ca02"><center>{{Arrêter inclusion}}</center></span>';
+        echo '<i class="fas fa-sign-in-alt fa-rotate-90"></i>';
+        echo '<br>';
+        echo '<span>{{Arrêter inclusion}}</span>';
         echo '</div>';
       } else {
         echo '<div class="cursor changeIncludeState expertModeVisible logoSecondary" data-mode="1" data-state="1" >';
-        echo '<center>';
-        echo '<i class="fas fa-sign-in-alt fa-rotate-90" style="color:#94ca02;"></i>';
-        echo '</center>';
-        echo '<span style="color:#94ca02"><center>{{Mode inclusion}}</center></span>';
+        echo '<br>';
+        echo '<i class="fas fa-sign-in-alt fa-rotate-90"></i>';
+        echo '<span >{{Mode inclusion}}</span>';
         echo '</div>';
       }
       ?>
       <div class="cursor expertModeVisible logoSecondary" id="bt_scanEqLogic">
-        <center><i class="fas fa-sync"></i></center>
-        <span><center>{{Rechercher}}</center></span>
+        <i class="fas fa-sync"></i>
+        <br>
+        <span>{{Rechercher}}</span>
       </div>
     </div>
     <legend><i class="fas fa-table"></i> {{Mes equipements}} <a class="btn btn-default btn-xs pull-right expertModeVisible" id="bt_removeAll"> {{Supprimer tous}}</a></legend>
@@ -57,26 +56,26 @@ function url_exists($url)
       <?php
       foreach ($eqLogics as $eqLogic) {
         $opacity = ($eqLogic->getIsEnable()) ? '' : 'disableCard';
-        echo '  <div class="eqLogicDisplayCard cursor '.$opacity.'" data-eqLogic_id="' . $eqLogic->getId() . '">';
+        echo '  <div class="eqLogicDisplayCard cursor ' . $opacity . '" data-eqLogic_id="' . $eqLogic->getId() . '">';
         $icon = $eqLogic->getConfiguration('icon');
-        if (!isset($icon) || $icon == '' || !url_exists($icon)) echo '   <img src="' . $plugin->getPathImgIcon() . '"/>';//' height="100" width="100" />';
-        else echo '<img src="' . $icon . '" />';//' height="100" width="100" />';
-      	echo '   <br>';
-      	echo '   <span class="name">' . $eqLogic->getHumanName(true, true) . '</span>';
-      	echo ' </div>';
+        if (!isset($icon) || $icon == '' || !url_exists($icon)) echo '   <img src="' . $plugin->getPathImgIcon() . '"/>'; //' height="100" width="100" />';
+        else echo '<img src="' . $icon . '" />'; //' height="100" width="100" />';
+        echo '   <br>';
+        echo '   <span class="name">' . $eqLogic->getHumanName(true, true) . '</span>';
+        echo ' </div>';
       }
       ?>
     </div>
   </div>
 
   <div class="col-xs-12 eqLogic" style="display: none;">
-		<div class="input-group pull-right" style="display:inline-flex">
-			<span class="input-group-btn">
-				<a class="btn btn-default btn-sm eqLogicAction roundedLeft" data-action="configure"><i class="fas fa-cogs"></i> {{Configuration avancée}}</a>
+    <div class="input-group pull-right" style="display:inline-flex">
+      <span class="input-group-btn">
+        <a class="btn btn-default btn-sm eqLogicAction roundedLeft" data-action="configure"><i class="fas fa-cogs"></i> {{Configuration avancée}}</a>
         <a class="btn btn-sm btn-success eqLogicAction" data-action="save"><i class="fas fa-check-circle"></i> {{Sauvegarder}}</a>
         <a class="btn btn-danger btn-sm eqLogicAction roundedRight" data-action="remove"><i class="fas fa-minus-circle"></i> {{Supprimer}}</a>
-			</span>
-		</div>
+      </span>
+    </div>
 
     <ul class="nav nav-tabs" role="tablist">
       <li role="presentation"><a href="#" class="eqLogicAction" aria-controls="home" role="tab" data-toggle="tab" data-action="returnToThumbnailDisplay"><i class="fa fa-arrow-circle-left"></i></a></li>
