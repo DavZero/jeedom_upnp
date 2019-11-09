@@ -16,68 +16,64 @@
 */
 
 $('#bt_healthUpnp').on('click', function () {
-    $('#md_modal').dialog({title: "{{Santé Upnp}}"});
-    $('#md_modal').load('index.php?v=d&plugin=upnp&modal=health').dialog('open');
+  $('#md_modal').dialog({ title: "{{Santé Upnp}}" });
+  $('#md_modal').load('index.php?v=d&plugin=upnp&modal=health').dialog('open');
 });
 
 $('#bt_scanEqLogic').on('click', function () {
   $.ajax({// fonction permettant de faire de l'ajax
-      type: "POST", // méthode de transmission des données au fichier php
-      url: "plugins/upnp/core/ajax/upnp.ajax.php", // url du fichier php
-      data: {
-          action: "scanUpnp"
-      },
-      dataType: 'json',
-      error: function (request, status, error) {
-          handleAjaxError(request, status, error);
-      },
-      success: function (data) { // si l'appel a bien fonctionné
-          if (data.state != 'ok') {
-              $('#div_alert').showAlert({message: data.result, level: 'danger'});
-              return;
-          }
-          else $('#div_alert').showAlert({message: data.result, level: 'warning'});
-          //window.location.reload();
+    type: "POST", // méthode de transmission des données au fichier php
+    url: "plugins/upnp/core/ajax/upnp.ajax.php", // url du fichier php
+    data: {
+      action: "scanUpnp"
+    },
+    dataType: 'json',
+    error: function (request, status, error) {
+      handleAjaxError(request, status, error);
+    },
+    success: function (data) { // si l'appel a bien fonctionné
+      if (data.state != 'ok') {
+        $('#div_alert').showAlert({ message: data.result, level: 'danger' });
+        return;
       }
+      else $('#div_alert').showAlert({ message: data.result, level: 'warning' });
+      //window.location.reload();
+    }
   });
 });
 
 $('.changeIncludeState').on('click', function () {
-	var newState = $(this).attr('data-state');
-	jeedom.config.save({
-		plugin: 'upnp',
-		configuration:{	eqLogicIncludeState: newState },
-		error: function (error)
-		{
-			$('#div_alert').showAlert({
-				message: error.message,
-				level: 'danger'
-			});
-		},
-		success: function ()
-		{
-			if (newState == 1)
-			{
-				$.hideAlert();
-				$('.changeIncludeState:not(.card)').removeClass('btn-default').addClass('btn-success');
-				$('.changeIncludeState').attr('data-state', 0);
-				$('.changeIncludeState.card').css('background-color', '#8000FF');
-				$('.changeIncludeState.card span center').text('{{Arrêter l\'inclusion}}');
-				$('.changeIncludeState:not(.card)').html('<i class="fa fa-sign-in fa-rotate-90"></i> {{Arreter inclusion}}');
-				$('#div_alert').showAlert({
+  var newState = $(this).attr('data-state');
+  jeedom.config.save({
+    plugin: 'upnp',
+    configuration: { eqLogicIncludeState: newState },
+    error: function (error) {
+      $('#div_alert').showAlert({
+        message: error.message,
+        level: 'danger'
+      });
+    },
+    success: function () {
+      if (newState == 1) {
+        $.hideAlert();
+        $('.changeIncludeState:not(.card)').removeClass('btn-default').addClass('btn-success');
+        $('.changeIncludeState').attr('data-state', 0);
+        $('.changeIncludeState.card').css('background-color', '#8000FF');
+        $('.changeIncludeState.card span center').text('{{Arrêter l\'inclusion}}');
+        $('.changeIncludeState:not(.card)').html('<i class="fas fa-sign-in-alt fa-rotate-90"></i> {{Arreter inclusion}}');
+        $('#div_alert').showAlert({
           message: '{{Vous etes en mode inclusion. Recliquez sur le bouton d\'inclusion pour sortir de ce mode}}',
-					level: 'warning'
-				});
-			}
-			else
-			{
-				$.hideAlert();
-				$('.changeIncludeState:not(.card)').addClass('btn-default').removeClass('btn-success btn-danger');
-				$('.changeIncludeState').attr('data-state', 1);
-				$('.changeIncludeState:not(.card)').html('<i class="fa fa-sign-in fa-rotate-90"></i> {{Mode inclusion}}');
-				$('.changeIncludeState.card span center').text('{{Mode inclusion}}');
-				$('.changeIncludeState.card').css('background-color', '#ffffff');
-			} 
+          level: 'warning'
+        });
+      }
+      else {
+        $.hideAlert();
+        $('.changeIncludeState:not(.card)').addClass('btn-default').removeClass('btn-success btn-danger');
+        $('.changeIncludeState').attr('data-state', 1);
+        $('.changeIncludeState:not(.card)').html('<i class="fas fa-sign-in-alt fa-rotate-90"></i> {{Mode inclusion}}');
+        $('.changeIncludeState.card span center').text('{{Mode inclusion}}');
+        $('.changeIncludeState.card').css('background-color', '#ffffff');
+      }
       $.ajax({// fonction permettant de faire de l'ajax
         type: "POST", // methode de transmission des données au fichier php
         url: "plugins/upnp/core/ajax/upnp.ajax.php", // url du fichier php
@@ -86,19 +82,19 @@ $('.changeIncludeState').on('click', function () {
           state: newState
         },
         dataType: 'json',
-        error: function(request, status, error) {
+        error: function (request, status, error) {
           handleAjaxError(request, status, error);
         },
-        success: function(data) { // si l'appel a bien fonctionné
+        success: function (data) { // si l'appel a bien fonctionné
           if (data.state != 'ok') {
-            $('#div_alert').showAlert({message:  data.result,level: 'danger'});
+            $('#div_alert').showAlert({ message: data.result, level: 'danger' });
           }
         }
       });
     }
   });
 });
-  
+
 
 $("#table_cmd").sortable({
   axis: "y",
@@ -110,24 +106,24 @@ $("#table_cmd").sortable({
 });
 
 $('.cmdAction[data-action=addUserCmd]').off('click').on('click', function () {
-    addUserCmdToTable();
-    initCheckBox();
-    $('.cmd:last .cmdAttr[data-l1key=type]').trigger('change');
+  addUserCmdToTable();
+  initCheckBox();
+  $('.cmd:last .cmdAttr[data-l1key=type]').trigger('change');
 });
 
 $('#bt_removeAll').on('click', function () {
   $.ajax({
     url: "plugins/upnp/core/ajax/upnp.ajax.php",
-    data: {"action": "removeAll"},
+    data: { "action": "removeAll" },
     dataType: "json",
     success: function (data) {
       if (data.state != 'ok') {
-        $('#div_alert').showAlert({message: data.result, level: 'danger'});
+        $('#div_alert').showAlert({ message: data.result, level: 'danger' });
       }
       else if (modifyWithoutSave) {
-        $('#div_inclusionAlert').showAlert({message: '{{Un périphérique vient d\'être inclu. Veuillez réactualiser la page}}', level: 'warning'});
+        $('#div_inclusionAlert').showAlert({ message: '{{Un périphérique vient d\'être inclu. Veuillez réactualiser la page}}', level: 'warning' });
       } else {
-          window.location.reload();
+        window.location.reload();
       }
     },
     error: function (request, status, error) {
@@ -136,12 +132,12 @@ $('#bt_removeAll').on('click', function () {
   });
 });
 
-$('body').on('upnp::includeDevice', function (_event,_options) {
-    if (modifyWithoutSave) {
-        $('#div_inclusionAlert').showAlert({message: '{{Un périphérique vient d\'être inclu. Veuillez réactualiser la page}}', level: 'warning'});
-    } else {
-        window.location.reload();
-    }
+$('body').on('upnp::includeDevice', function (_event, _options) {
+  if (modifyWithoutSave) {
+    $('#div_inclusionAlert').showAlert({ message: '{{Un périphérique vient d\'être inclu. Veuillez réactualiser la page}}', level: 'warning' });
+  } else {
+    window.location.reload();
+  }
 });
 
 function printEqLogic(_eqLogic) {
@@ -154,21 +150,21 @@ function printEqLogic(_eqLogic) {
   if (isset(_eqLogic.configuration)) {
     if (isset(_eqLogic.configuration.additionalData)) {
       for (var i in _eqLogic.configuration.additionalData) {
-        addAdditionalData(i,_eqLogic.configuration.additionalData[i],$('#eqLogicAdditionalData'))
+        addAdditionalData(i, _eqLogic.configuration.additionalData[i], $('#eqLogicAdditionalData'))
       }
     }
   }
 }
 
-function addAdditionalData(_name,_value,_el){
+function addAdditionalData(_name, _value, _el) {
   if (!isset(_name)) {
-      _name = '';
+    _name = '';
   }
   if (!isset(_value)) {
-      _value = '';
+    _value = '';
   }
   var txtValue;
-  if(_value instanceof Array || _value instanceof Object) txtValue = JSON.stringify(_value);
+  if (_value instanceof Array || _value instanceof Object) txtValue = JSON.stringify(_value);
   else txtValue = _value;
 
   var div = '<div class="form-group additionalData">';
@@ -179,19 +175,18 @@ function addAdditionalData(_name,_value,_el){
   div += '</div>';
   div += '</div>';
   if (isset(_el)) {
-      _el.append(div);
-      //_el.find('.mode:last').setValues(_mode, '.expressionAttr');
+    _el.append(div);
+    //_el.find('.mode:last').setValues(_mode, '.expressionAttr');
   }
 }
 
-function addUserCmdToTable()
-{
+function addUserCmdToTable() {
   var cmd = {
     type: 'action',
     subType: 'other',
     logicalId: 'UpnpUserAction'
   };
-  
+
   addCmdToTable(cmd);
 }
 
@@ -230,8 +225,7 @@ function addCmdToTable(_cmd) {
 
   //NomUpnp
   tr += '<td>';
-  if (init(_cmd.logicalId) == 'UpnpUserAction')
-  {
+  if (init(_cmd.logicalId) == 'UpnpUserAction') {
     tr += '<form class="form-horizontal">';
     tr += '<div class="form-group">';
     tr += '<label class="col-sm-2 control-label">Action</label>';
@@ -241,7 +235,7 @@ function addCmdToTable(_cmd) {
     tr += '</select>';
     tr += '</div>';
     tr += '</div>';
-    
+
     tr += '<div class="form-group">';
     tr += '<label class="col-sm-2 control-label">Info</label>';
     tr += '<div class="col-sm-6" >';
@@ -252,23 +246,22 @@ function addCmdToTable(_cmd) {
     tr += '</div>';
     tr += '</form>';
   }
-  else
-  {
+  else {
     tr += '<span class="cmdAttr" data-l1key="logicalId"></span>';
   }
   tr += '</div>';
   tr += '</td>';
-  
+
   //Option
   tr += '<td>';
   tr += '<form class="form-horizontal options">';
   //Les options sont mises a jour dynamiquement
   tr += '</form>';
   tr += '</td>';
-  
+
   tr += '<td>';
   tr += '<label class="checkbox-inline"><input type="checkbox" class="cmdAttr" data-l1key="isVisible" checked/>{{Afficher}}</label>';
-  
+
   if (init(_cmd.type) == 'info' && (init(_cmd.subType) == 'numeric' || init(_cmd.subType) == 'binary')) {
     tr += '<label class="checkbox-inline"><input type="checkbox" class="cmdAttr" data-l1key="isHistorized" checked/>{{Historiser}}</label>';
   }
@@ -284,91 +277,83 @@ function addCmdToTable(_cmd) {
     tr += '<i class="fa fa-minus-circle pull-right cmdAction cursor" data-action="remove"></i>';
   tr += '</td>';
   tr += '</tr>';
-  $('#table_cmd tbody').append(tr);  
-  
+  $('#table_cmd tbody').append(tr);
+
   $('#table_cmd tbody tr:last').setValues(_cmd, '.cmdAttr');
 
   var tr = $('#table_cmd tbody tr:last');
-  
-  if (init(_cmd.logicalId) == 'UpnpUserAction')
-  {
+
+  if (init(_cmd.logicalId) == 'UpnpUserAction') {
     jeedom.cmd.byId({
-      id:_cmd.configuration.upnpAction, 
-      success: function (upnpCmd){
-        updateOptions(tr,_cmd,upnpCmd.configuration.arguments);
+      id: _cmd.configuration.upnpAction,
+      success: function (upnpCmd) {
+        updateOptions(tr, _cmd, upnpCmd.configuration.arguments);
       }
     });
   }
-  else if (init(_cmd.type) == 'action') updateOptions(tr,_cmd,_cmd.configuration.arguments);
-  
+  else if (init(_cmd.type) == 'action') updateOptions(tr, _cmd, _cmd.configuration.arguments);
+
   buildUPnPActionSelectCmd({
     id: $(".li_eqLogic.active").attr('data-eqLogic_id'),
     error: function (error) {
-      $('#div_alert').showAlert({message: error.message, level: 'danger'});
+      $('#div_alert').showAlert({ message: error.message, level: 'danger' });
     },
     success: function (result) {
       tr.find('.cmdAttr[data-l2key=upnpAction]').append(result);
       tr.setValues(_cmd, '.cmdAttr');
     }
   });
-  
+
   jeedom.eqLogic.builSelectCmd({
     id: $(".li_eqLogic.active").attr('data-eqLogic_id'),
-    filter: {type: 'info'},
+    filter: { type: 'info' },
     error: function (error) {
-      $('#div_alert').showAlert({message: error.message, level: 'danger'});
+      $('#div_alert').showAlert({ message: error.message, level: 'danger' });
     },
     success: function (result) {
       tr.find('.cmdAttr[data-l1key=value]').append(result);
       tr.setValues(_cmd, '.cmdAttr');
     }
-  });  
+  });
 }
 
-function updateOptions(tr,cmd,args)
-{
+function updateOptions(tr, cmd, args) {
   var options = "";
   tr.find('.options').empty()
-  
+
   if (!isset(args)) args = [];
   var lastParameter = {
-    name : 'WaitResponse',
+    name: 'WaitResponse',
     type: 'Boolean'
   };
   if (args.length == 0 || args[args.length - 1].name != 'WaitResponse')
     args.push(lastParameter);
-  
-  for (var arg in args)
-  {
+
+  for (var arg in args) {
     options += '<div class="form-group">';
-    options += '<label class="col-sm-4 control-label">'+args[arg].name+'</label>';
+    options += '<label class="col-sm-4 control-label">' + args[arg].name + '</label>';
     options += '<div class="col-sm-4">';
-    if (init(args[arg].allowedValue) && args[arg].allowedValue.length > 0)
-    {
-      options += '<select class="form-control cmdAttr" data-l1key="configuration" data-l2key="ArgVal_'+args[arg].name+'">';
+    if (init(args[arg].allowedValue) && args[arg].allowedValue.length > 0) {
+      options += '<select class="form-control cmdAttr" data-l1key="configuration" data-l2key="ArgVal_' + args[arg].name + '">';
       //options += '<select class="form-control">';
-      for (var allowed in args[arg].allowedValue)
-      {
+      for (var allowed in args[arg].allowedValue) {
         options += '<option value="' + args[arg].allowedValue[allowed] + '">' + args[arg].allowedValue[allowed] + '</option>';
       }
       options += '</select>';
     }
-    else
-    {
-      if (args[arg].type == 'ui1' || args[arg].type == 'ui2' || args[arg].type == 'ui4')
-      {
+    else {
+      if (args[arg].type == 'ui1' || args[arg].type == 'ui2' || args[arg].type == 'ui4') {
         //options += '<input class="form-control" type="number" placeholder="{{Value}}" />';
-        options += '<input class="form-control input-sm cmdAttr" data-l1key="configuration" data-l2key="ArgVal_'+args[arg].name+'" type="number" placeholder="{{Value}}" />';
+        options += '<input class="form-control input-sm cmdAttr" data-l1key="configuration" data-l2key="ArgVal_' + args[arg].name + '" type="number" placeholder="{{Value}}" />';
       }
-      else
-      {
+      else {
         //options += '<input class="form-control" type="text" placeholder="{{Value}}" />';
-        options += '<input class="form-control input-sm cmdAttr" data-l1key="configuration" data-l2key="ArgVal_'+args[arg].name+'" type="text" placeholder="{{Value}}" />';
+        options += '<input class="form-control input-sm cmdAttr" data-l1key="configuration" data-l2key="ArgVal_' + args[arg].name + '" type="text" placeholder="{{Value}}" />';
       }
     }
     options += '</div>';
-    options += '</div>'; 
-  } 
+    options += '</div>';
+  }
   tr.find('.options').append(options);
   tr.setValues(cmd, '.cmdAttr');
 }

@@ -63,7 +63,7 @@
         $eqp->setConfiguration('standardDisplayOfCustomizedCommand', false);
         $eqp->setIsEnable(1);
         //Recuparation de l'objet parent par defaut et vérification qu'il existe
-        $objetParent = object::byId(config::byKey('defaultParentObject', 'upnp'));
+        $objetParent = jeeObject::byId(config::byKey('defaultParentObject', 'upnp'));
         if (is_object($objetParent))
         {
           log::add('upnp', 'debug', 'Obj parent existe');
