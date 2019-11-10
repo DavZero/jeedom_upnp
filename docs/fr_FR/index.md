@@ -168,7 +168,7 @@ apparaissent dans le champ "Option" de la commande.
 
 FAQ
 ===
-.Comment faire un appel aux commandes des équipements Upnp dans les scénarios ?
+_Comment faire un appel aux commandes des équipements Upnp dans les scénarios ?_
 Les commandes Upnp nécessitent des paramètres pour être exécutées, il est nécessaire de passer par un bloc code. 
 Exemple :
 ![upnp_scenario](../images/upnp_scenario.png)
@@ -179,12 +179,12 @@ Pour connaitre les paramètres de chaque commande, il faut regarder le paramétr
 
 Troubleshoting
 ==============
-.Dans le log il y a parfois des messages : "Unable to find the service with SID XXX".
+_Dans le log il y a parfois des messages : "Unable to find the service with SID XXX"._
 Ces messages n’ont pas d’incidence en fonctionnement normal et sont là uniquement 
 pour du dépannage. Ce genre de message apparaît notamment lorsque l’on redémarre 
 le service et sont liés à de précédents abonnements aux messages des services UPnP.
 
-.Lorsque j’exécute certaines commandes, j’ai un message d’erreur indiquant que la commande n’a pas pu s’exécuter dans le délai imparti..
+_Lorsque j’exécute certaines commandes, j’ai un message d’erreur indiquant que la commande n’a pas pu s’exécuter dans le délai imparti._
 La configuration du plugin permet de définir le timeout de l’exécution d’une 
 commande (voir la rubrique configuration). Dans mon cas, lors du chargement 
 d’un média sur ma télévision, la première fois, le délai de réponse de la télévision 
