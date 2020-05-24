@@ -1,6 +1,7 @@
 #!/bin/bash
 PROGRESS_FILE=/tmp/upnp_dep
-installVer='8' 	#NodeJS major version to be installed
+installVer='12' 	#NodeJS major version to be installed
+installVerARM61='10' #Max version available for arm61
 minVer='8'	#min NodeJS major version to be accepted
 
 touch ${PROGRESS_FILE}
@@ -62,7 +63,7 @@ else
 fi
 arch=`arch`;
 
-if [ $actual -ge 8 ]
+if [ $actual -ge ${minVer} ]
 then
   echo "Ok, version suffisante"
 else
@@ -76,9 +77,9 @@ else
   echo "--45%"
   if [[ $arch == "armv6l" ]]
   then
-    echo "Raspberry 1, 2 ou zéro détecté, utilisation du paquet v${installVer} pour ${arch}"
+    echo "Raspberry 1, 2 ou zéro détecté, utilisation du paquet v${installVerARM61} pour ${arch}"
     #wget https://nodejs.org/download/release/latest-v${installVer}.x/node-*-linux-${arch}.tar.gz
-    wget -P ./tmp -r -l1 -nd -np --accept-regex='node-.*-linux-${arch}\.tar\.gz' https://nodejs.org/download/release/latest-v${installVer}.x/
+    wget -P ./tmp -r -l1 -nd -np --accept-regex='node-.*-linux-${arch}\.tar\.gz' https://nodejs.org/download/release/latest-v${installVerARM61}.x/
     cd ./tmp
     nodegz=`ls node-.*-linux-${arch}.tar.gz`
     tar -xvf $nodegz
