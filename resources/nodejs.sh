@@ -20,37 +20,6 @@ echo 10 > ${PROGRESS_FILE}
 echo "--10%"
 echo "Lancement de l'installation/mise à jour des dépendances upnp"
 
-if [ -f /media/boot/multiboot/meson64_odroidc2.dtb.linux ]; then
-  echo "Smart détectée, migration du repo NodeJS"
-  if [ -f /etc/apt/sources.list.d/jeedom.list* ]; then
-    echo "Suppression de /etc/apt/sources.list.d/jeedom.list*"
-    sudo rm -rf /etc/apt/sources.list.d/jeedom.list*
-  fi
-  sudo wget --quiet -O - http://repo.jeedom.com/odroid/conf/jeedom.gpg.key | sudo apt-key add -
-  sudo apt-add-repository "deb http://repo.jeedom.com/odroid/ stable main"
-fi
-
-if [ -f /etc/apt/sources.list.d/jeedom.list* ]; then
-  echo "Traitement de /etc/apt/sources.list.d/jeedom.list*"
-  echo "Vérification si la source repo.jeedom.com existe (bug sur mini+)"
-  echo "repo.jeedom.com existe !"
-  if [ -f /etc/apt/sources.list.d/jeedom.list.disabled ]; then
-    echo "mais il est déjà désactivé..."
-  else
-    if [ -f /etc/apt/sources.list.d/jeedom.list ]; then
-      echo "Désactivation de la source repo.jeedom.com !"
-      sudo mv /etc/apt/sources.list.d/jeedom.list /etc/apt/sources.list.d/jeedom.list.disabled
-    else
-      if [ -f /etc/apt/sources.list.d/jeedom.list.disabled ]; then
-        echo "mais il est déjà désactivé..."
-      else
-	       echo "mais n'est ni 'disabled' ou 'disabledByUpnp'... il sera normalement ignoré donc ca devrait passer..."
-      fi
-    fi
-  fi
-fi
-
-
 echo 20 > ${PROGRESS_FILE}
 echo "--20%"
 sudo apt-get update
@@ -117,14 +86,9 @@ else
     #upgrade to recent npm
     sudo npm install -g npm
   else
-    if [ -f /media/boot/multiboot/meson64_odroidc2.dtb.linux ]; then
-      echo "Installation pour Smart"
-      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs
-    else
-      echo "Utilisation du dépot officiel"
-      curl -sL https://deb.nodesource.com/setup_${installVer}.x | sudo -E bash -
-      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs
-    fi
+    echo "Utilisation du dépot officiel"
+    curl -sL https://deb.nodesource.com/setup_${installVer}.x | sudo -E bash -
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs
   fi
 
   new=`nodejs -v`;
