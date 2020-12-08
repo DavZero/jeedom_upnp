@@ -217,10 +217,8 @@ function addCmdToTable(_cmd) {
 
   //Type
   tr += '<td>';
-  tr += '<div class="col-sm-3">';
   if (init(_cmd.logicalId) == 'UpnpUserAction') tr += '<span class="cmdAttr" data-l1key="logicalId"></span>';
   else tr += '<span>' + init(_cmd.type) + '</span>';
-  tr += '</div>';
   tr += '</td>';
 
   //NomUpnp
@@ -284,37 +282,39 @@ function addCmdToTable(_cmd) {
   var tr = $('#table_cmd tbody tr:last');
 
   if (init(_cmd.logicalId) == 'UpnpUserAction') {
-    jeedom.cmd.byId({
-      id: _cmd.configuration.upnpAction,
-      success: function (upnpCmd) {
-        updateOptions(tr, _cmd, upnpCmd.configuration.arguments);
+    if (init(_cmd.configuration.upnpAction)) {
+      jeedom.cmd.byId({
+        id: _cmd.configuration.upnpAction,
+        success: function (upnpCmd) {
+          updateOptions(tr, _cmd, upnpCmd.configuration.arguments);
+        }
+      });
+    }
+
+    buildUPnPActionSelectCmd({
+      id: $(".eqLogicDisplayCard.active").attr('data-eqLogic_id'),
+      error: function (error) {
+        $('#div_alert').showAlert({ message: error.message, level: 'danger' });
+      },
+      success: function (result) {
+        tr.find('.cmdAttr[data-l2key=upnpAction]').append(result);
+        tr.setValues(_cmd, '.cmdAttr');
+      }
+    });
+
+    jeedom.eqLogic.builSelectCmd({
+      id: $(".eqLogicDisplayCard.active").attr('data-eqLogic_id'),
+      filter: { type: 'info' },
+      error: function (error) {
+        $('#div_alert').showAlert({ message: error.message, level: 'danger' });
+      },
+      success: function (result) {
+        tr.find('.cmdAttr[data-l1key=value]').append(result);
+        tr.setValues(_cmd, '.cmdAttr');
       }
     });
   }
   else if (init(_cmd.type) == 'action') updateOptions(tr, _cmd, _cmd.configuration.arguments);
-
-  buildUPnPActionSelectCmd({
-    id: $(".li_eqLogic.active").attr('data-eqLogic_id'),
-    error: function (error) {
-      $('#div_alert').showAlert({ message: error.message, level: 'danger' });
-    },
-    success: function (result) {
-      tr.find('.cmdAttr[data-l2key=upnpAction]').append(result);
-      tr.setValues(_cmd, '.cmdAttr');
-    }
-  });
-
-  jeedom.eqLogic.builSelectCmd({
-    id: $(".li_eqLogic.active").attr('data-eqLogic_id'),
-    filter: { type: 'info' },
-    error: function (error) {
-      $('#div_alert').showAlert({ message: error.message, level: 'danger' });
-    },
-    success: function (result) {
-      tr.find('.cmdAttr[data-l1key=value]').append(result);
-      tr.setValues(_cmd, '.cmdAttr');
-    }
-  });
 }
 
 function updateOptions(tr, cmd, args) {

@@ -1,7 +1,7 @@
 #!/bin/bash
 PROGRESS_FILE=/tmp/upnp_dep
-installVer='8' 	#NodeJS major version to be installed
-minVer='8'	#min NodeJS major version to be accepted
+installVer='12' 	#NodeJS major version to be installed
+minVer='12'	#min NodeJS major version to be accepted
 
 touch ${PROGRESS_FILE}
 echo 0 > ${PROGRESS_FILE}
@@ -20,35 +20,10 @@ echo 10 > ${PROGRESS_FILE}
 echo "--10%"
 echo "Lancement de l'installation/mise à jour des dépendances upnp"
 
-if [ -f /etc/apt/sources.list.d/jeedom.list* ]; then
-  if [ -f /media/boot/multiboot/meson64_odroidc2.dtb.linux ]; then
-    echo "Smart détectée, migration du repo NodeJS"
-    sudo wget --quiet -O - http://repo.jeedom.com/odroid/conf/jeedom.gpg.key | sudo apt-key add -
-    sudo rm -rf /etc/apt/sources.list.d/jeedom.list*
-    sudo apt-add-repository "deb http://repo.jeedom.com/odroid/ stable main"
-  else
-    echo "Vérification si la source repo.jeedom.com existe (bug sur mini+)"
-    echo "repo.jeedom.com existe !"
-    if [ -f /etc/apt/sources.list.d/jeedom.list.disabled ]; then
-      echo "mais il est déjà désactivé..."
-    else
-      if [ -f /etc/apt/sources.list.d/jeedom.list ]; then
-        echo "Désactivation de la source repo.jeedom.com !"
-        sudo mv /etc/apt/sources.list.d/jeedom.list /etc/apt/sources.list.d/jeedom.list.disabled
-      else
-        if [ -f /etc/apt/sources.list.d/jeedom.list.disabled ]; then
-  	       echo "mais il est déjà désactivé..."
-        else
-	         echo "mais n'est ni 'disabled' ou 'disabledByHomebridge'... il sera normalement ignoré donc ca devrait passer..."
-        fi
-      fi
-    fi
-  fi
-fi
-
 echo 20 > ${PROGRESS_FILE}
 echo "--20%"
 sudo apt-get update
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y lsb-release
 
 echo 30 > ${PROGRESS_FILE}
 echo "--30%"
@@ -62,7 +37,30 @@ else
 fi
 arch=`arch`;
 
-if [ $actual -ge 8 ]
+#jeedom mini and rpi 1 2, 12 does not support arm6l
+if [[ $arch == "armv6l" ]]
+then
+  installVer='8' 	#NodeJS major version to be installed
+  minVer='8'	#min NodeJS major version to be accepted  
+fi
+
+#jessie as libstdc++ > 4.9 needed for nodejs 12
+lsb_release -c | grep jessie
+if [ $? -eq 0 ]
+then
+  installVer='8' 	#NodeJS major version to be installed
+  minVer='8'	#min NodeJS major version to be accepted  
+fi
+
+bits=`getconf LONG_BIT`
+vers=`lsb_release -c | grep stretch | wc -l`
+if { [ "$arch" = "i386" ] || [ "$arch" = "i686" ]; } && [ "$bits" -eq "32" ] && [ "$vers" -eq "1" ]
+then 
+  installVer='8' 	#NodeJS major version to be installed
+  minVer='8'	#min NodeJS major version to be accepted  
+fi
+
+if [ $actual -ge ${minVer} ]
 then
   echo "Ok, version suffisante"
 else
@@ -77,22 +75,20 @@ else
   if [[ $arch == "armv6l" ]]
   then
     echo "Raspberry 1, 2 ou zéro détecté, utilisation du paquet v${installVer} pour ${arch}"
-    wget https://nodejs.org/download/release/latest-v${installVer}.x/node-*-linux-${arch}.tar.gz
-    tar -xvf node-*-linux-${arch}.tar.gz
-    cd node-*-linux-${arch}
-    sudo cp -R * /usr/local/
+    #wget https://nodejs.org/download/release/latest-v${installVer}.x/node-*-linux-${arch}.tar.gz
+    wget -P ./tmp -r -l1 -nd -np --accept-regex='node-.*-linux-${arch}\.tar\.gz' https://nodejs.org/download/release/latest-v${installVer}.x/
+    cd ./tmp
+    nodegz=`ls node-.*-linux-${arch}.tar.gz`
+    tar -xvf $nodegz
+    sudo cp -R node-*-linux-${arch}/* /usr/local/
     cd ..
-    rm -fR node-*-linux-${arch}*
+    rm -fR tmp
     #upgrade to recent npm
     sudo npm install -g npm
   else
-    if [ -f /media/boot/multiboot/meson64_odroidc2.dtb.linux ]; then
-      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs
-    else
-      echo "Utilisation du dépot officiel"
-      curl -sL https://deb.nodesource.com/setup_${installVer}.x | sudo -E bash -
-      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs
-    fi
+    echo "Utilisation du dépot officiel"
+    curl -sL https://deb.nodesource.com/setup_${installVer}.x | sudo -E bash -
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs
   fi
 
   new=`nodejs -v`;
