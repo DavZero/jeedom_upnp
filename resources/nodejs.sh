@@ -62,6 +62,4 @@ step 90
 
 silent sudo chown -R www-data *
 
-step 100 "Installation des dépendances Upnp terminée, vérifiez qu'il n'y a pas d'erreur"
-
 post
