@@ -22,21 +22,17 @@ const NTS_EVENTS =
 };
 
 var debug;
-if (process.env.NODE_DEBUG && /upnp/.test(process.env.NODE_DEBUG))
-{
-	debug = function (x)
-	{
+if (process.env.NODE_DEBUG && /upnp/.test(process.env.NODE_DEBUG)) {
+	debug = function (x) {
 		console.error('SSDP: %s', x);
 	};
 
 }
-else
-{
-	debug = function ()  {};
+else {
+	debug = function () { };
 }
 
-class SSDPMessage
-{
+class SSDPMessage {
 	/*Message Header
 	"CACHE-CONTROL": "max-age=1900",
 	"DATE": "Wed, 06 Apr 2016 18:23:25 GMT",
@@ -56,25 +52,20 @@ class SSDPMessage
 	"port": 42359,
 	"size": 498
 	 */
-	constructor(message)
-	{
+	constructor(message) {
 		this._message = message.toString('ascii');
 		debug(this._message);
 	}
 
-	original()
-	{
+	original() {
 		return this._message;
 	}
 
-	getHeaders()
-	{
+	getHeaders() {
 		var lines = this._message.split("\r\n");
 		var headers = {};
-		lines.forEach(function (line)
-		{
-			if (line.length)
-			{
+		lines.forEach(function (line) {
+			if (line.length) {
 				var pairs = line.match(ssdpHeader);
 				if (pairs)
 					headers[pairs[1].toUpperCase()] = pairs[2]; // e.g. {'HOST': 239.255.255.250:1900}
@@ -84,59 +75,50 @@ class SSDPMessage
 		return headers;
 	}
 
-	getMethod()
-	{
+	getMethod() {
 		var lines = this._message.split('\r\n'),
-		type = lines.shift().split(' ') // command, such as "NOTIFY * HTTP/1.1"
-	,
-		method = type[0];
+			type = lines.shift().split(' ') // command, such as "NOTIFY * HTTP/1.1"
+			,
+			method = type[0];
 		return method;
 	}
 
-	getBody()
-	{
+	getBody() {
 		return '';
 	}
 }
 
 class SSDP //extends EventEmmitter
 {
-	constructor(ssdpPort)
-	{
+	constructor(ssdpPort) {
 		this._ssdpPort = ssdpPort
 	}
 
-	startServer(callback)
-	{
+	startServer(callback) {
 		this._server = dgram.createSocket(
 			{
 				type: 'udp4',
 				reuseAddr: true
 			}
-			);
+		);
 		//this._server = dgram.createSocket('udp4');
-		this._server.on('message', function (msg, rinfo)
-		{
+		this._server.on('message', function (msg, rinfo) {
 			callback(new SSDPMessage(msg), rinfo);
 		}
 		);
 
-		this._server.bind(this._ssdpPort, () =>
-		{
+		this._server.bind(this._ssdpPort, () => {
 			this._server.addMembership(BROADCAST_ADDR);
 		}
 		);
 	}
 
-	stopServer()
-	{
+	stopServer() {
 		this._server.close();
 	}
 
-	sendMSearch(st, callback)
-	{
-		if (typeof st !== 'string')
-		{
+	sendMSearch(st, callback) {
+		if (typeof st !== 'string') {
 			st = ALL;
 		}
 
@@ -146,20 +128,19 @@ class SSDP //extends EventEmmitter
 			"ST:" + st + "\r\n" +
 			"Man:\"ssdp:discover\"\r\n" +
 			"MX:3\r\n\r\n",
-      client = dgram.createSocket({type: 'udp4',reuseAddr: true}),
-		//client = dgram.createSocket('udp4'),
-      server = dgram.createSocket({type: 'udp4',reuseAddr: true});
+			client = dgram.createSocket({ type: 'udp4', reuseAddr: true }),
+			//client = dgram.createSocket('udp4'),
+			server = dgram.createSocket({ type: 'udp4', reuseAddr: true });
 
-		server.on('message', function (msg, rinfo) {callback(new SSDPMessage(msg), rinfo);});
+		server.on('message', function (msg, rinfo) { callback(new SSDPMessage(msg), rinfo); });
 
 		server.on('listening', () => {
-			client.send(new Buffer(message, "ascii"), 0, message.length, this._ssdpPort, BROADCAST_ADDR, function () {
+			client.send(Buffer.from(message, "ascii"), 0, message.length, this._ssdpPort, BROADCAST_ADDR, function () {
 				client.close();
 			});
 		});
 
-		client.on('listening', function ()
-		{
+		client.on('listening', function () {
 			server.bind(client.address().port);
 		}
 		);
@@ -167,8 +148,7 @@ class SSDP //extends EventEmmitter
 		client.bind();
 
 		// MX is set to 3, wait for 1 additional sec. before closing the server
-		setTimeout(function ()
-		{
+		setTimeout(function () {
 			server.close();
 		}, 4000);
 	}
