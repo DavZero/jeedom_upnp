@@ -7,82 +7,69 @@ var SOAPBuilder = require('./SOAPBuilder.js').SOAPBuilder;
 var xml2js = require('xml2js');
 var stripNS = require('xml2js').processors.stripPrefix;
 
-class UpnpAction
-{
-	constructor(service, actionData, fromDevice)
-	{
+class UpnpAction {
+	constructor(service, actionData, fromDevice) {
 		Logger.log("Création de l'action : " + JSON.stringify(actionData), LogType.DEBUG);
 		this._service = service;
 		this._fromDevice = fromDevice;
 		this._initialize(actionData);
 	}
 
-	_initialize(actionData, callback)
-	{
+	_initialize(actionData, callback) {
 		this._name = actionData.name[0];
 		this._arguments = [];
-		if (actionData.argumentList && actionData.argumentList[0].argument)
-		{
+		if (actionData.argumentList && actionData.argumentList[0].argument) {
 			actionData.argumentList[0].argument.forEach((item) => {
-        if (!item.name) Logger.log("Unable to create argument without name for action : " + JSON.stringify(actionData), LogType.WARNING);
+				if (!item.name) Logger.log("Unable to create argument without name for action : " + JSON.stringify(actionData), LogType.WARNING);
 				else if (!item.direction) Logger.log("Unable to create argument without direction for action : " + JSON.stringify(actionData), LogType.WARNING);
-        else this._arguments.push(new UpnpActionArgument(item, this._service));
+				else this._arguments.push(new UpnpActionArgument(item, this._service));
 			});
 		}
 	}
 
-	get IsFromDevice()
-	{
+	get IsFromDevice() {
 		return this._fromDevice;
 	}
 
-	execute(options, callback)
-	{
+	execute(options, callback) {
 		var quey = new SOAPBuilder(this, options);
-		quey.sendMessage((err, responseBody) =>
-		{
-			if (err)
-			{
+		quey.sendMessage((err, responseBody) => {
+			if (err) {
 				Logger.log("Error executiong action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options) + ", err : " + err, LogType.ERROR);
 				//this._service.Device.emit('error',"Error executiong action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify (options) + ", err : " + err);
 				if (callback) callback("Error executiong action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options) + ", err : " + err, null);
 			}
-			else
-			{
+			else {
 				//Process Response
 				Logger.log("Successfully execute action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options), LogType.DEBUG);
 				//On decode le XML au cas ou pour qu'il soit également convertie en JSON
 				//responseBody = XmlEntities.decode(responseBody);
 				//On convertie en js Object en supprimant les namespaces pour traitement du json en php
-				xml2js.parseString(responseBody, { tagNameProcessors: [stripNS] }, (err, data) =>
-				{
+				xml2js.parseString(responseBody, { tagNameProcessors: [stripNS] }, (err, data) => {
 					//Manage error
 					var returnData = '';
-					if (err)
-					{
+					if (err) {
 						Logger.log("Unable to process action " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " err : " + JSON.stringify(err), LogType.ERROR);
-            //this._service.Device.emit('error',"Error parsing response XML for action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify (options) + ", err : " + err + ", XML : " + responseBody);
+						//this._service.Device.emit('error',"Error parsing response XML for action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify (options) + ", err : " + err + ", XML : " + responseBody);
 						if (callback) callback("Error parsing response XML for action : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options) + ", err : " + err + ", XML : " + responseBody, null);
 					}
-					else
-					{
+					else {
 						//if (!data || !data['s:Envelope'] || !data['s:Envelope']['s:Body']) namespace change depending of manufacturer
-            Logger.log("Action response " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " response : " + JSON.stringify(data), LogType.DEBUG);
-            if (!data || !data.hasOwnProperty('Envelope') || !data['Envelope'].hasOwnProperty('Body'))
-            {
-              Logger.log("Unable to process action " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " response : " + JSON.stringify(data), LogType.ERROR);
-              //Should return an error instead of just return.
-              return;
-            }
-            //returnData = data['s:Envelope']['s:Body'][0]; namespace change depending of manufacturer
-            returnData = data['Envelope']['Body'][0]; 
+						Logger.log("Action response " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " response : " + JSON.stringify(data), LogType.DEBUG);
+						if (!data || !data.hasOwnProperty('Envelope') || !data['Envelope'].hasOwnProperty('Body')) {
+							Logger.log("Unable to process action " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " response : " + JSON.stringify(data), LogType.ERROR);
+							//Should return an error instead of just return.
+							return;
+						}
+						//returnData = data['s:Envelope']['s:Body'][0]; namespace change depending of manufacturer
+						returnData = data['Envelope']['Body'][0];
 						//if (returnData['s:Fault']) namespace change depending of manufacturer
-            if (returnData.hasOwnProperty('Fault'))
-							//returnData = data['Envelope']['Body'][0];
-							//if (returnData['Fault'])
+						if (returnData.hasOwnProperty('Fault'))
+						//returnData = data['Envelope']['Body'][0];
+						//if (returnData['Fault'])
 						{
 							//Gestion de l'Erreur
-              Logger.log("Action Fault " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " response : " + JSON.stringify(returnData['Fault']), LogType.ERROR);
+							Logger.log("Action Fault " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + " response : " + JSON.stringify(returnData['Fault']), LogType.ERROR);
 							//this._service.Device.emit('error',"Upnp action error for : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify (options) + ", err : " + JSON.stringify(returnData));
 							if (callback)
 								callback("Upnp action error for : " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options) + ", err : " + JSON.stringify(returnData), JSON.stringify(returnData));
@@ -93,18 +80,16 @@ class UpnpAction
 						callback(null, JSON.stringify(returnData));
 					//Todo Process response and update data if nacessary
 					//var outputsVariable = returnData['u:' + this.Name + 'Response'][0]; namespace change depending of manufacturer
-          var outputsVariable = returnData[this.Name + 'Response'][0];
-					for (var prop in outputsVariable)
-					{
+					var outputsVariable = returnData[this.Name + 'Response'][0];
+					for (var prop in outputsVariable) {
 						if (prop == '$')
 							continue;
 						Logger.log("Processing update action's output argument " + JSON.stringify(prop) + " with val " + JSON.stringify(outputsVariable[prop][0]), LogType.DEBUG);
 						var arg = this.getArgumentByName(prop);
-						if (arg && arg.RelatedStateVariable)
-						{
+						if (arg && arg.RelatedStateVariable) {
 							var value = outputsVariable[prop][0];
-              if (value.hasOwnProperty('_')) value = value['_'];
-              arg.RelatedStateVariable.Value = value;
+							if (value.hasOwnProperty('_')) value = value['_'];
+							arg.RelatedStateVariable.Value = value;
 						}
 						else
 							Logger.log("Unable to process output argument " + prop + " of action " + this.Service.Device.UDN + '/' + this.Service.ID + '/' + this._name + ' with options : ' + JSON.stringify(options), LogType.WARNING);
@@ -114,28 +99,22 @@ class UpnpAction
 		});
 	}
 
-	get Service()
-	{
+	get Service() {
 		return this._service;
 	}
 
-	get Name()
-	{
+	get Name() {
 		return this._name;
 	}
 
-	get Arguments()
-	{
+	get Arguments() {
 		return this._arguments
 	}
 
-	getArgumentByName(name)
-	{
-		for (var prop in this._arguments)
-		{
+	getArgumentByName(name) {
+		for (var prop in this._arguments) {
 			//console.log("obj." + prop + " = " + this._devices[prop] + "/" + this._devices[prop].UDN);
-			if (name == this._arguments[prop].Name)
-			{
+			if (name == this._arguments[prop].Name) {
 				return this._arguments[prop];
 			}
 		}
@@ -143,11 +122,9 @@ class UpnpAction
 		return null;
 	}
 
-	ToString()
-	{
+	ToString() {
 		var argString = "";
-		this._arguments.forEach((item) =>
-		{
+		this._arguments.forEach((item) => {
 			argString += item.ToString() + "\n";
 		}
 		);
@@ -155,8 +132,7 @@ class UpnpAction
 	}
 }
 
-class UpnpActionArgument
-{
+class UpnpActionArgument {
 	/*
 	<argument>
 	<name>InstanceID</name>
@@ -169,32 +145,27 @@ class UpnpActionArgument
 	<relatedStateVariable>AVTransportURI</relatedStateVariable>
 	</argument>
 	 */
-	constructor(variable, service)
-	{
+	constructor(variable, service) {
 		Logger.log("Création de l'argument : " + JSON.stringify(variable), LogType.DEBUG);
 		this._name = variable.name[0];
 		this._direction = variable.direction[0];
-		this._relatedStateVariable = service.getVariableByName(variable.relatedStateVariable[0]);
-    if (!this._relatedStateVariable) Logger.log("Unable to map argument : " + variable.name[0] + " with corresponding variable of service " + service.ID, LogType.WARNING);
+		if (variable.relatedStateVariable) this._relatedStateVariable = service.getVariableByName(variable.relatedStateVariable[0]);
+		if (!this._relatedStateVariable) Logger.log("Unable to map argument : " + variable.name[0] + " with corresponding variable of service " + service.ID, LogType.WARNING);
 	}
 
-	get Name()
-	{
+	get Name() {
 		return this._name;
 	}
 
-	get Direction()
-	{
+	get Direction() {
 		return this._direction;
 	}
 
-	get RelatedStateVariable()
-	{
+	get RelatedStateVariable() {
 		return this._relatedStateVariable;
 	}
 
-	ToString()
-	{
+	ToString() {
 		return "Argument Name : " + this._name + ",  Argument Direction : " + this._direction + ",  Argument relatedVariable : " + this._relatedVariable.Name();
 	}
 }
